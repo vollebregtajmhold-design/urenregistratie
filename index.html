@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Urenregistratie</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#F7F6F2;
+    --surface:#FFFFFF;
+    --border:#E4E2DA;
+    --text:#1A1917;
+    --muted:#7A7870;
+    --accent:#2C5F8A;
+    --accent-light:#EAF1F8;
+    --danger:#C0392B;
+    --success:#1A6B3C;
+    --radius:10px;
+    --font:'Inter',system-ui,sans-serif;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      --bg:#141412;
+      --surface:#1E1D1B;
+      --border:#2E2D2A;
+      --text:#F0EFE9;
+      --muted:#888680;
+      --accent:#5B9DD4;
+      --accent-light:#1A2A38;
+      --danger:#E57373;
+      --success:#66BB8A;
+    }
+  }
+  body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.5;min-height:100vh}
+  .screen{display:none;max-width:480px;margin:0 auto;padding:1.5rem 1rem 4rem}
+  .screen.active{display:block}
+  .logo{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.25rem}
+  .page-title{font-size:24px;font-weight:600;margin-bottom:2rem}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
+  label{display:block;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem;margin-top:1rem}
+  label:first-child{margin-top:0}
+  input,select{display:block;width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:15px;font-family:var(--font);outline:none;transition:border-color .15s}
+  input:focus,select:focus{border-color:var(--accent)}
+  .btn{display:block;width:100%;padding:12px;border-radius:8px;font-size:15px;font-weight:600;font-family:var(--font);cursor:pointer;text-align:center;transition:opacity .15s,transform .1s;border:none;margin-top:1rem}
+  .btn:active{transform:scale(.98);opacity:.85}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
+  .btn-sm{padding:7px 12px;font-size:13px;width:auto;display:inline-block;margin-top:0}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .error{font-size:13px;color:var(--danger);margin-top:.5rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+  .topbar-user{font-size:13px;color:var(--muted)}
+  .logout{background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);font-family:var(--font);padding:4px 0}
+  .logout:hover{color:var(--text)}
+  .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.25rem}
+  .tab{padding:10px 0;margin-right:1.5rem;font-size:14px;font-weight:500;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;font-family:var(--font);transition:color .15s}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tabpanel{display:none}
+  .tabpanel.active{display:block}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center}
+  .stat-val{font-size:22px;font-weight:600;color:var(--accent)}
+  .stat-lbl{font-size:12px;color:var(--muted);margin-top:2px}
+  .entry{border-bottom:1px solid var(--border);padding:12px 0}
+  .entry:last-child{border-bottom:none}
+  .entry-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+  .entry-date{font-weight:600;font-size:14px}
+  .entry-time{font-size:13px;color:var(--muted)}
+  .entry-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .tag{font-size:12px;padding:3px 8px;border-radius:20px;background:var(--accent-light);color:var(--accent);font-weight:500}
+  .tag.ziek{background:#FFF0EE;color:var(--danger)}
+  .tag.vrij{background:#EAFAF1;color:var(--success)}
+  .empty{text-align:center;padding:3rem 0;color:var(--muted);font-size:14px}
+  .filter-row{display:flex;gap:8px;margin-bottom:1rem;align-items:center}
+  .filter-row select{margin:0;flex:1}
+  .filter-row label{margin:0;white-space:nowrap}
+  .user-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+  .user-row:last-child{border-bottom:none}
+  .badge{display:inline-block;font-size:11px;padding:2px 7px;border-radius:20px;font-weight:600;margin-left:6px}
+  .badge-admin{background:var(--accent-light);color:var(--accent)}
+  .hint{font-size:12px;color:var(--muted);margin-top:.4rem}
+  .success-msg{font-size:13px;color:var(--success);margin-top:.5rem;font-weight:500}
+  @media(prefers-color-scheme:dark){
+    .tag.ziek{background:#3A1A18;color:#E57373}
+    .tag.vrij{background:#0E2A1A;color:#66BB8A}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div style="padding-top:2.5rem">
+    <div class="logo">Urenregistratie</div>
+    <div class="page-title">Inloggen</div>
+    <div class="card">
+      <label>Naam</label>
+      <input type="text" id="login-name" placeholder="Uw naam" autocomplete="username">
+      <label>Wachtwoord</label>
+      <input type="password" id="login-pass" placeholder="Wachtwoord" autocomplete="current-password">
+      <div id="login-err" class="error" style="display:none"></div>
+      <button class="btn btn-primary" onclick="doLogin()">Inloggen</button>
+      <button class="btn btn-secondary" onclick="show('screen-register')">Account aanmaken</button>
+    </div>
+    <p class="hint" style="text-align:center;margin-top:.5rem">Demo beheerder: admin / admin123</p>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div id="screen-register" class="screen">
+  <div class="topbar">
+    <div class="logo">Urenregistratie</div>
+    <button class="logout" onclick="show('screen-login')">← Terug</button>
+  </div>
+  <div class="page-title">Account aanmaken</div>
+  <div class="card">
+    <label>Uw naam</label>
+    <input type="text" id="reg-name" placeholder="Volledige naam" autocomplete="name">
+    <label>Wachtwoord</label>
+    <input type="password" id="reg-pass" placeholder="Kies een wachtwoord" autocomplete="new-password">
+    <div id="reg-err" class="error" style="display:none"></div>
+    <button class="btn btn-primary" onclick="doRegister()">Account aanmaken</button>
+  </div>
+</div>
+
+<!-- MEDEWERKER -->
+<div id="screen-user" class="screen">
+  <div class="topbar">
+    <div>
+      <div class="logo">Urenregistratie</div>
+      <span id="user-name-label" style="font-weight:600;font-size:16px"></span>
+    </div>
+    <button class="logout" onclick="doLogout()">Uitloggen</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('user','invullen',this)">Invullen</button>
+    <button class="tab" onclick="switchTab('user','overzicht',this)">Mijn uren</button>
+  </div>
+
+  <div id="user-invullen" class="tabpanel active">
+    <div class="card">
+      <label>Datum</label>
+      <input type="date" id="u-datum">
+      <div class="row2">
+        <div><label>Aanvang</label><input type="time" id="u-aanvang"></div>
+        <div><label>Einde</label><input type="time" id="u-einde"></div>
+      </div>
+      <label>Uren ziek</label>
+      <input type="number" id="u-ziek" min="0" max="24" step="0.5" placeholder="0">
+      <label>Uren dokter</label>
+      <input type="number" id="u-dokter" min="0" max="24" step="0.5" placeholder="0">
+      <label>Betaald vrij / feestdag</label>
+      <input type="number" id="u-vrij" min="0" max="24" step="0.5" placeholder="0">
+      <div id="u-err" class="error" style="display:none"></div>
+      <div id="u-ok" class="success-msg" style="display:none"></div>
+      <button class="btn btn-primary" onclick="saveEntry()">Opslaan</button>
+    </div>
+  </div>
+
+  <div id="user-overzicht" class="tabpanel">
+    <div id="user-stats" class="stat-grid"></div>
+    <div id="user-entries"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="screen-admin" class="screen">
+  <div class="topbar">
+    <div>
+      <div class="logo">Urenregistratie</div>
+      <span style="font-weight:600;font-size:16px">Beheerder</span>
+    </div>
+    <button class="logout" onclick="doLogout()">Uitloggen</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('admin','totalen',this)">Totalen</button>
+    <button class="tab" onclick="switchTab('admin','details',this)">Details</button>
+    <button class="tab" onclick="switchTab('admin','mensen',this)">Medewerkers</button>
+  </div>
+
+  <div id="admin-totalen" class="tabpanel active">
+    <div class="filter-row">
+      <select id="f-naam" onchange="renderAdmin()"><option value="">Alle medewerkers</option></select>
+      <select id="f-week" onchange="renderAdmin()"><option value="">Alle weken</option></select>
+    </div>
+    <div id="admin-stats" class="stat-grid"></div>
+    <p id="admin-count" class="hint"></p>
+  </div>
+
+  <div id="admin-details" class="tabpanel">
+    <div id="admin-list"></div>
+  </div>
+
+  <div id="admin-mensen" class="tabpanel">
+    <div id="admin-users-list" class="card" style="padding:.75rem 1rem"></div>
+    <div class="card" style="margin-top:1rem">
+      <div style="font-weight:600;margin-bottom:.75rem">Medewerker toevoegen</div>
+      <label>Naam</label>
+      <input type="text" id="new-naam" placeholder="Naam">
+      <label>Wachtwoord</label>
+      <input type="password" id="new-pass" placeholder="Wachtwoord">
+      <div id="new-err" class="error" style="display:none"></div>
+      <button class="btn btn-primary" onclick="addUser()">Toevoegen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- Data ---
+let users = JSON.parse(localStorage.getItem('ur_users') || '[]');
+let entries = JSON.parse(localStorage.getItem('ur_entries') || '[]');
+let me = null;
+
+if (!users.find(u => u.name === 'admin')) {
+  users.push({ name: 'admin', pass: 'admin123', role: 'admin' });
+  save();
+}
+
+function save() {
+  localStorage.setItem('ur_users', JSON.stringify(users));
+  localStorage.setItem('ur_entries', JSON.stringify(entries));
+}
+
+// --- Navigation ---
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function switchTab(scope, tab, btn) {
+  document.querySelectorAll(`#screen-${scope} .tabpanel`).forEach(p => p.classList.remove('active'));
+  document.querySelectorAll(`#screen-${scope} .tab`).forEach(t => t.classList.remove('active'));
+  document.getElementById(`${scope}-${tab}`).classList.add('active');
+  btn.classList.add('active');
+  if (scope === 'user' && tab === 'overzicht') renderUserOverzicht();
+  if (scope === 'admin') renderAdmin();
+}
+
+// --- Auth ---
+function doLogin() {
+  const n = val('login-name').toLowerCase();
+  const p = val('login-pass');
+  const u = users.find(x => x.name.toLowerCase() === n && x.pass === p);
+  if (!u) { showErr('login-err', 'Naam of wachtwoord onjuist'); return; }
+  hideEl('login-err');
+  me = u;
+  if (u.role === 'admin') { show('screen-admin'); fillFilters(); renderAdmin(); }
+  else {
+    document.getElementById('user-name-label').textContent = u.name;
+    const today = todayStr();
+    setVal('u-datum', today);
+    setVal('u-aanvang', '08:00');
+    setVal('u-einde', '17:00');
+    ['u-ziek','u-dokter','u-vrij'].forEach(id => setVal(id, ''));
+    // pre-fill if entry exists
+    const ex = entries.find(e => e.naam === me.name && e.datum === today);
+    if (ex) { setVal('u-aanvang', ex.aanvang); setVal('u-einde', ex.einde); setVal('u-ziek', ex.ziek||''); setVal('u-dokter', ex.dokter||''); setVal('u-vrij', ex.vrij||''); }
+    show('screen-user');
+    // reset tabs
+    document.querySelectorAll('#screen-user .tab').forEach((t,i) => t.classList.toggle('active', i===0));
+    document.getElementById('user-invullen').classList.add('active');
+    document.getElementById('user-overzicht').classList.remove('active');
+  }
+}
+
+function doRegister() {
+  const n = val('reg-name').trim();
+  const p = val('reg-pass');
+  if (!n || !p) { showErr('reg-err', 'Vul naam en wachtwoord in'); return; }
+  if (users.find(u => u.name.toLowerCase() === n.toLowerCase())) { showErr('reg-err', 'Deze naam is al in gebruik'); return; }
+  users.push({ name: n, pass: p, role: 'user' });
+  save();
+  hideEl('reg-err');
+  alert('Account aangemaakt! U kunt nu inloggen.');
+  show('screen-login');
+}
+
+function doLogout() {
+  me = null;
+  setVal('login-name', '');
+  setVal('login-pass', '');
+  show('screen-login');
+}
+
+// --- Entry ---
+function calcH(a, e) {
+  if (!a || !e) return 0;
+  const [ah, am] = a.split(':').map(Number);
+  const [eh, em] = e.split(':').map(Number);
+  const d = (eh * 60 + em) - (ah * 60 + am);
+  return d > 0 ? Math.round(d / 60 * 10) / 10 : 0;
+}
+
+function saveEntry() {
+  const datum = val('u-datum');
+  const aanvang = val('u-aanvang');
+  const einde = val('u-einde');
+  if (!datum) { showErr('u-err', 'Selecteer een datum'); return; }
+  hideEl('u-err');
+  const rec = {
+    naam: me.name,
+    datum,
+    aanvang,
+    einde,
+    gewerkt: calcH(aanvang, einde),
+    ziek: parseFloat(val('u-ziek')) || 0,
+    dokter: parseFloat(val('u-dokter')) || 0,
+    vrij: parseFloat(val('u-vrij')) || 0
+  };
+  const idx = entries.findIndex(e => e.naam === me.name && e.datum === datum);
+  if (idx >= 0) entries[idx] = rec; else entries.push(rec);
+  entries.sort((a, b) => b.datum.localeCompare(a.datum));
+  save();
+  const okEl = document.getElementById('u-ok');
+  okEl.textContent = 'Opgeslagen voor ' + fmtDate(datum);
+  okEl.style.display = 'block';
+  setTimeout(() => okEl.style.display = 'none', 3000);
+}
+
+// --- User overview ---
+function renderUserOverzicht() {
+  const mine = entries.filter(e => e.naam === me.name);
+  const stats = document.getElementById('user-stats');
+  const list = document.getElementById('user-entries');
+  if (!mine.length) {
+    stats.innerHTML = '';
+    list.innerHTML = '<div class="empty">Nog geen uren geregistreerd</div>';
+    return;
+  }
+  let tot = { g: 0, z: 0, d: 0, v: 0 };
+  mine.forEach(e => { tot.g += e.gewerkt; tot.z += e.ziek; tot.d += e.dokter; tot.v += e.vrij; });
+  stats.innerHTML = statCard(tot.g.toFixed(1), 'Gewerkt') + statCard(tot.z.toFixed(1), 'Ziek') + statCard(tot.d.toFixed(1), 'Dokter') + statCard(tot.v.toFixed(1), 'Vrij/feestdag');
+  list.innerHTML = '<div class="card" style="padding:.75rem 1rem">' + mine.map(entryHtml).join('') + '</div>';
+}
+
+// --- Admin ---
+function fillFilters() {
+  const names = [...new Set(entries.map(e => e.naam))].sort();
+  const nSel = document.getElementById('f-naam');
+  const wSel = document.getElementById('f-week');
+  const cn = nSel.value, cw = wSel.value;
+  nSel.innerHTML = '<option value="">Alle medewerkers</option>' + names.map(n => `<option ${n === cn ? 'selected' : ''} value="${n}">${n}</option>`).join('');
+  const weeks = [...new Set(entries.map(e => weekLabel(e.datum)))].sort().reverse();
+  wSel.innerHTML = '<option value="">Alle weken</option>' + weeks.map(w => `<option ${w === cw ? 'selected' : ''} value="${w}">${w}</option>`).join('');
+}
+
+function renderAdmin() {
+  fillFilters();
+  const naam = document.getElementById('f-naam').value;
+  const week = document.getElementById('f-week').value;
+  let filtered = entries.filter(e => {
+    if (naam && e.naam !== naam) return false;
+    if (week && weekLabel(e.datum) !== week) return false;
+    return true;
+  });
+  let tot = { g: 0, z: 0, d: 0, v: 0 };
+  filtered.forEach(e => { tot.g += e.gewerkt; tot.z += e.ziek; tot.d += e.dokter; tot.v += e.vrij; });
+  document.getElementById('admin-stats').innerHTML = statCard(tot.g.toFixed(1), 'Gewerkt') + statCard(tot.z.toFixed(1), 'Ziek') + statCard(tot.d.toFixed(1), 'Dokter') + statCard(tot.v.toFixed(1), 'Vrij/feestdag');
+  document.getElementById('admin-count').textContent = filtered.length + ' registratie' + (filtered.length !== 1 ? 's' : '') + ' gevonden';
+  document.getElementById('admin-list').innerHTML = filtered.length
+    ? '<div class="card" style="padding:.75rem 1rem">' + filtered.map(e => `
+      <div class="entry">
+        <div class="entry-head"><span class="entry-date">${e.naam}</span><span class="entry-time">${fmtDate(e.datum)}</span></div>
+        <div style="font-size:13px;color:var(--muted)">${e.aanvang||'–'} – ${e.einde||'–'} · ${e.gewerkt}u gewerkt</div>
+        <div class="entry-tags">${e.ziek ? `<span class="tag ziek">${e.ziek}u ziek</span>` : ''}${e.dokter ? `<span class="tag ziek">${e.dokter}u dokter</span>` : ''}${e.vrij ? `<span class="tag vrij">${e.vrij}u vrij</span>` : ''}</div>
+      </div>`).join('') + '</div>'
+    : '<div class="empty">Geen registraties gevonden</div>';
+  const nonAdmin = users.filter(u => u.role !== 'admin');
+  document.getElementById('admin-users-list').innerHTML = nonAdmin.length
+    ? nonAdmin.map(u => `<div class="user-row"><span>${u.name}</span><button class="btn btn-secondary btn-sm" onclick="deleteUser('${u.name}')">Verwijderen</button></div>`).join('')
+    : '<p style="color:var(--muted);font-size:14px">Nog geen medewerkers</p>';
+}
+
+function addUser() {
+  const n = val('new-naam').trim();
+  const p = val('new-pass');
+  if (!n || !p) { showErr('new-err', 'Vul naam en wachtwoord in'); return; }
+  if (users.find(u => u.name.toLowerCase() === n.toLowerCase())) { showErr('new-err', 'Naam al in gebruik'); return; }
+  users.push({ name: n, pass: p, role: 'user' });
+  save();
+  setVal('new-naam', ''); setVal('new-pass', '');
+  hideEl('new-err');
+  renderAdmin();
+}
+
+function deleteUser(name) {
+  if (!confirm(`Medewerker "${name}" verwijderen?`)) return;
+  users = users.filter(u => u.name !== name);
+  save();
+  renderAdmin();
+}
+
+// --- Helpers ---
+function statCard(val, lbl) {
+  return `<div class="stat"><div class="stat-val">${val}</div><div class="stat-lbl">${lbl}</div></div>`;
+}
+
+function entryHtml(e) {
+  return `<div class="entry">
+    <div class="entry-head"><span class="entry-date">${fmtDate(e.datum)}</span><span class="entry-time">${e.aanvang||'–'} – ${e.einde||'–'}</span></div>
+    <div style="font-size:13px;color:var(--muted)">${e.gewerkt}u gewerkt</div>
+    <div class="entry-tags">
+      ${e.ziek ? `<span class="tag ziek">${e.ziek}u ziek</span>` : ''}
+      ${e.dokter ? `<span class="tag ziek">${e.dokter}u dokter</span>` : ''}
+      ${e.vrij ? `<span class="tag vrij">${e.vrij}u vrij</span>` : ''}
+    </div>
+  </div>`;
+}
+
+function weekLabel(datum) {
+  const d = new Date(datum);
+  const jan4 = new Date(d.getFullYear(), 0, 4);
+  const wk = Math.ceil(((d - jan4) / 86400000 + jan4.getDay() + 1) / 7);
+  return `Week ${wk} (${d.getFullYear()})`;
+}
+
+function fmtDate(d) {
+  const [y, m, day] = d.split('-');
+  return `${day}-${m}-${y}`;
+}
+
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function val(id) { return document.getElementById(id).value; }
+function setVal(id, v) { document.getElementById(id).value = v; }
+function showErr(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.style.display = 'block'; }
+function hideEl(id) { document.getElementById(id).style.display = 'none'; }
+
+// Enter key on login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('screen-login').classList.contains('active')) doLogin();
+});
+</script>
+</body>
+</html>
