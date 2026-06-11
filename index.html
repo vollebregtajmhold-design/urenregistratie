@@ -250,6 +250,8 @@
       </div>
       <label>Snipperuren saldo</label>
       <input type="number" id="new-startsaldo" step="0.5" placeholder="bijv. 10 of -5">
+      <label>Jaarlijkse snipperuren</label>
+      <input type="number" id="new-jaarsnip" step="0.5" placeholder="bijv. 25">
       <div id="new-err" class="error" style="display:none"></div>
       <button class="btn btn-primary" onclick="addUser()">Toevoegen</button>
     </div>
@@ -372,13 +374,13 @@ window.addUser = async function() {
   const s    = parseFloat(document.getElementById('new-startsaldo').value)|| 0;
   const sgew = parseFloat(document.getElementById('new-s-gew').value)     || 0;
   const sziek= parseFloat(document.getElementById('new-s-ziek').value)    || 0;
-  const sdok = parseFloat(document.getElementById('new-s-dok').value)     || 0;
+  const js   = parseFloat(document.getElementById('new-jaarsnip').value)   || 0;
   const svrij= parseFloat(document.getElementById('new-s-vrij').value)    || 0;
   if (!n || !p) { showErr('new-err', 'Vul naam en wachtwoord in'); return; }
   if (allUsers.find(u => u.name.toLowerCase() === n.toLowerCase())) { showErr('new-err', 'Naam al in gebruik'); return; }
-  await setDoc(doc(db, 'users', n.toLowerCase().replace(/\s+/g,'-')), { name: n, pass: p, role: 'user', contracturen: c, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij });
+  await setDoc(doc(db, 'users', n.toLowerCase().replace(/\s+/g,'-')), { name: n, pass: p, role: 'user', contracturen: c, startsaldo: s, jaarsnippers: js, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij });
   await loadUsers();
-  ['new-naam','new-pass','new-contract','new-startsaldo','new-s-gew','new-s-ziek','new-s-dok','new-s-vrij'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['new-naam','new-pass','new-contract','new-startsaldo','new-jaarsnip','new-s-gew','new-s-ziek','new-s-dok','new-s-vrij'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   hideEl('new-err');
   renderAdmin();
 };
@@ -417,16 +419,17 @@ window.resetPassword = async function(name) {
 };
 
 window.saveContract = async function(name) {
-  const c    = parseFloat(document.getElementById('contract-' + name).value)  || 0;
-  const s    = parseFloat(document.getElementById('saldo-' + name).value)     || 0;
-  const sgew = parseFloat(document.getElementById('saldo-gew-'  + name).value)|| 0;
-  const sziek= parseFloat(document.getElementById('saldo-ziek-' + name).value)|| 0;
-  const sdok = parseFloat(document.getElementById('saldo-dok-'  + name).value)|| 0;
-  const svrij= parseFloat(document.getElementById('saldo-vrij-' + name).value)|| 0;
-  const key  = name.toLowerCase().replace(/\s+/g,'-');
-  const u    = allUsers.find(x => x.name === name);
+  const c     = parseFloat(document.getElementById('contract-'  + name).value) || 0;
+  const s     = parseFloat(document.getElementById('saldo-'     + name).value) || 0;
+  const js    = parseFloat(document.getElementById('jaarsnip-'  + name).value) || 0;
+  const sgew  = parseFloat(document.getElementById('saldo-gew-' + name).value) || 0;
+  const sziek = parseFloat(document.getElementById('saldo-ziek-'+ name).value) || 0;
+  const sdok  = parseFloat(document.getElementById('saldo-dok-' + name).value) || 0;
+  const svrij = parseFloat(document.getElementById('saldo-vrij-'+ name).value) || 0;
+  const key   = name.toLowerCase().replace(/\s+/g,'-');
+  const u     = allUsers.find(x => x.name === name);
   if (!u) return;
-  await setDoc(doc(db, 'users', key), { ...u, contracturen: c, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij });
+  await setDoc(doc(db, 'users', key), { ...u, contracturen: c, startsaldo: s, jaarsnippers: js, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij });
   await loadUsers();
   renderAdmin();
   alert(`Gegevens voor ${name} opgeslagen`);
@@ -468,19 +471,23 @@ window.deleteUser = async function(name) {
 function showSnipperBanner() {
   const banner = document.getElementById('snipper-banner');
   if (!banner) return;
-  const contract = me.contracturen || 0;
-  if (!contract) { banner.style.display = 'none'; return; }
-  const startsaldo = me.startsaldo || 0;
+  const contract     = me.contracturen  || 0;
+  const jaarsnippers = me.jaarsnippers  || 0;
+  const startsaldo   = me.startsaldo    || 0;
+  if (!jaarsnippers) { banner.style.display = 'none'; return; }
   const mine = allEntries.filter(e => e.naam === me.name);
   const weken = groupByWeek(mine);
-  const jaarTot = totals(mine);
-  const jTot = +(jaarTot.g||0)+ +(jaarTot.z||0)+ +(jaarTot.d||0)+ +(jaarTot.v||0);
-  const jaarContract = weken.length * contract;
-  const snip = +(startsaldo + jaarContract - jTot).toFixed(1);
+  const gebruiktSnip = weken.reduce((acc, {items}) => {
+    const t = totals(items);
+    const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
+    const s = contract > 0 ? +(contract - tot).toFixed(1) : 0;
+    return acc + (s < 0 ? Math.abs(s) : 0);
+  }, 0);
+  const snip = +(startsaldo + jaarsnippers - gebruiktSnip).toFixed(1);
   const kleur = snip >= 0 ? 'var(--success)' : 'var(--danger)';
-  banner.innerHTML = `<div style="background:var(--accent-light);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:1rem;font-size:13px">
-    Snipperuren saldo: <b style="color:${kleur}">${snip}u</b>
-    <span style="color:var(--muted)"> (contract ${contract}u/week)</span>
+  banner.innerHTML = `<div style="background:var(--accent-light);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;font-size:13px">
+    <span>Snipperuren saldo</span>
+    <b style="color:${kleur};font-size:16px">${snip}u</b>
   </div>`;
   banner.style.display = 'block';
 }
@@ -563,30 +570,28 @@ window.printOverzicht = function() {
 window.renderUserWeek = function() {
   const mine = allEntries.filter(e => e.naam === me.name);
   const el = document.getElementById('user-week-list');
-  const contract = me.contracturen || 0;
-  const curYear = new Date().getFullYear().toString();
+  const contract     = me.contracturen  || 0;
+  const jaarsnippers = me.jaarsnippers  || 0;
+  const startsaldo   = me.startsaldo    || 0;
+  const curYear      = new Date().getFullYear().toString();
 
   // Snipperuren samenvatting
   const summary = document.getElementById('user-snipper-summary');
-  if (contract > 0) {
-    const weken = groupByWeek(mine);
-    let snipperHtml = '<div class="card" style="margin-bottom:1rem">';
-    snipperHtml += `<div style="font-weight:600;margin-bottom:.75rem">Snipperuren overzicht</div>`;
-
-    // Per jaar
-    const jaarEntries = mine.filter(e => e.datum.startsWith(curYear));
-    const jaarWeken = groupByWeek(jaarEntries);
-    const jaarContract = jaarWeken.length * contract;
-    const jaarTot = totals(jaarEntries);
-    const jaarGebruikt = +(jaarTot.g||0)+ +(jaarTot.z||0)+ +(jaarTot.d||0)+ +(jaarTot.v||0);
-    const jaarSnipper = +(jaarContract - jaarGebruikt).toFixed(1);
-    snipperHtml += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:.5rem">
-      <div class="stat"><div class="stat-val">${contract}</div><div class="stat-lbl">Contract/week</div></div>
-      <div class="stat"><div class="stat-val">${jaarGebruikt}</div><div class="stat-lbl">Gebruikt ${curYear}</div></div>
-      <div class="stat"><div class="stat-val" style="color:${jaarSnipper>=0?'var(--success)':'var(--danger)'}">${jaarSnipper}</div><div class="stat-lbl">Snipper ${curYear}</div></div>
+  if (contract > 0 || jaarsnippers > 0) {
+    const mine2 = allEntries.filter(e => e.naam === me.name && e.datum.startsWith(curYear));
+    const weken2 = groupByWeek(mine2);
+    const gebruiktSnip = weken2.reduce((acc, {items}) => {
+      const t = totals(items);
+      const tot2 = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
+      const s = contract > 0 ? +(contract - tot2).toFixed(1) : 0;
+      return acc + (s < 0 ? Math.abs(s) : 0);
+    }, 0);
+    const snipperSaldo = jaarsnippers > 0 ? +(startsaldo + jaarsnippers - gebruiktSnip).toFixed(1) : null;
+    summary.innerHTML = `<div style="display:flex;gap:8px;margin-bottom:.75rem">
+      ${contract>0?`<div class="stat" style="flex:1"><div class="stat-val">${contract}</div><div class="stat-lbl">Contract/week</div></div>`:''}
+      ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val">${jaarsnippers}</div><div class="stat-lbl">Snip./jaar</div></div>`:''}
+      ${snipperSaldo!==null?`<div class="stat" style="flex:1"><div class="stat-val" style="color:${snipperSaldo>=0?'var(--success)':'var(--danger)'}">${snipperSaldo}</div><div class="stat-lbl">Saldo snip.</div></div>`:''}
     </div>`;
-    snipperHtml += '</div>';
-    summary.innerHTML = snipperHtml;
   } else {
     summary.innerHTML = '';
   }
@@ -639,13 +644,23 @@ window.renderJaaroverzicht = function() {
     const weken = groupByWeek(pEntries);
     const jaarTot = totals(pEntries);
     const u = allUsers.find(x => x.name === naam);
-    const contract   = u ? (u.contracturen || 0) : 0;
-    const startsaldo = u ? (u.startsaldo    || 0) : 0;
+    const contract      = u ? (u.contracturen   || 0) : 0;
+    const startsaldo    = u ? (u.startsaldo      || 0) : 0;
+    const jaarSnippers  = u ? (u.jaarsnippers    || 0) : 0;
     const s_gew  = u ? (u.saldo_gew  || 0) : 0;
     const s_ziek = u ? (u.saldo_ziek || 0) : 0;
     const s_dok  = u ? (u.saldo_dok  || 0) : 0;
     const s_vrij = u ? (u.saldo_vrij || 0) : 0;
     const heeftSaldo = s_gew||s_ziek||s_dok||s_vrij||startsaldo;
+
+    // Snipperuren per week berekend
+    const gebruikteSnip = weken.reduce((acc, {items}) => {
+      const t = totals(items);
+      const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
+      const snip = contract > 0 ? contract - tot : 0;
+      return acc + (snip < 0 ? snip : 0); // alleen negatieve snipper telt als gebruik
+    }, 0);
+
     const rows = weken.map(({label, items}) => {
       const t = totals(items);
       const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
@@ -660,29 +675,45 @@ window.renderJaaroverzicht = function() {
         ${contract>0?`<td style="color:${snip>=0?'var(--success)':'var(--danger)'};font-weight:600">${snip!==null?snip:'–'}</td>`:''}
       </tr>`;
     }).join('');
+
     // Totalen inclusief beginsaldo
     const totGew  = +(jaarTot.g + s_gew).toFixed(1);
     const totZiek = +(jaarTot.z + s_ziek).toFixed(1);
     const totDok  = +(jaarTot.d + s_dok).toFixed(1);
     const totVrij = +(jaarTot.v + s_vrij).toFixed(1);
     const jTot    = +(totGew + totZiek + totDok + totVrij).toFixed(1);
-    const jaarContract = weken.length * contract;
-    const jaarSnip = contract > 0 ? +(startsaldo + jaarContract - (+(jaarTot.g||0)+ +(jaarTot.z||0)+ +(jaarTot.d||0)+ +(jaarTot.v||0))).toFixed(1) : null;
-    const cols = contract > 0 ? 7 : 6;
+
+    // Snipper saldo = jaarlijkse snipperuren + startsaldo - gebruikte snipperuren (negatieve weken)
+    const totaalGebruiktSnip = weken.reduce((acc, {items}) => {
+      const t = totals(items);
+      const tot2 = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
+      const s = contract > 0 ? +(contract - tot2).toFixed(1) : 0;
+      return acc + (s < 0 ? Math.abs(s) : 0);
+    }, 0);
+    const snipperSaldo = jaarSnippers > 0 ? +(startsaldo + jaarSnippers - totaalGebruiktSnip).toFixed(1) : null;
+
     return `<div class="week-block" style="margin-bottom:1.25rem">
       <div class="week-header">
         <span class="week-title">${naam}</span>
-        <span class="week-totals">${curJaar}${heeftSaldo?' · incl. beginsaldo':''}</span>
+        <span class="week-totals">${curJaar}${jaarSnippers>0?` · ${jaarSnippers}u snip./jaar`:''}${snipperSaldo!==null?` · saldo: <b style="color:${snipperSaldo>=0?'#1A6B3C':'#C0392B'}">${snipperSaldo}u</b>`:''}</span>
       </div>
-      ${heeftSaldo?`<div style="font-size:12px;color:var(--muted);padding:6px 8px;background:var(--accent-light)">
-        Beginsaldo: gew. ${s_gew}u${s_ziek?` · ziek ${s_ziek}u`:''}${s_dok?` · dok. ${s_dok}u`:''}${s_vrij?` · vrij ${s_vrij}u`:''}${startsaldo?` · snip. ${startsaldo}u`:''}
-      </div>`:''}
       <div class="uren-table-wrap">
         <table class="uren-table">
           <colgroup><col style="width:28%"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num">${contract>0?'<col class="c-num">':''}</colgroup>
-          <thead><tr>
-            <th class="left">Week</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th>${contract>0?'<th>Snip.</th>':''}
-          </tr></thead>
+          <thead>
+            ${heeftSaldo?`<tr style="background:var(--accent-light);font-size:10px;color:var(--muted)">
+              <td class="left" style="padding:4px 6px;font-style:italic">Beginsaldo</td>
+              <td style="padding:4px 3px">${s_gew||'–'}</td>
+              <td style="padding:4px 3px">${s_ziek||'–'}</td>
+              <td style="padding:4px 3px">${s_dok||'–'}</td>
+              <td style="padding:4px 3px">${s_vrij||'–'}</td>
+              <td style="padding:4px 3px">${startsaldo?startsaldo+'s':'–'}</td>
+              ${contract>0?`<td style="padding:4px 3px">${startsaldo||'–'}</td>`:''}
+            </tr>`:''}
+            <tr>
+              <th class="left">Week</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th>${contract>0?'<th>Snip.</th>':''}
+            </tr>
+          </thead>
           <tbody>${rows}</tbody>
           <tfoot><tr class="totaalrij">
             <td class="left">Totaal${heeftSaldo?' incl. saldo':''}</td>
@@ -691,7 +722,7 @@ window.renderJaaroverzicht = function() {
             <td>${totDok>0?totDok:'–'}</td>
             <td>${totVrij>0?totVrij:'–'}</td>
             <td><b>${jTot>0?jTot:'–'}</b></td>
-            ${contract>0?`<td style="color:${jaarSnip>=0?'var(--success)':'var(--danger)'};font-weight:700">${jaarSnip}</td>`:''}
+            ${contract>0?`<td style="color:${snipperSaldo!==null?(snipperSaldo>=0?'var(--success)':'var(--danger)'):'inherit'};font-weight:700">${snipperSaldo!==null?snipperSaldo:'–'}</td>`:''}
           </tr></tfoot>
         </table>
       </div>
@@ -807,6 +838,7 @@ window.renderAdmin = function() {
           <div><label style="margin:0 0 4px">Vrij</label><input type="number" step="0.5" value="${u.saldo_vrij||0}" id="saldo-vrij-${u.name}" style="margin:0"></div>
         </div>
         <div><label style="margin:0 0 4px">Snipperuren saldo</label><input type="number" step="0.5" value="${u.startsaldo||0}" id="saldo-${u.name}" style="margin:0"></div>
+        <div><label style="margin:0 0 4px">Jaarlijkse snipperuren</label><input type="number" step="0.5" value="${u.jaarsnippers||0}" id="jaarsnip-${u.name}" style="margin:0"></div>
         <button class="btn btn-primary btn-sm" style="width:100%;margin-top:4px" onclick="saveContract('${u.name}')">✓ Opslaan</button>
       </div>`).join('')
     : '<p style="color:var(--muted);font-size:14px">Nog geen medewerkers</p>';
