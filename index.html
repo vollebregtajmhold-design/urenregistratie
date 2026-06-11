@@ -7,8 +7,8 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#F7F6F2;--surface:#FFFFFF;--border:#E4E2DA;--text:#1A1917;
-    --muted:#7A7870;--accent:#2C5F8A;--accent-light:#EAF1F8;
+    --bg:#F0F6FB;--surface:#FFFFFF;--border:#C8DFF0;--text:#1A2A38;
+    --muted:#6B8EAA;--accent:#2C7BB5;--accent-light:#DBF0FF;
     --danger:#C0392B;--success:#1A6B3C;--warn:#8A5A00;--warn-bg:#FFF8E6;
     --radius:10px;--font:'Inter',system-ui,sans-serif;
   }
@@ -594,11 +594,11 @@ function getWeekNr(datum){const d=new Date(datum);const thu=new Date(d);thu.setD
 function weekKey(datum){const d=new Date(datum);const thu=new Date(d);thu.setDate(d.getDate()-((d.getDay()+6)%7)+3);return `${thu.getFullYear()}-W${String(getWeekNr(datum)).padStart(2,'0')}`;}
 function weekLabel(datum){return `Week ${getWeekNr(datum)} (${new Date(datum).getFullYear()})`;}
 function fmtDate(d){const[y,m,day]=d.split('-');return `${day}-${m}-${y}`;}
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
-function val(id){return document.getElementById(id).value;}
-function setVal(id,v){document.getElementById(id).value=v;}
-function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
-function hideEl(id){document.getElementById(id).style.display='none';}
+window.show = function(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+window.val = function(id){return document.getElementById(id).value;}
+window.setVal = function(id,v){document.getElementById(id).value=v;}
+window.showErr = function(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
+window.hideEl = function(id){document.getElementById(id).style.display='none';}
 
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('screen-login').classList.contains('active'))doLogin();});
 
