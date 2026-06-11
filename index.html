@@ -108,7 +108,6 @@
       <input type="password" id="login-pass" placeholder="Wachtwoord" autocomplete="current-password">
       <div id="login-err" class="error" style="display:none"></div>
       <button class="btn btn-primary" onclick="doLogin()">Inloggen</button>
-      <button class="btn btn-secondary" onclick="show('screen-register')">Account aanmaken</button>
     </div>
   </div>
 </div>
@@ -145,6 +144,8 @@
     <button class="tab" onclick="switchTab('user','wachtwoord',this)">Wachtwoord</button>
   </div>
   <div id="user-invullen" class="tabpanel active">
+    <div id="snipper-banner" style="display:none"></div>
+    <div id="vergeten-banner" style="display:none"></div>
     <div id="lock-notice" class="lock-notice" style="display:none">🔒 Deze dag is definitief en kan niet meer worden aangepast.</div>
     <div class="card">
       <label>Datum <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:11px">(max. 6 dagen terug)</span></label>
@@ -214,6 +215,10 @@
       <select id="f-jaar" onchange="renderJaaroverzicht()"><option value="">Huidig jaar</option></select>
       <label>Medewerker</label>
       <select id="f-jaar-naam" onchange="renderJaaroverzicht()"><option value="">Alle</option></select>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:1rem">
+      <button class="btn btn-secondary btn-sm" style="flex:1" onclick="exportExcel()">📊 Export Excel</button>
+      <button class="btn btn-secondary btn-sm" style="flex:1" onclick="printOverzicht()">🖨️ Afdrukken</button>
     </div>
     <div id="jaar-list"></div>
   </div>
@@ -310,6 +315,8 @@ window.doLogin = async function() {
     initEntryForm(todayStr());
     show('screen-user');
     resetUserTabs();
+    showSnipperBanner();
+    checkVergeten();
   }
 };
 
@@ -458,6 +465,101 @@ window.deleteUser = async function(name) {
 };
 
 // --- Render ---
+function showSnipperBanner() {
+  const banner = document.getElementById('snipper-banner');
+  if (!banner) return;
+  const contract = me.contracturen || 0;
+  if (!contract) { banner.style.display = 'none'; return; }
+  const startsaldo = me.startsaldo || 0;
+  const mine = allEntries.filter(e => e.naam === me.name);
+  const weken = groupByWeek(mine);
+  const jaarTot = totals(mine);
+  const jTot = +(jaarTot.g||0)+ +(jaarTot.z||0)+ +(jaarTot.d||0)+ +(jaarTot.v||0);
+  const jaarContract = weken.length * contract;
+  const snip = +(startsaldo + jaarContract - jTot).toFixed(1);
+  const kleur = snip >= 0 ? 'var(--success)' : 'var(--danger)';
+  banner.innerHTML = `<div style="background:var(--accent-light);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:1rem;font-size:13px">
+    Snipperuren saldo: <b style="color:${kleur}">${snip}u</b>
+    <span style="color:var(--muted)"> (contract ${contract}u/week)</span>
+  </div>`;
+  banner.style.display = 'block';
+}
+
+function checkVergeten() {
+  const banner = document.getElementById('vergeten-banner');
+  if (!banner) return;
+  const gisteren = new Date();
+  gisteren.setDate(gisteren.getDate() - 1);
+  const gisteren_str = gisteren.toISOString().split('T')[0];
+  // Sla zondag over
+  if (gisteren.getDay() === 0) { banner.style.display = 'none'; return; }
+  const heeftGisteren = allEntries.find(e => e.naam === me.name && e.datum === gisteren_str);
+  if (!heeftGisteren) {
+    banner.innerHTML = `<div style="background:var(--warn-bg);border:1px solid var(--warn);border-radius:8px;padding:10px 12px;margin-bottom:1rem;font-size:13px;color:var(--warn)">
+      ⚠️ Je hebt gisteren (${fmtDate(gisteren_str)}) nog geen uren ingevuld!
+      <button onclick="setDatum('${gisteren_str}')" style="margin-left:8px;background:var(--warn);color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer">Alsnog invullen</button>
+    </div>`;
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+window.setDatum = function(datum) {
+  setVal('u-datum', datum);
+  onDatumChange();
+  document.getElementById('vergeten-banner').style.display = 'none';
+};
+
+window.exportExcel = function() {
+  const curJaar = document.getElementById('f-jaar') ? document.getElementById('f-jaar').value || new Date().getFullYear().toString() : new Date().getFullYear().toString();
+  const curNaam = document.getElementById('f-jaar-naam') ? document.getElementById('f-jaar-naam').value : '';
+  const filtered = allEntries.filter(e => e.datum.startsWith(curJaar) && (!curNaam || e.naam === curNaam));
+  if (!filtered.length) { alert('Geen data om te exporteren'); return; }
+
+  // CSV aanmaken
+  const rows = [['Naam','Datum','Week','Aanvang','Einde','Gewerkt','Ziek','Dokter','Vrij/Feestdag','Totaal']];
+  filtered.sort((a,b) => a.naam.localeCompare(b.naam) || a.datum.localeCompare(b.datum));
+  filtered.forEach(e => {
+    const tot = +(e.gewerkt||0)+ +(e.ziek||0)+ +(e.dokter||0)+ +(e.vrij||0);
+    rows.push([e.naam, fmtDate(e.datum), weekLabel(e.datum), e.aanvang||'', e.einde||'', e.gewerkt||0, e.ziek||0, e.dokter||0, e.vrij||0, tot.toFixed(1)]);
+  });
+  const csv = rows.map(r => r.map(v => `"${v}"`).join(';')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `urenregistratie_${curJaar}${curNaam?'_'+curNaam:''}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+};
+
+window.printOverzicht = function() {
+  const el = document.getElementById('jaar-list');
+  if (!el || !el.innerHTML.trim()) { alert('Laad eerst het jaaroverzicht'); return; }
+  const curJaar = document.getElementById('f-jaar') ? document.getElementById('f-jaar').value || new Date().getFullYear().toString() : '';
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8">
+    <title>Urenregistratie ${curJaar}</title>
+    <style>
+      body{font-family:Arial,sans-serif;font-size:12px;color:#000;padding:20px}
+      h1{font-size:16px;margin-bottom:4px}
+      .week-block{margin-bottom:20px;break-inside:avoid}
+      .week-header{background:#DBF0FF;padding:6px 10px;display:flex;justify-content:space-between;font-weight:600}
+      table{width:100%;border-collapse:collapse;margin-top:4px}
+      th{background:#EAF1F8;padding:5px 6px;text-align:right;font-size:11px;border:1px solid #C8DFF0}
+      th.left{text-align:left}
+      td{padding:5px 6px;text-align:right;border:1px solid #E0E0E0;font-size:11px}
+      td.left{text-align:left}
+      tr.totaalrij td{background:#DBF0FF;font-weight:700;border-top:2px solid #2C7BB5}
+      @media print{@page{margin:15mm}}
+    </style></head><body>
+    <h1>Urenregistratie ${curJaar}</h1>
+    <p style="color:#666;margin-bottom:16px">Afgedrukt op ${new Date().toLocaleDateString('nl-NL')}</p>
+    ${el.innerHTML}
+    </body></html>`);
+  win.document.close();
+  win.print();
+};
+
 window.renderUserWeek = function() {
   const mine = allEntries.filter(e => e.naam === me.name);
   const el = document.getElementById('user-week-list');
