@@ -236,7 +236,14 @@
       <input type="password" id="new-pass" placeholder="Wachtwoord">
       <label>Contracturen per week</label>
       <input type="number" id="new-contract" min="0" max="60" step="0.5" placeholder="bijv. 40">
-      <label>Startsaldo snipperuren</label>
+      <div style="font-weight:600;margin-top:1rem;margin-bottom:.5rem">Beginsaldo (optioneel)</div>
+      <div class="row2">
+        <div><label>Gewerkt</label><input type="number" id="new-s-gew" step="0.5" placeholder="0"></div>
+        <div><label>Ziek</label><input type="number" id="new-s-ziek" step="0.5" placeholder="0"></div>
+        <div><label>Dokter</label><input type="number" id="new-s-dok" step="0.5" placeholder="0"></div>
+        <div><label>Vrij/feestdag</label><input type="number" id="new-s-vrij" step="0.5" placeholder="0"></div>
+      </div>
+      <label>Snipperuren saldo</label>
       <input type="number" id="new-startsaldo" step="0.5" placeholder="bijv. 10 of -5">
       <div id="new-err" class="error" style="display:none"></div>
       <button class="btn btn-primary" onclick="addUser()">Toevoegen</button>
@@ -352,15 +359,19 @@ window.saveEntry = async function() {
 
 // --- Admin medewerkers ---
 window.addUser = async function() {
-  const n = val('new-naam').trim();
-  const p = val('new-pass');
-  const c = parseFloat(document.getElementById('new-contract').value) || 0;
-  const s = parseFloat(document.getElementById('new-startsaldo').value) || 0;
+  const n    = val('new-naam').trim();
+  const p    = val('new-pass');
+  const c    = parseFloat(document.getElementById('new-contract').value)  || 0;
+  const s    = parseFloat(document.getElementById('new-startsaldo').value)|| 0;
+  const sgew = parseFloat(document.getElementById('new-s-gew').value)     || 0;
+  const sziek= parseFloat(document.getElementById('new-s-ziek').value)    || 0;
+  const sdok = parseFloat(document.getElementById('new-s-dok').value)     || 0;
+  const svrij= parseFloat(document.getElementById('new-s-vrij').value)    || 0;
   if (!n || !p) { showErr('new-err', 'Vul naam en wachtwoord in'); return; }
   if (allUsers.find(u => u.name.toLowerCase() === n.toLowerCase())) { showErr('new-err', 'Naam al in gebruik'); return; }
-  await setDoc(doc(db, 'users', n.toLowerCase().replace(/\s+/g,'-')), { name: n, pass: p, role: 'user', contracturen: c, startsaldo: s });
+  await setDoc(doc(db, 'users', n.toLowerCase().replace(/\s+/g,'-')), { name: n, pass: p, role: 'user', contracturen: c, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij });
   await loadUsers();
-  setVal('new-naam',''); setVal('new-pass',''); document.getElementById('new-contract').value = ''; document.getElementById('new-startsaldo').value = '';
+  ['new-naam','new-pass','new-contract','new-startsaldo','new-s-gew','new-s-ziek','new-s-dok','new-s-vrij'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   hideEl('new-err');
   renderAdmin();
 };
@@ -399,12 +410,16 @@ window.resetPassword = async function(name) {
 };
 
 window.saveContract = async function(name) {
-  const c = parseFloat(document.getElementById('contract-' + name).value) || 0;
-  const s = parseFloat(document.getElementById('saldo-' + name).value) || 0;
-  const key = name.toLowerCase().replace(/\s+/g,'-');
-  const u = allUsers.find(x => x.name === name);
+  const c    = parseFloat(document.getElementById('contract-' + name).value)  || 0;
+  const s    = parseFloat(document.getElementById('saldo-' + name).value)     || 0;
+  const sgew = parseFloat(document.getElementById('saldo-gew-'  + name).value)|| 0;
+  const sziek= parseFloat(document.getElementById('saldo-ziek-' + name).value)|| 0;
+  const sdok = parseFloat(document.getElementById('saldo-dok-'  + name).value)|| 0;
+  const svrij= parseFloat(document.getElementById('saldo-vrij-' + name).value)|| 0;
+  const key  = name.toLowerCase().replace(/\s+/g,'-');
+  const u    = allUsers.find(x => x.name === name);
   if (!u) return;
-  await setDoc(doc(db, 'users', key), { ...u, contracturen: c, startsaldo: s });
+  await setDoc(doc(db, 'users', key), { ...u, contracturen: c, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij });
   await loadUsers();
   renderAdmin();
   alert(`Gegevens voor ${name} opgeslagen`);
@@ -522,8 +537,13 @@ window.renderJaaroverzicht = function() {
     const weken = groupByWeek(pEntries);
     const jaarTot = totals(pEntries);
     const u = allUsers.find(x => x.name === naam);
-    const contract = u ? (u.contracturen || 0) : 0;
-    const startsaldo = u ? (u.startsaldo || 0) : 0;
+    const contract   = u ? (u.contracturen || 0) : 0;
+    const startsaldo = u ? (u.startsaldo    || 0) : 0;
+    const s_gew  = u ? (u.saldo_gew  || 0) : 0;
+    const s_ziek = u ? (u.saldo_ziek || 0) : 0;
+    const s_dok  = u ? (u.saldo_dok  || 0) : 0;
+    const s_vrij = u ? (u.saldo_vrij || 0) : 0;
+    const heeftSaldo = s_gew||s_ziek||s_dok||s_vrij||startsaldo;
     const rows = weken.map(({label, items}) => {
       const t = totals(items);
       const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
@@ -538,15 +558,23 @@ window.renderJaaroverzicht = function() {
         ${contract>0?`<td style="color:${snip>=0?'var(--success)':'var(--danger)'};font-weight:600">${snip!==null?snip:'–'}</td>`:''}
       </tr>`;
     }).join('');
-    const jTot = +(jaarTot.g||0)+ +(jaarTot.z||0)+ +(jaarTot.d||0)+ +(jaarTot.v||0);
+    // Totalen inclusief beginsaldo
+    const totGew  = +(jaarTot.g + s_gew).toFixed(1);
+    const totZiek = +(jaarTot.z + s_ziek).toFixed(1);
+    const totDok  = +(jaarTot.d + s_dok).toFixed(1);
+    const totVrij = +(jaarTot.v + s_vrij).toFixed(1);
+    const jTot    = +(totGew + totZiek + totDok + totVrij).toFixed(1);
     const jaarContract = weken.length * contract;
-    const jaarSnip = contract > 0 ? +(startsaldo + jaarContract - jTot).toFixed(1) : null;
+    const jaarSnip = contract > 0 ? +(startsaldo + jaarContract - (+(jaarTot.g||0)+ +(jaarTot.z||0)+ +(jaarTot.d||0)+ +(jaarTot.v||0))).toFixed(1) : null;
     const cols = contract > 0 ? 7 : 6;
     return `<div class="week-block" style="margin-bottom:1.25rem">
       <div class="week-header">
         <span class="week-title">${naam}</span>
-        <span class="week-totals">${curJaar}${startsaldo!==0?` · saldo: ${startsaldo}u`:''}</span>
+        <span class="week-totals">${curJaar}${heeftSaldo?' · incl. beginsaldo':''}</span>
       </div>
+      ${heeftSaldo?`<div style="font-size:12px;color:var(--muted);padding:6px 8px;background:var(--accent-light)">
+        Beginsaldo: gew. ${s_gew}u${s_ziek?` · ziek ${s_ziek}u`:''}${s_dok?` · dok. ${s_dok}u`:''}${s_vrij?` · vrij ${s_vrij}u`:''}${startsaldo?` · snip. ${startsaldo}u`:''}
+      </div>`:''}
       <div class="uren-table-wrap">
         <table class="uren-table">
           <colgroup><col style="width:28%"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num">${contract>0?'<col class="c-num">':''}</colgroup>
@@ -555,17 +583,16 @@ window.renderJaaroverzicht = function() {
           </tr></thead>
           <tbody>${rows}</tbody>
           <tfoot><tr class="totaalrij">
-            <td class="left">Jaartotaal</td>
-            <td>${jaarTot.g||'–'}</td>
-            <td>${jaarTot.z>0?jaarTot.z:'–'}</td>
-            <td>${jaarTot.d>0?jaarTot.d:'–'}</td>
-            <td>${jaarTot.v>0?jaarTot.v:'–'}</td>
-            <td><b>${jTot>0?jTot.toFixed(1):'–'}</b></td>
+            <td class="left">Totaal${heeftSaldo?' incl. saldo':''}</td>
+            <td>${totGew||'–'}</td>
+            <td>${totZiek>0?totZiek:'–'}</td>
+            <td>${totDok>0?totDok:'–'}</td>
+            <td>${totVrij>0?totVrij:'–'}</td>
+            <td><b>${jTot>0?jTot:'–'}</b></td>
             ${contract>0?`<td style="color:${jaarSnip>=0?'var(--success)':'var(--danger)'};font-weight:700">${jaarSnip}</td>`:''}
           </tr></tfoot>
         </table>
       </div>
-      ${contract>0&&startsaldo!==0?`<div style="font-size:12px;color:var(--muted);padding:6px 8px">Startsaldo: ${startsaldo}u · Eindstand: <b style="color:${jaarSnip>=0?'var(--success)':'var(--danger)'}">${jaarSnip}u</b></div>`:''}
     </div>`;
   }).join('');
 };
@@ -662,21 +689,23 @@ window.renderAdmin = function() {
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-weight:600">${u.name}</span>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-secondary btn-sm" onclick="resetPassword('${u.name}')">🔑 Wachtwoord</button>
+            <button class="btn btn-secondary btn-sm" onclick="resetPassword('${u.name}')">🔑</button>
             <button class="btn btn-secondary btn-sm" onclick="deleteUser('${u.name}')">✕</button>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div>
-            <label style="margin:0 0 4px">Contract u/week</label>
-            <input type="number" min="0" max="60" step="0.5" value="${u.contracturen||0}" id="contract-${u.name}" style="margin:0">
-          </div>
-          <div>
-            <label style="margin:0 0 4px">Startsaldo snip.</label>
-            <input type="number" step="0.5" value="${u.startsaldo||0}" id="saldo-${u.name}" style="margin:0">
-          </div>
+        <div>
+          <label style="margin:0 0 4px">Contracturen per week</label>
+          <input type="number" min="0" max="60" step="0.5" value="${u.contracturen||0}" id="contract-${u.name}" style="margin:0">
         </div>
-        <button class="btn btn-primary btn-sm" style="width:100%;margin-top:0" onclick="saveContract('${u.name}')">✓ Opslaan</button>
+        <div style="font-weight:500;font-size:13px;margin-top:4px">Beginsaldo</div>
+        <div class="row2">
+          <div><label style="margin:0 0 4px">Gewerkt</label><input type="number" step="0.5" value="${u.saldo_gew||0}" id="saldo-gew-${u.name}" style="margin:0"></div>
+          <div><label style="margin:0 0 4px">Ziek</label><input type="number" step="0.5" value="${u.saldo_ziek||0}" id="saldo-ziek-${u.name}" style="margin:0"></div>
+          <div><label style="margin:0 0 4px">Dokter</label><input type="number" step="0.5" value="${u.saldo_dok||0}" id="saldo-dok-${u.name}" style="margin:0"></div>
+          <div><label style="margin:0 0 4px">Vrij</label><input type="number" step="0.5" value="${u.saldo_vrij||0}" id="saldo-vrij-${u.name}" style="margin:0"></div>
+        </div>
+        <div><label style="margin:0 0 4px">Snipperuren saldo</label><input type="number" step="0.5" value="${u.startsaldo||0}" id="saldo-${u.name}" style="margin:0"></div>
+        <button class="btn btn-primary btn-sm" style="width:100%;margin-top:4px" onclick="saveContract('${u.name}')">✓ Opslaan</button>
       </div>`).join('')
     : '<p style="color:var(--muted);font-size:14px">Nog geen medewerkers</p>';
 };
