@@ -579,13 +579,7 @@ window.renderUserWeek = function() {
   const summary = document.getElementById('user-snipper-summary');
   if (contract > 0 || jaarsnippers > 0) {
     const mine2 = allEntries.filter(e => e.naam === me.name && e.datum.startsWith(curYear));
-    const weken2 = groupByWeek(mine2);
-    const gebruiktSnip = weken2.reduce((acc, {items}) => {
-      const t = totals(items);
-      const tot2 = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
-      const s = contract > 0 ? +(contract - tot2).toFixed(1) : 0;
-      return acc + (s < 0 ? Math.abs(s) : 0);
-    }, 0);
+    const gebruiktSnip = mine2.reduce((acc, e) => acc + (+(e.vrij||0)), 0);
     const snipperSaldo = jaarsnippers > 0 ? +(startsaldo + jaarsnippers - gebruiktSnip).toFixed(1) : null;
     summary.innerHTML = `<div style="display:flex;gap:8px;margin-bottom:.75rem">
       ${contract>0?`<div class="stat" style="flex:1"><div class="stat-val">${contract}</div><div class="stat-lbl">Contract/week</div></div>`:''}
@@ -600,19 +594,19 @@ window.renderUserWeek = function() {
   const weken = groupByWeek(mine);
   el.innerHTML = `<div class="uren-table-wrap"><table class="uren-table">
     <colgroup><col style="width:28%"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num">${contract>0?'<col class="c-num">':''}</colgroup>
-    <thead><tr><th class="left">Week</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th>${contract>0?'<th>Snip.</th>':''}</tr></thead>
+    <thead><tr><th class="left">Week</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th>${jaarsnippers>0?'<th>Snip.</th>':''}</tr></thead>
     <tbody>
     ${weken.map(({label, items, key}) => {
       const t = totals(items);
       const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
-      const snip = contract > 0 ? +(contract - tot).toFixed(1) : null;
-      const snipperCell = contract > 0 ? `<td style="color:${snip>=0?'var(--success)':'var(--danger)'};font-weight:600">${snip}</td>` : '';
+      const weekVrij = items.reduce((acc, e) => acc + (+(e.vrij||0)), 0);
+      const snipperCell = jaarsnippers > 0 ? `<td style="color:${weekVrij>0?'var(--danger)':'var(--muted)'};font-weight:600">${weekVrij>0?'-'+weekVrij:'–'}</td>` : '';
       return `<tr class="week-row" onclick="toggleWeekDetail('${key}')" style="cursor:pointer">
         <td class="left">${label} ▾</td>
         <td>${t.g||'–'}</td><td>${t.z>0?t.z:'–'}</td><td>${t.d>0?t.d:'–'}</td><td>${t.v>0?t.v:'–'}</td>
         <td><b>${tot>0?tot.toFixed(1):'–'}</b></td>${snipperCell}
       </tr>
-      <tr id="detail-${key}" style="display:none"><td colspan="${contract>0?7:6}" style="padding:0">${weekTable(items)}</td></tr>`;
+      <tr id="detail-${key}" style="display:none"><td colspan="${jaarsnippers>0?7:6}" style="padding:0">${weekTable(items)}</td></tr>`;
     }).join('')}
     </tbody>
   </table></div>`;
@@ -664,7 +658,7 @@ window.renderJaaroverzicht = function() {
     const rows = weken.map(({label, items}) => {
       const t = totals(items);
       const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
-      const snip = contract > 0 ? +(contract - tot).toFixed(1) : null;
+      const weekVrij = items.reduce((acc, e) => acc + (+(e.vrij||0)), 0);
       return `<tr>
         <td class="left">${label}</td>
         <td>${t.g||'–'}</td>
@@ -672,7 +666,7 @@ window.renderJaaroverzicht = function() {
         <td>${t.d>0?t.d:'–'}</td>
         <td>${t.v>0?t.v:'–'}</td>
         <td><b>${tot>0?tot.toFixed(1):'–'}</b></td>
-        ${contract>0?`<td style="color:${snip>=0?'var(--success)':'var(--danger)'};font-weight:600">${snip!==null?snip:'–'}</td>`:''}
+        ${jaarSnippers>0?`<td style="color:${weekVrij>0?'var(--danger)':'var(--muted)'};font-weight:600">${weekVrij>0?'-'+weekVrij:'–'}</td>`:''}
       </tr>`;
     }).join('');
 
@@ -683,14 +677,9 @@ window.renderJaaroverzicht = function() {
     const totVrij = +(jaarTot.v + s_vrij).toFixed(1);
     const jTot    = +(totGew + totZiek + totDok + totVrij).toFixed(1);
 
-    // Snipper saldo = jaarlijkse snipperuren + startsaldo - gebruikte snipperuren (negatieve weken)
-    const totaalGebruiktSnip = weken.reduce((acc, {items}) => {
-      const t = totals(items);
-      const tot2 = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
-      const s = contract > 0 ? +(contract - tot2).toFixed(1) : 0;
-      return acc + (s < 0 ? Math.abs(s) : 0);
-    }, 0);
-    const snipperSaldo = jaarSnippers > 0 ? +(startsaldo + jaarSnippers - totaalGebruiktSnip).toFixed(1) : null;
+    // Snipper saldo = startsaldo + jaarsnippers - gebruikte vrij uren
+    const gebruiktSnip = pEntries.reduce((acc, e) => acc + (+(e.vrij||0)), 0);
+    const snipperSaldo = jaarSnippers > 0 ? +(startsaldo + jaarSnippers - gebruiktSnip).toFixed(1) : null;
 
     return `<div class="week-block" style="margin-bottom:1.25rem">
       <div class="week-header">
@@ -818,7 +807,7 @@ window.renderAdmin = function() {
   // Medewerkers
   const nonAdmin = allUsers.filter(u => u.role !== 'admin');
   document.getElementById('admin-users-list').innerHTML = nonAdmin.length
-    ? nonAdmin.map(u => `<div class="user-row" style="flex-direction:column;align-items:stretch;gap:8px">
+    ? nonAdmin.map(u => `<div class="user-row" style="flex-direction:column;align-items:stretch;gap:6px;padding:10px 0">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-weight:600">${u.name}</span>
           <div style="display:flex;gap:6px">
@@ -826,20 +815,19 @@ window.renderAdmin = function() {
             <button class="btn btn-secondary btn-sm" onclick="deleteUser('${u.name}')">✕</button>
           </div>
         </div>
-        <div>
-          <label style="margin:0 0 4px">Contracturen per week</label>
-          <input type="number" min="0" max="60" step="0.5" value="${u.contracturen||0}" id="contract-${u.name}" style="margin:0">
-        </div>
-        <div style="font-weight:500;font-size:13px;margin-top:4px">Beginsaldo</div>
         <div class="row2">
-          <div><label style="margin:0 0 4px">Gewerkt</label><input type="number" step="0.5" value="${u.saldo_gew||0}" id="saldo-gew-${u.name}" style="margin:0"></div>
-          <div><label style="margin:0 0 4px">Ziek</label><input type="number" step="0.5" value="${u.saldo_ziek||0}" id="saldo-ziek-${u.name}" style="margin:0"></div>
-          <div><label style="margin:0 0 4px">Dokter</label><input type="number" step="0.5" value="${u.saldo_dok||0}" id="saldo-dok-${u.name}" style="margin:0"></div>
-          <div><label style="margin:0 0 4px">Vrij</label><input type="number" step="0.5" value="${u.saldo_vrij||0}" id="saldo-vrij-${u.name}" style="margin:0"></div>
+          <div><label style="margin:0 0 3px;font-size:11px">Contract u/week</label><input type="number" min="0" max="60" step="0.5" value="${u.contracturen||0}" id="contract-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
+          <div><label style="margin:0 0 3px;font-size:11px">Jaarlijkse snip.u</label><input type="number" step="0.5" value="${u.jaarsnippers||0}" id="jaarsnip-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
         </div>
-        <div><label style="margin:0 0 4px">Snipperuren saldo</label><input type="number" step="0.5" value="${u.startsaldo||0}" id="saldo-${u.name}" style="margin:0"></div>
-        <div><label style="margin:0 0 4px">Jaarlijkse snipperuren</label><input type="number" step="0.5" value="${u.jaarsnippers||0}" id="jaarsnip-${u.name}" style="margin:0"></div>
-        <button class="btn btn-primary btn-sm" style="width:100%;margin-top:4px" onclick="saveContract('${u.name}')">✓ Opslaan</button>
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:2px">Beginsaldo</div>
+        <div class="row2">
+          <div><label style="margin:0 0 3px;font-size:11px">Gewerkt</label><input type="number" step="0.5" value="${u.saldo_gew||0}" id="saldo-gew-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
+          <div><label style="margin:0 0 3px;font-size:11px">Ziek</label><input type="number" step="0.5" value="${u.saldo_ziek||0}" id="saldo-ziek-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
+          <div><label style="margin:0 0 3px;font-size:11px">Dokter</label><input type="number" step="0.5" value="${u.saldo_dok||0}" id="saldo-dok-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
+          <div><label style="margin:0 0 3px;font-size:11px">Vrij</label><input type="number" step="0.5" value="${u.saldo_vrij||0}" id="saldo-vrij-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
+        </div>
+        <div><label style="margin:0 0 3px;font-size:11px">Snipperuren saldo</label><input type="number" step="0.5" value="${u.startsaldo||0}" id="saldo-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
+        <button class="btn btn-primary btn-sm" style="width:100%;margin-top:2px" onclick="saveContract('${u.name}')">✓ Opslaan</button>
       </div>`).join('')
     : '<p style="color:var(--muted);font-size:14px">Nog geen medewerkers</p>';
 };
