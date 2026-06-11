@@ -139,6 +139,7 @@
   <div class="tabs">
     <button class="tab active" onclick="switchTab('user','invullen',this)">Invullen</button>
     <button class="tab" onclick="switchTab('user','weekoverzicht',this)">Weekoverzicht</button>
+    <button class="tab" onclick="switchTab('user','wachtwoord',this)">Wachtwoord</button>
   </div>
   <div id="user-invullen" class="tabpanel active">
     <div id="lock-notice" class="lock-notice" style="display:none">🔒 Deze dag is definitief en kan niet meer worden aangepast.</div>
@@ -165,6 +166,20 @@
   <div id="user-weekoverzicht" class="tabpanel">
     <div id="user-snipper-summary"></div>
     <div id="user-week-list"><div class="loading">Laden...</div></div>
+  </div>
+  <div id="user-wachtwoord" class="tabpanel">
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:.75rem">Wachtwoord wijzigen</div>
+      <label>Huidig wachtwoord</label>
+      <input type="password" id="pw-oud" placeholder="Huidig wachtwoord">
+      <label>Nieuw wachtwoord</label>
+      <input type="password" id="pw-nieuw" placeholder="Nieuw wachtwoord">
+      <label>Nieuw wachtwoord herhalen</label>
+      <input type="password" id="pw-herhaal" placeholder="Herhaal nieuw wachtwoord">
+      <div id="pw-err" class="error" style="display:none"></div>
+      <div id="pw-ok" class="success-msg" style="display:none"></div>
+      <button class="btn btn-primary" onclick="changePassword()">Wachtwoord wijzigen</button>
+    </div>
   </div>
 </div>
 
@@ -342,6 +357,39 @@ window.addUser = async function() {
   setVal('new-naam',''); setVal('new-pass',''); document.getElementById('new-contract').value = '';
   hideEl('new-err');
   renderAdmin();
+};
+
+window.changePassword = async function() {
+  const oud = val('pw-oud');
+  const nieuw = val('pw-nieuw');
+  const herhaal = val('pw-herhaal');
+  const err = document.getElementById('pw-err');
+  const ok = document.getElementById('pw-ok');
+  if (!oud || !nieuw || !herhaal) { err.textContent = 'Vul alle velden in'; err.style.display='block'; return; }
+  if (me.pass !== oud) { err.textContent = 'Huidig wachtwoord is onjuist'; err.style.display='block'; return; }
+  if (nieuw !== herhaal) { err.textContent = 'Nieuwe wachtwoorden komen niet overeen'; err.style.display='block'; return; }
+  if (nieuw.length < 4) { err.textContent = 'Wachtwoord moet minimaal 4 tekens zijn'; err.style.display='block'; return; }
+  err.style.display='none';
+  const key = me.name.toLowerCase().replace(/\s+/g,'-');
+  await setDoc(doc(db, 'users', key), { ...me, pass: nieuw });
+  await loadUsers();
+  me = allUsers.find(u => u.name === me.name);
+  setVal('pw-oud',''); setVal('pw-nieuw',''); setVal('pw-herhaal','');
+  ok.textContent = '✓ Wachtwoord gewijzigd!';
+  ok.style.display = 'block';
+  setTimeout(() => ok.style.display = 'none', 3000);
+};
+
+window.resetPassword = async function(name) {
+  const nieuw = prompt(`Nieuw wachtwoord voor ${name}:`);
+  if (!nieuw) return;
+  if (nieuw.length < 4) { alert('Wachtwoord moet minimaal 4 tekens zijn'); return; }
+  const key = name.toLowerCase().replace(/\s+/g,'-');
+  const u = allUsers.find(x => x.name === name);
+  if (!u) return;
+  await setDoc(doc(db, 'users', key), { ...u, pass: nieuw });
+  await loadUsers();
+  alert(`Wachtwoord van ${name} is gewijzigd.`);
 };
 
 window.saveContract = async function(name) {
@@ -551,11 +599,12 @@ window.renderAdmin = function() {
           <span style="font-weight:500">${u.name}</span>
           <span style="font-size:12px;color:var(--muted);margin-left:8px">${u.contracturen||0}u/week</span>
         </div>
-        <div style="display:flex;gap:6px;align-items:center">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
           <input type="number" min="0" max="60" step="0.5" value="${u.contracturen||0}" 
-            style="width:60px;padding:4px 6px;font-size:13px;margin:0" 
+            style="width:55px;padding:4px 6px;font-size:13px;margin:0" 
             id="contract-${u.name}" placeholder="uren">
-          <button class="btn btn-secondary btn-sm" onclick="saveContract('${u.name}')">✓</button>
+          <button class="btn btn-secondary btn-sm" onclick="saveContract('${u.name}')">✓ Uren</button>
+          <button class="btn btn-secondary btn-sm" onclick="resetPassword('${u.name}')">🔑</button>
           <button class="btn btn-secondary btn-sm" onclick="deleteUser('${u.name}')">✕</button>
         </div>
       </div>`).join('')
