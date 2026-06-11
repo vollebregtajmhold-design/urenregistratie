@@ -579,8 +579,14 @@ window.renderUserWeek = function() {
   const summary = document.getElementById('user-snipper-summary');
   if (contract > 0 || jaarsnippers > 0) {
     const mine2 = allEntries.filter(e => e.naam === me.name && e.datum.startsWith(curYear));
-    const gebruiktSnip = mine2.reduce((acc, e) => acc + (+(e.vrij||0)), 0);
-    const snipperSaldo = jaarsnippers > 0 ? +(startsaldo + jaarsnippers - gebruiktSnip).toFixed(1) : null;
+    const weken2 = groupByWeek(mine2);
+    const totaalGebruiktSnip2 = weken2.reduce((acc, {items}) => {
+      const t2 = totals(items);
+      const tot2 = +(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);
+      const s2 = contract > 0 ? +(contract - tot2).toFixed(1) : 0;
+      return acc + (s2 < 0 ? Math.abs(s2) : 0);
+    }, 0);
+    const snipperSaldo = jaarsnippers > 0 ? +(startsaldo + jaarsnippers - totaalGebruiktSnip2).toFixed(1) : null;
     summary.innerHTML = `<div style="display:flex;gap:8px;margin-bottom:.75rem">
       ${contract>0?`<div class="stat" style="flex:1"><div class="stat-val">${contract}</div><div class="stat-lbl">Contract/week</div></div>`:''}
       ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val">${jaarsnippers}</div><div class="stat-lbl">Snip./jaar</div></div>`:''}
@@ -599,8 +605,8 @@ window.renderUserWeek = function() {
     ${weken.map(({label, items, key}) => {
       const t = totals(items);
       const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
-      const weekVrij = items.reduce((acc, e) => acc + (+(e.vrij||0)), 0);
-      const snipperCell = jaarsnippers > 0 ? `<td style="color:${weekVrij>0?'var(--danger)':'var(--muted)'};font-weight:600">${weekVrij>0?'-'+weekVrij:'–'}</td>` : '';
+      const snipWeek = contract > 0 ? +(contract - tot).toFixed(1) : null;
+      const snipperCell = jaarsnippers > 0 && contract > 0 ? `<td style="color:${snipWeek<0?'var(--danger)':snipWeek>0?'var(--success)':'var(--muted)'};font-weight:600">${snipWeek!==null?snipWeek:'–'}</td>` : '';
       return `<tr class="week-row" onclick="toggleWeekDetail('${key}')" style="cursor:pointer">
         <td class="left">${label} ▾</td>
         <td>${t.g||'–'}</td><td>${t.z>0?t.z:'–'}</td><td>${t.d>0?t.d:'–'}</td><td>${t.v>0?t.v:'–'}</td>
@@ -658,7 +664,7 @@ window.renderJaaroverzicht = function() {
     const rows = weken.map(({label, items}) => {
       const t = totals(items);
       const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
-      const weekVrij = items.reduce((acc, e) => acc + (+(e.vrij||0)), 0);
+      const snip = contract > 0 ? +(contract - tot).toFixed(1) : null;
       return `<tr>
         <td class="left">${label}</td>
         <td>${t.g||'–'}</td>
@@ -666,7 +672,7 @@ window.renderJaaroverzicht = function() {
         <td>${t.d>0?t.d:'–'}</td>
         <td>${t.v>0?t.v:'–'}</td>
         <td><b>${tot>0?tot.toFixed(1):'–'}</b></td>
-        ${jaarSnippers>0?`<td style="color:${weekVrij>0?'var(--danger)':'var(--muted)'};font-weight:600">${weekVrij>0?'-'+weekVrij:'–'}</td>`:''}
+        ${jaarSnippers>0&&contract>0?`<td style="color:${snip<0?'var(--danger)':snip>0?'var(--success)':'var(--muted)'};font-weight:600">${snip!==null?snip:'–'}</td>`:''}
       </tr>`;
     }).join('');
 
@@ -677,9 +683,14 @@ window.renderJaaroverzicht = function() {
     const totVrij = +(jaarTot.v + s_vrij).toFixed(1);
     const jTot    = +(totGew + totZiek + totDok + totVrij).toFixed(1);
 
-    // Snipper saldo = startsaldo + jaarsnippers - gebruikte vrij uren
-    const gebruiktSnip = pEntries.reduce((acc, e) => acc + (+(e.vrij||0)), 0);
-    const snipperSaldo = jaarSnippers > 0 ? +(startsaldo + jaarSnippers - gebruiktSnip).toFixed(1) : null;
+    // Snipper saldo = jaarsnippers + startsaldo - opgenomen snipperuren (negatieve snip waarden)
+    const totaalGebruiktSnip = weken.reduce((acc, {items}) => {
+      const t2 = totals(items);
+      const tot2 = +(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);
+      const snip2 = contract > 0 ? +(contract - tot2).toFixed(1) : 0;
+      return acc + (snip2 < 0 ? Math.abs(snip2) : 0);
+    }, 0);
+    const snipperSaldo = jaarSnippers > 0 ? +(startsaldo + jaarSnippers - totaalGebruiktSnip).toFixed(1) : null;
 
     return `<div class="week-block" style="margin-bottom:1.25rem">
       <div class="week-header">
