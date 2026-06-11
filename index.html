@@ -350,14 +350,27 @@ window.renderUserWeek = function() {
   const el = document.getElementById('user-week-list');
   if (!mine.length) { el.innerHTML = '<div class="empty">Nog geen uren geregistreerd</div>'; return; }
   const weken = groupByWeek(mine);
-  el.innerHTML = weken.map(({label, items}) => `
-    <div class="week-block">
-      <div class="week-header" onclick="toggleWeek(this)">
-        <span class="week-title">${label}</span>
-        <span class="week-totals">${totals(items).g}u gewerkt</span>
-      </div>
-      <div class="week-body">${weekTable(items)}</div>
-    </div>`).join('');
+  el.innerHTML = `<div class="uren-table-wrap"><table class="uren-table">
+    <colgroup><col style="width:30%"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"></colgroup>
+    <thead><tr><th class="left">Week</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th></tr></thead>
+    <tbody>
+    ${weken.map(({label, items, key}) => {
+      const t = totals(items);
+      const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
+      return `<tr class="week-row" onclick="toggleWeekDetail('${key}')" style="cursor:pointer">
+        <td class="left">${label} ▾</td>
+        <td>${t.g||'–'}</td><td>${t.z>0?t.z:'–'}</td><td>${t.d>0?t.d:'–'}</td><td>${t.v>0?t.v:'–'}</td>
+        <td><b>${tot>0?tot.toFixed(1):'–'}</b></td>
+      </tr>
+      <tr id="detail-${key}" style="display:none"><td colspan="6" style="padding:0">${weekTable(items)}</td></tr>`;
+    }).join('')}
+    </tbody>
+  </table></div>`;
+};
+
+window.toggleWeekDetail = function(key) {
+  const el = document.getElementById('detail-' + key);
+  if (el) el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
 };
 
 window.renderJaaroverzicht = function() {
