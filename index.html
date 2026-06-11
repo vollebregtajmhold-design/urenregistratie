@@ -60,6 +60,9 @@
   .person-toggle{font-size:13px;color:var(--muted)}
   .person-body{padding:0}
   .loading{text-align:center;padding:2rem;color:var(--muted);font-size:14px}
+  .stat{background:var(--accent-light);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem;text-align:center}
+  .stat-val{font-size:20px;font-weight:600;color:var(--accent)}
+  .stat-lbl{font-size:11px;color:var(--muted);margin-top:2px}
   /* Tabel */
   .uren-table-wrap{width:100%;overflow:hidden}
   .uren-table{width:100%;border-collapse:collapse;table-layout:fixed}
@@ -160,6 +163,7 @@
     </div>
   </div>
   <div id="user-weekoverzicht" class="tabpanel">
+    <div id="user-snipper-summary"></div>
     <div id="user-week-list"><div class="loading">Laden...</div></div>
   </div>
 </div>
@@ -212,6 +216,8 @@
       <input type="text" id="new-naam" placeholder="Naam">
       <label>Wachtwoord</label>
       <input type="password" id="new-pass" placeholder="Wachtwoord">
+      <label>Contracturen per week</label>
+      <input type="number" id="new-contract" min="0" max="60" step="0.5" placeholder="bijv. 40">
       <div id="new-err" class="error" style="display:none"></div>
       <button class="btn btn-primary" onclick="addUser()">Toevoegen</button>
     </div>
@@ -328,13 +334,25 @@ window.saveEntry = async function() {
 window.addUser = async function() {
   const n = val('new-naam').trim();
   const p = val('new-pass');
+  const c = parseFloat(document.getElementById('new-contract').value) || 0;
   if (!n || !p) { showErr('new-err', 'Vul naam en wachtwoord in'); return; }
   if (allUsers.find(u => u.name.toLowerCase() === n.toLowerCase())) { showErr('new-err', 'Naam al in gebruik'); return; }
-  await setDoc(doc(db, 'users', n.toLowerCase().replace(/\s+/g,'-')), { name: n, pass: p, role: 'user' });
+  await setDoc(doc(db, 'users', n.toLowerCase().replace(/\s+/g,'-')), { name: n, pass: p, role: 'user', contracturen: c });
   await loadUsers();
-  setVal('new-naam',''); setVal('new-pass','');
+  setVal('new-naam',''); setVal('new-pass',''); document.getElementById('new-contract').value = '';
   hideEl('new-err');
   renderAdmin();
+};
+
+window.saveContract = async function(name) {
+  const c = parseFloat(document.getElementById('contract-' + name).value) || 0;
+  const key = name.toLowerCase().replace(/\s+/g,'-');
+  const u = allUsers.find(x => x.name === name);
+  if (!u) return;
+  await setDoc(doc(db, 'users', key), { ...u, contracturen: c });
+  await loadUsers();
+  renderAdmin();
+  alert(`Contracturen voor ${name} opgeslagen: ${c}u/week`);
 };
 
 window.deleteUser = async function(name) {
@@ -348,21 +366,51 @@ window.deleteUser = async function(name) {
 window.renderUserWeek = function() {
   const mine = allEntries.filter(e => e.naam === me.name);
   const el = document.getElementById('user-week-list');
+  const contract = me.contracturen || 0;
+  const curYear = new Date().getFullYear().toString();
+
+  // Snipperuren samenvatting
+  const summary = document.getElementById('user-snipper-summary');
+  if (contract > 0) {
+    const weken = groupByWeek(mine);
+    let snipperHtml = '<div class="card" style="margin-bottom:1rem">';
+    snipperHtml += `<div style="font-weight:600;margin-bottom:.75rem">Snipperuren overzicht</div>`;
+
+    // Per jaar
+    const jaarEntries = mine.filter(e => e.datum.startsWith(curYear));
+    const jaarWeken = groupByWeek(jaarEntries);
+    const jaarContract = jaarWeken.length * contract;
+    const jaarTot = totals(jaarEntries);
+    const jaarGebruikt = +(jaarTot.g||0)+ +(jaarTot.z||0)+ +(jaarTot.d||0)+ +(jaarTot.v||0);
+    const jaarSnipper = +(jaarContract - jaarGebruikt).toFixed(1);
+    snipperHtml += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:.5rem">
+      <div class="stat"><div class="stat-val">${contract}</div><div class="stat-lbl">Contract/week</div></div>
+      <div class="stat"><div class="stat-val">${jaarGebruikt}</div><div class="stat-lbl">Gebruikt ${curYear}</div></div>
+      <div class="stat"><div class="stat-val" style="color:${jaarSnipper>=0?'var(--success)':'var(--danger)'}">${jaarSnipper}</div><div class="stat-lbl">Snipper ${curYear}</div></div>
+    </div>`;
+    snipperHtml += '</div>';
+    summary.innerHTML = snipperHtml;
+  } else {
+    summary.innerHTML = '';
+  }
+
   if (!mine.length) { el.innerHTML = '<div class="empty">Nog geen uren geregistreerd</div>'; return; }
   const weken = groupByWeek(mine);
   el.innerHTML = `<div class="uren-table-wrap"><table class="uren-table">
-    <colgroup><col style="width:30%"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"></colgroup>
-    <thead><tr><th class="left">Week</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th></tr></thead>
+    <colgroup><col style="width:28%"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num">${contract>0?'<col class="c-num">':''}</colgroup>
+    <thead><tr><th class="left">Week</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th>${contract>0?'<th>Snip.</th>':''}</tr></thead>
     <tbody>
     ${weken.map(({label, items, key}) => {
       const t = totals(items);
       const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
+      const snip = contract > 0 ? +(contract - tot).toFixed(1) : null;
+      const snipperCell = contract > 0 ? `<td style="color:${snip>=0?'var(--success)':'var(--danger)'};font-weight:600">${snip}</td>` : '';
       return `<tr class="week-row" onclick="toggleWeekDetail('${key}')" style="cursor:pointer">
         <td class="left">${label} ▾</td>
         <td>${t.g||'–'}</td><td>${t.z>0?t.z:'–'}</td><td>${t.d>0?t.d:'–'}</td><td>${t.v>0?t.v:'–'}</td>
-        <td><b>${tot>0?tot.toFixed(1):'–'}</b></td>
+        <td><b>${tot>0?tot.toFixed(1):'–'}</b></td>${snipperCell}
       </tr>
-      <tr id="detail-${key}" style="display:none"><td colspan="6" style="padding:0">${weekTable(items)}</td></tr>`;
+      <tr id="detail-${key}" style="display:none"><td colspan="${contract>0?7:6}" style="padding:0">${weekTable(items)}</td></tr>`;
     }).join('')}
     </tbody>
   </table></div>`;
@@ -498,7 +546,19 @@ window.renderAdmin = function() {
   // Medewerkers
   const nonAdmin = allUsers.filter(u => u.role !== 'admin');
   document.getElementById('admin-users-list').innerHTML = nonAdmin.length
-    ? nonAdmin.map(u => `<div class="user-row"><span>${u.name}</span><button class="btn btn-secondary btn-sm" onclick="deleteUser('${u.name}')">Verwijderen</button></div>`).join('')
+    ? nonAdmin.map(u => `<div class="user-row">
+        <div>
+          <span style="font-weight:500">${u.name}</span>
+          <span style="font-size:12px;color:var(--muted);margin-left:8px">${u.contracturen||0}u/week</span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" min="0" max="60" step="0.5" value="${u.contracturen||0}" 
+            style="width:60px;padding:4px 6px;font-size:13px;margin:0" 
+            id="contract-${u.name}" placeholder="uren">
+          <button class="btn btn-secondary btn-sm" onclick="saveContract('${u.name}')">✓</button>
+          <button class="btn btn-secondary btn-sm" onclick="deleteUser('${u.name}')">✕</button>
+        </div>
+      </div>`).join('')
     : '<p style="color:var(--muted);font-size:14px">Nog geen medewerkers</p>';
 };
 
