@@ -7,9 +7,9 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#F0F6FB;--surface:#FFFFFF;--border:#C8DFF0;--text:#1A2A38;
-    --muted:#6B8EAA;--accent:#2C7BB5;--accent-light:#DBF0FF;
-    --danger:#C0392B;--success:#1A6B3C;--warn:#8A5A00;--warn-bg:#FFF8E6;
+    --bg:#E4EEF7;--surface:#FFFFFF;--border:#A9C9E3;--text:#142433;
+    --muted:#4F7395;--accent:#1F5E8C;--accent-light:#C9E2F5;
+    --danger:#A6362A;--success:#155C36;--warn:#7A4F00;--warn-bg:#FBF0D6;
     --radius:10px;--font:'Inter',system-ui,sans-serif;
   }
   body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.5;min-height:100vh}
@@ -655,7 +655,7 @@ window.renderUserWeek = function() {
     summary.innerHTML = `<div style="display:flex;gap:8px;margin-bottom:.75rem">
       ${contract>0?`<div class="stat" style="flex:1"><div class="stat-val">${contract}</div><div class="stat-lbl">Contract/week</div></div>`:''}
       ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val">${jaarsnippers}</div><div class="stat-lbl">Snip./jaar</div></div>`:''}
-      ${snipperSaldo!==null?`<div class="stat" style="flex:1"><div class="stat-val" style="color:${snipperSaldo>=0?'#1A6B3C':'#C0392B'}">${snipperSaldo}u</div><div class="stat-lbl" style="color:${snipperSaldo>=0?'#1A6B3C':'#C0392B'};font-weight:600">${snipperDagen!==null?snipperDagen+' dagen':''}</div></div>`:''}
+      ${snipperSaldo!==null?`<div class="stat" style="flex:1"><div class="stat-val" style="color:${snipperSaldo>=0?'#155C36':'#A6362A'}">${snipperSaldo} uur</div><div class="stat-lbl" style="color:${snipperSaldo>=0?'#155C36':'#A6362A'};font-weight:600;margin-top:2px">${snipperDagen!==null?Math.round(snipperDagen)+' dagen':''}</div></div>`:''}
     </div>`;
   } else {
     summary.innerHTML = '';
@@ -767,7 +767,7 @@ window.renderJaaroverzicht = function() {
         </div>
         ${jaarSnippers>0?`<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px">
           <span style="color:var(--muted)">Snipperuren per jaar: <b style="color:var(--text)">${jaarSnippers}u</b></span>
-          ${snipperSaldo!==null?`<span>Saldo: <b style="color:${snipperSaldo>=0?'#1A6B3C':'#C0392B'}">${snipperSaldo}u${snipperDagen!==null?` (${snipperDagen} dagen)`:''}</b></span>`:''}
+          ${snipperSaldo!==null?`<span>Saldo: <b style="color:${snipperSaldo>=0?'#155C36':'#A6362A'}">${snipperSaldo} uur${snipperDagen!==null?`&nbsp;&nbsp;&nbsp;(${Math.round(snipperDagen)} dagen)`:''}</b></span>`:''}
         </div>`:''}
       </div>
       <div class="uren-table-wrap">
