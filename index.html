@@ -162,6 +162,8 @@
       <input type="number" id="u-dokter" min="0" max="24" step="0.5" placeholder="0">
       <label>Betaald vrij / feestdag</label>
       <input type="number" id="u-vrij" min="0" max="24" step="0.5" placeholder="0">
+      <label>Opmerking (optioneel)</label>
+      <input type="text" id="u-opmerking" placeholder="bijv. extra uren wegens...">
       <div id="u-err" class="error" style="display:none"></div>
       <div id="u-ok" class="success-msg" style="display:none"></div>
       <button class="btn btn-primary" id="btn-opslaan" onclick="saveEntry()">Opslaan</button>
@@ -357,7 +359,8 @@ window.saveEntry = async function() {
     gewerkt: parseFloat(val('u-gewerkt')) || 0,
     ziek:    parseFloat(val('u-ziek'))    || 0,
     dokter:  parseFloat(val('u-dokter'))  || 0,
-    vrij:    parseFloat(val('u-vrij'))    || 0
+    vrij:    parseFloat(val('u-vrij'))    || 0,
+    opmerking: val('u-opmerking') || ''
   };
   const id = me.name.toLowerCase().replace(/\s+/g,'-') + '_' + datum;
   await setDoc(doc(db, 'entries', id), rec);
@@ -517,6 +520,7 @@ window.saveEditEntry = async function(id, naam, datum) {
     ziek:    parseFloat(document.getElementById('ea-ziek-' + id).value) || 0,
     dokter:  parseFloat(document.getElementById('ea-dok-'  + id).value) || 0,
     vrij:    parseFloat(document.getElementById('ea-vrij-' + id).value) || 0,
+    opmerking: document.getElementById('ea-opm-' + id).value || '',
   };
   await setDoc(doc(db, 'entries', id), rec);
   await loadEntries();
@@ -540,17 +544,17 @@ function showSnipperBanner() {
   if (!jaarsnippers) { banner.style.display = 'none'; return; }
   const mine = allEntries.filter(e => e.naam === me.name);
   const weken = groupByWeek(mine);
-  const gebruiktSnip = weken.reduce((acc, {items}) => {
+  const sommeSnip = weken.reduce((acc, {items}) => {
     const t = totals(items);
     const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
     const s = contract > 0 ? +(contract - tot).toFixed(1) : 0;
-    return acc + (s < 0 ? Math.abs(s) : 0);
+    return acc + s;
   }, 0);
-  const snip = +(startsaldo + jaarsnippers - gebruiktSnip).toFixed(1);
+  const snip = +(startsaldo + jaarsnippers - sommeSnip).toFixed(1);
   const kleur = snip >= 0 ? 'var(--success)' : 'var(--danger)';
   banner.innerHTML = `<div style="background:var(--accent-light);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;font-size:13px">
     <span>Snipperuren saldo</span>
-    <b style="color:${kleur};font-size:16px">${snip}u</b>
+    <b style="color:${kleur};font-size:16px">${snip} uur</b>
   </div>`;
   banner.style.display = 'block';
 }
@@ -867,6 +871,7 @@ window.renderAdmin = function() {
           <div id="entry-view-${id}" style="font-size:13px;color:var(--muted);margin-top:3px">
             ${e.aanvang||'–'} – ${e.einde||'–'} · ${e.gewerkt}u gewerkt
             ${e.ziek ? ` · ${e.ziek}u ziek` : ''}${e.dokter ? ` · ${e.dokter}u dokter` : ''}${e.vrij ? ` · ${e.vrij}u vrij` : ''}
+            ${e.opmerking ? `<div style="margin-top:3px;font-style:italic">💬 ${e.opmerking}</div>` : ''}
           </div>
           <div id="entry-edit-${id}" style="display:none;margin-top:8px">
             <div class="row2">
@@ -879,6 +884,8 @@ window.renderAdmin = function() {
               <div><label style="margin-top:0">Dokter</label><input type="number" min="0" max="24" step="0.5" id="ea-dok-${id}" value="${e.dokter||0}"></div>
               <div><label style="margin-top:0">Vrij</label><input type="number" min="0" max="24" step="0.5" id="ea-vrij-${id}" value="${e.vrij||0}"></div>
             </div>
+            <label style="margin-top:6px">Opmerking</label>
+            <input type="text" id="ea-opm-${id}" value="${(e.opmerking||'').replace(/"/g,'&quot;')}" placeholder="Geen opmerking">
             <div style="display:flex;gap:8px;margin-top:8px">
               <button class="btn btn-primary btn-sm" onclick="saveEditEntry('${id}','${e.naam}','${e.datum}')">Opslaan</button>
               <button class="btn btn-secondary btn-sm" onclick="cancelEditEntry('${id}')">Annuleren</button>
@@ -949,12 +956,12 @@ window.onDatumChange = function() {
   const datum = val('u-datum');
   const locked = isLocked(datum);
   document.getElementById('lock-notice').style.display = locked ? 'block' : 'none';
-  ['u-aanvang','u-einde','u-gewerkt','u-ziek','u-dokter','u-vrij'].forEach(id => document.getElementById(id).disabled = locked);
+  ['u-aanvang','u-einde','u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id => document.getElementById(id).disabled = locked);
   document.getElementById('btn-opslaan').disabled = locked;
   if (datum) {
     const ex = allEntries.find(e => e.naam === me.name && e.datum === datum);
-    if (ex) { setVal('u-aanvang',ex.aanvang||''); setVal('u-einde',ex.einde||''); setVal('u-gewerkt',ex.gewerkt||''); setVal('u-ziek',ex.ziek||''); setVal('u-dokter',ex.dokter||''); setVal('u-vrij',ex.vrij||''); }
-    else { setVal('u-aanvang','08:00'); setVal('u-einde','17:00'); ['u-gewerkt','u-ziek','u-dokter','u-vrij'].forEach(id=>setVal(id,'')); }
+    if (ex) { setVal('u-aanvang',ex.aanvang||''); setVal('u-einde',ex.einde||''); setVal('u-gewerkt',ex.gewerkt||''); setVal('u-ziek',ex.ziek||''); setVal('u-dokter',ex.dokter||''); setVal('u-vrij',ex.vrij||''); setVal('u-opmerking',ex.opmerking||''); }
+    else { setVal('u-aanvang','08:00'); setVal('u-einde','17:00'); ['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,'')); }
   }
 };
 
@@ -965,7 +972,7 @@ function initEntryForm(datum) {
   const inp = document.getElementById('u-datum');
   inp.value = datum; inp.min = minDate(); inp.max = todayStr();
   setVal('u-aanvang','08:00'); setVal('u-einde','17:00');
-  ['u-gewerkt','u-ziek','u-dokter','u-vrij'].forEach(id=>setVal(id,''));
+  ['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,''));
   onDatumChange();
 }
 
