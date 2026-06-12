@@ -239,9 +239,14 @@
       <input type="text" id="new-naam" placeholder="Naam">
       <label>Wachtwoord</label>
       <input type="password" id="new-pass" placeholder="Wachtwoord">
-      <label>Contracturen per week</label>
-      <input type="number" id="new-contract" min="0" max="60" step="0.5" placeholder="bijv. 40">
-      <div style="font-weight:600;margin-top:1rem;margin-bottom:.5rem">Beginsaldo (optioneel)</div>
+      <div class="row2">
+        <div><label>Contracturen/week</label><input type="number" id="new-contract" min="0" max="60" step="0.5" placeholder="40" oninput="updateNewSnipPreview()"></div>
+        <div><label>Werkdagen/week</label><input type="number" id="new-werkdagen" min="1" max="7" step="0.5" placeholder="5" oninput="updateNewSnipPreview()"></div>
+        <div><label>Weken/jaar</label><input type="number" id="new-weken" min="1" max="53" step="0.5" placeholder="52" oninput="updateNewSnipPreview()"></div>
+        <div><label>Snipperdagen/jaar</label><input type="number" id="new-snipperdagen" min="0" step="0.5" placeholder="25" oninput="updateNewSnipPreview()"></div>
+      </div>
+      <div style="background:var(--accent-light);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--accent);margin-bottom:.5rem" id="new-snip-preview">Vul de velden in voor berekening</div>
+      <div style="font-weight:600;margin-top:.5rem;margin-bottom:.5rem;font-size:13px">Beginsaldo (optioneel)</div>
       <div class="row2">
         <div><label>Gewerkt</label><input type="number" id="new-s-gew" step="0.5" placeholder="0"></div>
         <div><label>Ziek</label><input type="number" id="new-s-ziek" step="0.5" placeholder="0"></div>
@@ -250,8 +255,6 @@
       </div>
       <label>Snipperuren saldo</label>
       <input type="number" id="new-startsaldo" step="0.5" placeholder="bijv. 10 of -5">
-      <label>Jaarlijkse snipperuren</label>
-      <input type="number" id="new-jaarsnip" step="0.5" placeholder="bijv. 25">
       <div id="new-err" class="error" style="display:none"></div>
       <button class="btn btn-primary" onclick="addUser()">Toevoegen</button>
     </div>
@@ -370,17 +373,22 @@ window.saveEntry = async function() {
 window.addUser = async function() {
   const n    = val('new-naam').trim();
   const p    = val('new-pass');
-  const c    = parseFloat(document.getElementById('new-contract').value)  || 0;
-  const s    = parseFloat(document.getElementById('new-startsaldo').value)|| 0;
-  const sgew = parseFloat(document.getElementById('new-s-gew').value)     || 0;
-  const sziek= parseFloat(document.getElementById('new-s-ziek').value)    || 0;
-  const js   = parseFloat(document.getElementById('new-jaarsnip').value)   || 0;
-  const svrij= parseFloat(document.getElementById('new-s-vrij').value)    || 0;
+  const c    = parseFloat(document.getElementById('new-contract').value)     || 0;
+  const wd   = parseFloat(document.getElementById('new-werkdagen').value)    || 5;
+  const wj   = parseFloat(document.getElementById('new-weken').value)        || 52;
+  const sd   = parseFloat(document.getElementById('new-snipperdagen').value) || 0;
+  const s    = parseFloat(document.getElementById('new-startsaldo').value)   || 0;
+  const sgew = parseFloat(document.getElementById('new-s-gew').value)        || 0;
+  const sziek= parseFloat(document.getElementById('new-s-ziek').value)       || 0;
+  const sdok = parseFloat(document.getElementById('new-s-dok').value)        || 0;
+  const svrij= parseFloat(document.getElementById('new-s-vrij').value)       || 0;
   if (!n || !p) { showErr('new-err', 'Vul naam en wachtwoord in'); return; }
   if (allUsers.find(u => u.name.toLowerCase() === n.toLowerCase())) { showErr('new-err', 'Naam al in gebruik'); return; }
-  await setDoc(doc(db, 'users', n.toLowerCase().replace(/\s+/g,'-')), { name: n, pass: p, role: 'user', contracturen: c, startsaldo: s, jaarsnippers: js, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij });
+  const newU = { name: n, pass: p, role: 'user', contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij };
+  newU.jaarsnippers = calcJaarsnippers(newU);
+  await setDoc(doc(db, 'users', n.toLowerCase().replace(/\s+/g,'-')), newU);
   await loadUsers();
-  ['new-naam','new-pass','new-contract','new-startsaldo','new-jaarsnip','new-s-gew','new-s-ziek','new-s-dok','new-s-vrij'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['new-naam','new-pass','new-contract','new-werkdagen','new-weken','new-snipperdagen','new-startsaldo','new-s-gew','new-s-ziek','new-s-dok','new-s-vrij'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   hideEl('new-err');
   renderAdmin();
 };
@@ -418,10 +426,57 @@ window.resetPassword = async function(name) {
   alert(`Wachtwoord van ${name} is gewijzigd.`);
 };
 
+function calcJaarsnippers(u) {
+  const c  = u.contracturen  || 0;
+  const wd = u.werkdagen     || 5;
+  const wj = u.wekenperjaar  || 52;
+  const sd = u.snipperdagen  || 0;
+  if (!wd || !wj || !sd) return 0;
+  const aandeel = sd / (wd * wj);
+  return Math.round(wj * c * aandeel * 10) / 10;
+}
+
+function calcSnipPreview(u) {
+  const sd  = u.snipperdagen || 0;
+  const wd  = u.werkdagen    || 5;
+  const wj  = u.wekenperjaar || 52;
+  const c   = u.contracturen || 0;
+  if (!sd || !wd || !wj || !c) return 'Vul de velden in voor berekening';
+  const aandeel = Math.round(sd / (wd * wj) * 1000) / 1000;
+  const jaarsnip = Math.round(wj * c * aandeel * 10) / 10;
+  return `Aandeel: ${aandeel} · Jaarlijkse snipperuren: <b>${jaarsnip}u</b>`;
+}
+
+window.updateNewSnipPreview = function() {
+  const el = document.getElementById('new-snip-preview');
+  if (!el) return;
+  const u = {
+    contracturen: parseFloat(document.getElementById('new-contract')?.value) || 0,
+    werkdagen:    parseFloat(document.getElementById('new-werkdagen')?.value) || 5,
+    wekenperjaar: parseFloat(document.getElementById('new-weken')?.value) || 52,
+    snipperdagen: parseFloat(document.getElementById('new-snipperdagen')?.value) || 0,
+  };
+  el.innerHTML = calcSnipPreview(u);
+};
+
+window.updateSnipPreview = function(name) {
+  const el = document.getElementById('snip-preview-' + name);
+  if (!el) return;
+  const u = {
+    contracturen: parseFloat(document.getElementById('contract-'   + name)?.value) || 0,
+    werkdagen:    parseFloat(document.getElementById('werkdagen-'   + name)?.value) || 5,
+    wekenperjaar: parseFloat(document.getElementById('weken-'       + name)?.value) || 52,
+    snipperdagen: parseFloat(document.getElementById('snipperdagen-'+ name)?.value) || 0,
+  };
+  el.innerHTML = calcSnipPreview(u);
+};
+
 window.saveContract = async function(name) {
-  const c     = parseFloat(document.getElementById('contract-'  + name).value) || 0;
-  const s     = parseFloat(document.getElementById('saldo-'     + name).value) || 0;
-  const js    = parseFloat(document.getElementById('jaarsnip-'  + name).value) || 0;
+  const c   = parseFloat(document.getElementById('contract-'   + name).value) || 0;
+  const wd  = parseFloat(document.getElementById('werkdagen-'  + name).value) || 5;
+  const wj  = parseFloat(document.getElementById('weken-'      + name).value) || 52;
+  const sd  = parseFloat(document.getElementById('snipperdagen-'+ name).value)|| 0;
+  const s   = parseFloat(document.getElementById('saldo-'      + name).value) || 0;
   const sgew  = parseFloat(document.getElementById('saldo-gew-' + name).value) || 0;
   const sziek = parseFloat(document.getElementById('saldo-ziek-'+ name).value) || 0;
   const sdok  = parseFloat(document.getElementById('saldo-dok-' + name).value) || 0;
@@ -429,10 +484,12 @@ window.saveContract = async function(name) {
   const key   = name.toLowerCase().replace(/\s+/g,'-');
   const u     = allUsers.find(x => x.name === name);
   if (!u) return;
-  await setDoc(doc(db, 'users', key), { ...u, contracturen: c, startsaldo: s, jaarsnippers: js, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij });
+  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij };
+  newU.jaarsnippers = calcJaarsnippers(newU);
+  await setDoc(doc(db, 'users', key), newU);
   await loadUsers();
   renderAdmin();
-  alert(`Gegevens voor ${name} opgeslagen`);
+  alert(`Gegevens voor ${name} opgeslagen (${newU.jaarsnippers}u snipperuren/jaar)`);
 };
 
 window.editEntry = function(id, naam, datum) {
@@ -826,18 +883,21 @@ window.renderAdmin = function() {
             <button class="btn btn-secondary btn-sm" onclick="deleteUser('${u.name}')">✕</button>
           </div>
         </div>
-        <div class="row2">
-          <div><label style="margin:0 0 3px;font-size:11px">Contract u/week</label><input type="number" min="0" max="60" step="0.5" value="${u.contracturen||0}" id="contract-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
-          <div><label style="margin:0 0 3px;font-size:11px">Jaarlijkse snip.u</label><input type="number" step="0.5" value="${u.jaarsnippers||0}" id="jaarsnip-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
+        <div class="row2" style="grid-template-columns:1fr 1fr 1fr 1fr">
+          <div><label style="margin:0 0 3px;font-size:11px">Contract/week</label><input type="number" min="0" max="60" step="0.5" value="${u.contracturen||0}" id="contract-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
+          <div><label style="margin:0 0 3px;font-size:11px">Werkdagen/week</label><input type="number" min="1" max="7" step="0.5" value="${u.werkdagen||5}" id="werkdagen-${u.name}" style="margin:0;padding:5px 6px;font-size:12px" oninput="updateSnipPreview('${u.name}')"></div>
+          <div><label style="margin:0 0 3px;font-size:11px">Weken/jaar</label><input type="number" min="1" max="53" step="0.5" value="${u.wekenperjaar||52}" id="weken-${u.name}" style="margin:0;padding:5px 6px;font-size:12px" oninput="updateSnipPreview('${u.name}')"></div>
+          <div><label style="margin:0 0 3px;font-size:11px">Snipdag/jaar</label><input type="number" min="0" step="0.5" value="${u.snipperdagen||0}" id="snipperdagen-${u.name}" style="margin:0;padding:5px 6px;font-size:12px" oninput="updateSnipPreview('${u.name}')"></div>
         </div>
-        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:2px">Beginsaldo</div>
-        <div class="row2">
-          <div><label style="margin:0 0 3px;font-size:11px">Gewerkt</label><input type="number" step="0.5" value="${u.saldo_gew||0}" id="saldo-gew-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
-          <div><label style="margin:0 0 3px;font-size:11px">Ziek</label><input type="number" step="0.5" value="${u.saldo_ziek||0}" id="saldo-ziek-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
-          <div><label style="margin:0 0 3px;font-size:11px">Dokter</label><input type="number" step="0.5" value="${u.saldo_dok||0}" id="saldo-dok-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
-          <div><label style="margin:0 0 3px;font-size:11px">Vrij</label><input type="number" step="0.5" value="${u.saldo_vrij||0}" id="saldo-vrij-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
+        <div id="snip-preview-${u.name}" style="background:var(--accent-light);border-radius:6px;padding:5px 8px;font-size:11px;color:var(--accent)">${calcSnipPreview(u)}</div>
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Beginsaldo</div>
+        <div class="row2" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
+          <div><label style="margin:0 0 3px;font-size:11px">Gewerkt</label><input type="number" step="0.5" value="${u.saldo_gew||0}" id="saldo-gew-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
+          <div><label style="margin:0 0 3px;font-size:11px">Ziek</label><input type="number" step="0.5" value="${u.saldo_ziek||0}" id="saldo-ziek-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
+          <div><label style="margin:0 0 3px;font-size:11px">Dokter</label><input type="number" step="0.5" value="${u.saldo_dok||0}" id="saldo-dok-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
+          <div><label style="margin:0 0 3px;font-size:11px">Vrij</label><input type="number" step="0.5" value="${u.saldo_vrij||0}" id="saldo-vrij-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
+          <div><label style="margin:0 0 3px;font-size:11px">Snip.saldo</label><input type="number" step="0.5" value="${u.startsaldo||0}" id="saldo-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
         </div>
-        <div><label style="margin:0 0 3px;font-size:11px">Snipperuren saldo</label><input type="number" step="0.5" value="${u.startsaldo||0}" id="saldo-${u.name}" style="margin:0;padding:6px 8px;font-size:13px"></div>
         <button class="btn btn-primary btn-sm" style="width:100%;margin-top:2px" onclick="saveContract('${u.name}')">✓ Opslaan</button>
       </div>`).join('')
     : '<p style="color:var(--muted);font-size:14px">Nog geen medewerkers</p>';
