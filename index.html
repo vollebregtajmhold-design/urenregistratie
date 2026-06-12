@@ -204,10 +204,11 @@
     </div>
     <button class="logout" onclick="doLogout()">Uitloggen</button>
   </div>
-  <div class="tabs">
+  <div class="tabs" style="flex-wrap:wrap">
     <button class="tab active" onclick="switchTab('admin','weekoverzicht',this)">Weekoverzicht</button>
     <button class="tab" onclick="switchTab('admin','jaaroverzicht',this)">Jaaroverzicht</button>
     <button class="tab" onclick="switchTab('admin','details',this)">Details</button>
+    <div style="flex-basis:100%"></div>
     <button class="tab" onclick="switchTab('admin','mensen',this)">Medewerkers</button>
     <button class="tab" onclick="switchTab('admin','weekcheck',this)">Weekcheck</button>
     <button class="tab" onclick="switchTab('admin','wachtwoord',this)">Wachtwoord</button>
