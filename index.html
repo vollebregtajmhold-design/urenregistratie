@@ -698,12 +698,44 @@ window.saveReminder = async function() {
   setTimeout(() => ok.style.display = 'none', 3000);
 };
 
+function isFeestdag(d) {
+  const y = d.getFullYear();
+  const md = (m,day) => d.getMonth()===m && d.getDate()===day;
+  if (md(0,1)) return true;   // Nieuwjaar
+  if (md(11,25) || md(11,26)) return true; // Kerst
+  // Pasen-gebaseerde feestdagen (Goede Vrijdag, 2e Paasdag, Hemelvaart, 2e Pinksterdag)
+  const easter = getEaster(y);
+  const days = [
+    addDays(easter, 1),  // 2e Paasdag
+    addDays(easter, 39), // Hemelvaart
+    addDays(easter, 50), // 2e Pinksterdag
+  ];
+  return days.some(e => e.getFullYear()===y && e.getMonth()===d.getMonth() && e.getDate()===d.getDate());
+}
+
+function addDays(date, n) {
+  const r = new Date(date);
+  r.setDate(r.getDate()+n);
+  return r;
+}
+
+function getEaster(y) {
+  const a=y%19,b=Math.floor(y/100),c=y%100,dd=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3);
+  const h=(19*a+b-dd-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7;
+  const m=Math.floor((a+11*h+22*l)/451);
+  const month=Math.floor((h+l-7*m+114)/31)-1, day=((h+l-7*m+114)%31)+1;
+  return new Date(y, month, day);
+}
+
 function startReminderCheck() {
   if (reminderInterval) clearInterval(reminderInterval);
   if (!me.reminderAan) return;
   reminderInterval = setInterval(() => {
     if (!me || !me.reminderAan) return;
     const now = new Date();
+    const dag = now.getDay(); // 0=zo,6=za
+    if (dag === 0 || dag === 6) return;
+    if (isFeestdag(now)) return;
     const hhmm = now.toTimeString().substring(0,5);
     if (hhmm !== (me.reminderTijd || '17:00')) return;
     const today = todayStr();
@@ -754,8 +786,8 @@ function checkVergeten() {
   const gisteren = new Date();
   gisteren.setDate(gisteren.getDate() - 1);
   const gisteren_str = gisteren.toISOString().split('T')[0];
-  // Sla zondag over
-  if (gisteren.getDay() === 0) { banner.style.display = 'none'; return; }
+  // Sla weekend en feestdagen over
+  if (gisteren.getDay() === 0 || gisteren.getDay() === 6 || isFeestdag(gisteren)) { banner.style.display = 'none'; return; }
   const heeftGisteren = allEntries.find(e => e.naam === me.name && e.datum === gisteren_str);
   if (!heeftGisteren) {
     banner.innerHTML = `<div style="background:var(--warn-bg);border:1px solid var(--warn);border-radius:8px;padding:10px 12px;margin-bottom:1rem;font-size:13px;color:var(--warn)">
