@@ -206,6 +206,7 @@
   </div>
   <div class="tabs">
     <button class="tab active" onclick="switchTab('admin','weekoverzicht',this)">Weekoverzicht</button>
+    <button class="tab" onclick="switchTab('admin','weekcheck',this)">Weekcheck</button>
     <button class="tab" onclick="switchTab('admin','jaaroverzicht',this)">Jaaroverzicht</button>
     <button class="tab" onclick="switchTab('admin','details',this)">Details</button>
     <button class="tab" onclick="switchTab('admin','mensen',this)">Medewerkers</button>
@@ -216,6 +217,13 @@
       <select id="f-week" onchange="renderAdmin()"><option value="">Alle weken</option></select>
     </div>
     <div id="admin-week-list"><div class="loading">Laden...</div></div>
+  </div>
+  <div id="admin-weekcheck" class="tabpanel">
+    <div class="filter-row">
+      <label>Jaar</label>
+      <select id="f-wc-jaar" onchange="renderWeekcheck()"><option value="">Huidig jaar</option></select>
+    </div>
+    <div id="weekcheck-list"></div>
   </div>
   <div id="admin-jaaroverzicht" class="tabpanel">
     <div class="filter-row">
@@ -698,6 +706,54 @@ window.toggleWeekDetail = function(key) {
   if (el) el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
 };
 
+window.renderWeekcheck = function() {
+  // Jaar filter
+  const jaren = [...new Set(allEntries.map(e => e.datum.substring(0,4)))].sort().reverse();
+  const huidigJaar = new Date().getFullYear().toString();
+  if (!jaren.includes(huidigJaar)) jaren.unshift(huidigJaar);
+  const jaarSel = document.getElementById('f-wc-jaar');
+  const curJaar = jaarSel.value || huidigJaar;
+  jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
+
+  const namen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
+  if (!namen.length) { document.getElementById('weekcheck-list').innerHTML = '<div class="empty">Nog geen medewerkers</div>'; return; }
+
+  // Bepaal aantal weken: tot huidige week als curJaar = huidig jaar, anders 53
+  let maxWeek = 53;
+  if (curJaar === huidigJaar) {
+    maxWeek = getWeekNr(todayStr());
+  }
+
+  // Maak set van naam_week die ingevuld zijn
+  const ingevuld = new Set();
+  allEntries.forEach(e => {
+    if (e.datum.startsWith(curJaar)) {
+      ingevuld.add(e.naam + '_' + getWeekNr(e.datum));
+    }
+  });
+
+  let rows = '';
+  for (let w = 1; w <= maxWeek; w++) {
+    rows += `<tr><td class="left"><b>${w}</b></td>`;
+    namen.forEach(n => {
+      const ok = ingevuld.has(n + '_' + w);
+      rows += `<td style="text-align:center;${ok?'':'background:#FBE2DE'}">${ok ? '<span style="color:#155C36;font-weight:700">✓</span>' : '<span style="color:#A6362A;font-weight:700">✕</span>'}</td>`;
+    });
+    rows += '</tr>';
+  }
+
+  const colWidth = Math.max(8, Math.floor(72 / namen.length));
+  document.getElementById('weekcheck-list').innerHTML = `
+    <div style="font-size:12px;color:var(--muted);margin-bottom:.5rem">✓ = minstens 1 dag ingevuld die week &nbsp;·&nbsp; ✕ = niets ingevuld</div>
+    <div class="uren-table-wrap">
+      <table class="uren-table">
+        <colgroup><col style="width:14%">${namen.map(()=>`<col style="width:${colWidth}%">`).join('')}</colgroup>
+        <thead><tr><th class="left">Week</th>${namen.map(n=>`<th style="font-size:9px;writing-mode:vertical-rl;text-orientation:mixed;padding:4px 2px;height:60px">${n}</th>`).join('')}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+};
+
 window.renderJaaroverzicht = function() {
   // Vul jaar-filter
   const jaren = [...new Set(allEntries.map(e => e.datum.substring(0,4)))].sort().reverse();
@@ -955,7 +1011,8 @@ window.switchTab = function(scope, tab, btn) {
   btn.classList.add('active');
   if (scope === 'user' && tab === 'weekoverzicht') renderUserWeek();
   if (scope === 'admin' && tab === 'jaaroverzicht') renderJaaroverzicht();
-  if (scope === 'admin' && tab !== 'jaaroverzicht') renderAdmin();
+  if (scope === 'admin' && tab === 'weekcheck') renderWeekcheck();
+  if (scope === 'admin' && tab !== 'jaaroverzicht' && tab !== 'weekcheck') renderAdmin();
 };
 
 window.onDatumChange = function() {
