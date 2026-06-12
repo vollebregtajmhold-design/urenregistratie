@@ -218,6 +218,8 @@
     <div class="filter-row">
       <label>Week</label>
       <select id="f-week" onchange="renderAdmin()"><option value="">Alle weken</option></select>
+      <label>Naam</label>
+      <select id="f-week-naam" onchange="renderAdmin()"><option value="">Alle medewerkers</option></select>
     </div>
     <div id="admin-week-list"><div class="loading">Laden...</div></div>
   </div>
@@ -979,11 +981,12 @@ window.renderJaaroverzicht = function() {
 window.renderAdmin = function() {
   fillFilters();
   const week  = document.getElementById('f-week')  ? document.getElementById('f-week').value  : '';
+  const weekNaam = document.getElementById('f-week-naam') ? document.getElementById('f-week-naam').value : '';
   const naam  = document.getElementById('f-naam')  ? document.getElementById('f-naam').value  : '';
   const week2 = document.getElementById('f-week2') ? document.getElementById('f-week2').value : '';
 
   // Weekoverzicht
-  const nonAdminNames = [...new Set(allEntries.map(e => e.naam))].sort();
+  const nonAdminNames = weekNaam ? [weekNaam] : [...new Set(allEntries.map(e => e.naam))].sort();
   const allWeeks = [...new Set(allEntries.map(e => weekKey(e.datum)))].sort().reverse();
   const weeksToShow = week ? [week] : allWeeks;
   let weekHtml = '';
@@ -991,7 +994,7 @@ window.renderAdmin = function() {
     weekHtml = '<div class="empty">Nog geen registraties</div>';
   } else {
     weeksToShow.forEach(wk => {
-      const wkEntries = allEntries.filter(e => weekKey(e.datum) === wk);
+      const wkEntries = allEntries.filter(e => weekKey(e.datum) === wk && (!weekNaam || e.naam === weekNaam));
       if (!wkEntries.length) return;
       let personHtml = '';
       nonAdminNames.forEach(n => {
@@ -1098,8 +1101,11 @@ window.renderAdmin = function() {
 function fillFilters() {
   const names = [...new Set(allEntries.map(e => e.naam))].sort();
   const weeks = [...new Set(allEntries.map(e => weekKey(e.datum)))].sort().reverse();
-  const nSel = document.getElementById('f-naam');
-  if (nSel) { const c=nSel.value; nSel.innerHTML='<option value="">Alle medewerkers</option>'+names.map(n=>`<option ${n===c?'selected':''} value="${n}">${n}</option>`).join(''); }
+  ['f-naam','f-week-naam'].forEach(id => {
+    const s = document.getElementById(id); if (!s) return;
+    const c = s.value;
+    s.innerHTML = '<option value="">Alle medewerkers</option>' + names.map(n=>`<option ${n===c?'selected':''} value="${n}">${n}</option>`).join('');
+  });
   ['f-week','f-week2'].forEach(id => {
     const s = document.getElementById(id); if (!s) return;
     const c = s.value;
