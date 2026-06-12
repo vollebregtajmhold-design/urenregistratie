@@ -18,6 +18,12 @@
   .logo{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.25rem}
   .page-title{font-size:24px;font-weight:600;margin-bottom:2rem}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
+  .card-compact{padding:.85rem 1rem}
+  .card-compact label{font-size:11px;margin-bottom:.2rem;margin-top:.55rem}
+  .card-compact label:first-child{margin-top:0}
+  .card-compact input{padding:7px 10px;font-size:14px}
+  .card-compact .btn{margin-top:.7rem;padding:10px}
+  .card-compact .row2{gap:8px}
   label{display:block;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem;margin-top:1rem}
   label:first-child{margin-top:0}
   input,select{display:block;width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:15px;font-family:var(--font);outline:none;transition:border-color .15s}
@@ -147,7 +153,7 @@
     <div id="snipper-banner" style="display:none"></div>
     <div id="vergeten-banner" style="display:none"></div>
     <div id="lock-notice" class="lock-notice" style="display:none">🔒 Deze dag is definitief en kan niet meer worden aangepast.</div>
-    <div class="card">
+    <div class="card card-compact">
       <label>Datum <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:11px">(max. 6 dagen terug)</span></label>
       <input type="date" id="u-datum" onchange="onDatumChange()">
       <div class="row2">
@@ -163,7 +169,7 @@
       <label>Betaald vrij / feestdag</label>
       <input type="number" id="u-vrij" min="0" max="24" step="0.5" placeholder="0">
       <label>Opmerking (optioneel)</label>
-      <input type="text" id="u-opmerking" placeholder="bijv. extra uren wegens...">
+      <input type="text" id="u-opmerking">
       <div id="u-err" class="error" style="display:none"></div>
       <div id="u-ok" class="success-msg" style="display:none"></div>
       <button class="btn btn-primary" id="btn-opslaan" onclick="saveEntry()">Opslaan</button>
@@ -552,9 +558,9 @@ function showSnipperBanner() {
   }, 0);
   const snip = +(startsaldo + jaarsnippers - sommeSnip).toFixed(1);
   const kleur = snip >= 0 ? 'var(--success)' : 'var(--danger)';
-  banner.innerHTML = `<div style="background:var(--accent-light);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;font-size:13px">
+  banner.innerHTML = `<div style="background:var(--accent-light);border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;font-size:12px">
     <span>Snipperuren saldo</span>
-    <b style="color:${kleur};font-size:16px">${snip} uur</b>
+    <b style="color:${kleur};font-size:14px">${snip} uur</b>
   </div>`;
   banner.style.display = 'block';
 }
