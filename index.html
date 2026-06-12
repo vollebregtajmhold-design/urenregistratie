@@ -655,7 +655,7 @@ window.renderUserWeek = function() {
     summary.innerHTML = `<div style="display:flex;gap:8px;margin-bottom:.75rem">
       ${contract>0?`<div class="stat" style="flex:1"><div class="stat-val">${contract}</div><div class="stat-lbl">Contract/week</div></div>`:''}
       ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val">${jaarsnippers}</div><div class="stat-lbl">Snip./jaar</div></div>`:''}
-      ${snipperSaldo!==null?`<div class="stat" style="flex:1"><div class="stat-val" style="color:${snipperSaldo>=0?'var(--success)':'var(--danger)'}">${snipperSaldo}${snipperDagen!==null?`<div style="font-size:11px;font-weight:500">${snipperDagen}d</div>`:''}</div><div class="stat-lbl">Saldo snip.</div></div>`:''}
+      ${snipperSaldo!==null?`<div class="stat" style="flex:1"><div class="stat-val" style="color:${snipperSaldo>=0?'#1A6B3C':'#C0392B'}">${snipperSaldo}u</div><div class="stat-lbl" style="color:${snipperSaldo>=0?'#1A6B3C':'#C0392B'};font-weight:600">${snipperDagen!==null?snipperDagen+' dagen':''}</div></div>`:''}
     </div>`;
   } else {
     summary.innerHTML = '';
@@ -760,9 +760,15 @@ window.renderJaaroverzicht = function() {
     const snipperDagen = (jaarSnippers > 0 && sf > 0) ? +(snipperSaldo / sf).toFixed(2) : null;
 
     return `<div class="week-block" style="margin-bottom:1.25rem">
-      <div class="week-header">
-        <span class="week-title">${naam}</span>
-        <span class="week-totals">${curJaar}${jaarSnippers>0?` · ${jaarSnippers}u snip./jaar`:''}${snipperSaldo!==null?` · saldo: <b style="color:${snipperSaldo>=0?'#1A6B3C':'#C0392B'}">${snipperSaldo}u${snipperDagen!==null?` (${snipperDagen}d)`:''}</b>`:''}</span>
+      <div class="week-header" style="flex-direction:column;align-items:stretch;gap:4px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span class="week-title">${naam}</span>
+          <span class="week-totals">${curJaar}</span>
+        </div>
+        ${jaarSnippers>0?`<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px">
+          <span style="color:var(--muted)">Snipperuren per jaar: <b style="color:var(--text)">${jaarSnippers}u</b></span>
+          ${snipperSaldo!==null?`<span>Saldo: <b style="color:${snipperSaldo>=0?'#1A6B3C':'#C0392B'}">${snipperSaldo}u${snipperDagen!==null?` (${snipperDagen} dagen)`:''}</b></span>`:''}
+        </div>`:''}
       </div>
       <div class="uren-table-wrap">
         <table class="uren-table">
