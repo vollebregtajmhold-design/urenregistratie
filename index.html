@@ -426,6 +426,12 @@ window.resetPassword = async function(name) {
   alert(`Wachtwoord van ${name} is gewijzigd.`);
 };
 
+function snipFactor(u) {
+  const c  = u.contracturen || 0;
+  const wd = u.werkdagen || 5;
+  return wd > 0 ? c / wd : 0;
+}
+
 function calcJaarsnippers(u) {
   const c  = u.contracturen  || 0;
   const wd = u.werkdagen     || 5;
@@ -641,13 +647,15 @@ window.renderUserWeek = function() {
       const t2 = totals(items);
       const tot2 = +(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);
       const s2 = contract > 0 ? +(contract - tot2).toFixed(1) : 0;
-      return acc + (s2 < 0 ? Math.abs(s2) : 0);
+      return acc + s2;
     }, 0);
     const snipperSaldo = jaarsnippers > 0 ? +(startsaldo + jaarsnippers - totaalGebruiktSnip2).toFixed(1) : null;
+    const sf = snipFactor(me);
+    const snipperDagen = (jaarsnippers > 0 && sf > 0) ? +(snipperSaldo / sf).toFixed(2) : null;
     summary.innerHTML = `<div style="display:flex;gap:8px;margin-bottom:.75rem">
       ${contract>0?`<div class="stat" style="flex:1"><div class="stat-val">${contract}</div><div class="stat-lbl">Contract/week</div></div>`:''}
       ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val">${jaarsnippers}</div><div class="stat-lbl">Snip./jaar</div></div>`:''}
-      ${snipperSaldo!==null?`<div class="stat" style="flex:1"><div class="stat-val" style="color:${snipperSaldo>=0?'var(--success)':'var(--danger)'}">${snipperSaldo}</div><div class="stat-lbl">Saldo snip.</div></div>`:''}
+      ${snipperSaldo!==null?`<div class="stat" style="flex:1"><div class="stat-val" style="color:${snipperSaldo>=0?'var(--success)':'var(--danger)'}">${snipperSaldo}${snipperDagen!==null?`<div style="font-size:11px;font-weight:500">${snipperDagen}d</div>`:''}</div><div class="stat-lbl">Saldo snip.</div></div>`:''}
     </div>`;
   } else {
     summary.innerHTML = '';
@@ -740,19 +748,21 @@ window.renderJaaroverzicht = function() {
     const totVrij = +(jaarTot.v + s_vrij).toFixed(1);
     const jTot    = +(totGew + totZiek + totDok + totVrij).toFixed(1);
 
-    // Snipper saldo = jaarsnippers + startsaldo - opgenomen snipperuren (negatieve snip waarden)
-    const totaalGebruiktSnip = weken.reduce((acc, {items}) => {
+    // Snipper saldo = startsaldo + jaarsnippers - som van alle wekelijkse snip waarden
+    const sommeSnip = weken.reduce((acc, {items}) => {
       const t2 = totals(items);
       const tot2 = +(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);
       const snip2 = contract > 0 ? +(contract - tot2).toFixed(1) : 0;
-      return acc + (snip2 < 0 ? Math.abs(snip2) : 0);
+      return acc + snip2;
     }, 0);
-    const snipperSaldo = jaarSnippers > 0 ? +(startsaldo + jaarSnippers - totaalGebruiktSnip).toFixed(1) : null;
+    const snipperSaldo = jaarSnippers > 0 ? +(startsaldo + jaarSnippers - sommeSnip).toFixed(1) : null;
+    const sf = snipFactor(u || {});
+    const snipperDagen = (jaarSnippers > 0 && sf > 0) ? +(snipperSaldo / sf).toFixed(2) : null;
 
     return `<div class="week-block" style="margin-bottom:1.25rem">
       <div class="week-header">
         <span class="week-title">${naam}</span>
-        <span class="week-totals">${curJaar}${jaarSnippers>0?` · ${jaarSnippers}u snip./jaar`:''}${snipperSaldo!==null?` · saldo: <b style="color:${snipperSaldo>=0?'#1A6B3C':'#C0392B'}">${snipperSaldo}u</b>`:''}</span>
+        <span class="week-totals">${curJaar}${jaarSnippers>0?` · ${jaarSnippers}u snip./jaar`:''}${snipperSaldo!==null?` · saldo: <b style="color:${snipperSaldo>=0?'#1A6B3C':'#C0392B'}">${snipperSaldo}u${snipperDagen!==null?` (${snipperDagen}d)`:''}</b>`:''}</span>
       </div>
       <div class="uren-table-wrap">
         <table class="uren-table">
