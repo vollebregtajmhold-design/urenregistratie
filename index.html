@@ -153,8 +153,10 @@
     <button class="tab active" onclick="switchTab('user','invullen',this)">Invullen</button>
     <button class="tab" onclick="switchTab('user','weekoverzicht',this)">Weekoverzicht</button>
     <button class="tab" onclick="switchTab('user','wachtwoord',this)">Wachtwoord</button>
+    <button class="tab" onclick="switchTab('user','herinnering',this)">Herinnering</button>
   </div>
   <div id="user-invullen" class="tabpanel active">
+    <div id="notitie-banner" style="display:none"></div>
     <div id="snipper-banner" style="display:none"></div>
     <div id="vergeten-banner" style="display:none"></div>
     <div id="lock-notice" class="lock-notice" style="display:none">🔒 Deze dag is definitief en kan niet meer worden aangepast.</div>
@@ -196,6 +198,20 @@
       <div id="pw-err" class="error" style="display:none"></div>
       <div id="pw-ok" class="success-msg" style="display:none"></div>
       <button class="btn btn-primary" onclick="changePassword()">Wachtwoord wijzigen</button>
+    </div>
+  </div>
+  <div id="user-herinnering" class="tabpanel">
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:.5rem">Dagelijkse herinnering</div>
+      <p class="hint" style="margin-bottom:.75rem">Krijg een melding op dit toestel als je vandaag nog geen uren hebt ingevuld. Werkt alleen zolang deze app open of op de achtergrond actief is op dit toestel.</p>
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;font-weight:500;color:var(--text)">
+        <input type="checkbox" id="rem-aan" style="width:auto;margin:0" onchange="toggleReminder()"> Herinnering inschakelen
+      </label>
+      <label>Tijdstip</label>
+      <input type="time" id="rem-tijd" value="17:00">
+      <div id="rem-err" class="error" style="display:none"></div>
+      <div id="rem-ok" class="success-msg" style="display:none"></div>
+      <button class="btn btn-primary" onclick="saveReminder()">Opslaan</button>
     </div>
   </div>
 </div>
@@ -258,6 +274,7 @@
     <div id="admin-list"></div>
   </div>
   <div id="admin-mensen" class="tabpanel">
+    <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:1rem;margin-top:0" onclick="downloadBackup()">💾 Backup downloaden (alle data)</button>
     <div id="admin-users-list" class="card" style="padding:.75rem 1rem"></div>
     <div class="card" style="margin-top:1rem">
       <div style="font-weight:600;margin-bottom:.75rem">Medewerker toevoegen</div>
@@ -380,6 +397,8 @@ window.doLogin = async function() {
     resetUserTabs();
     showSnipperBanner();
     checkVergeten();
+    showNotitieBanner();
+    setupReminder();
   }
 };
 
@@ -567,10 +586,11 @@ window.saveContract = async function(name) {
   const sziek = parseFloat(document.getElementById('saldo-ziek-'+ name).value) || 0;
   const sdok  = parseFloat(document.getElementById('saldo-dok-' + name).value) || 0;
   const svrij = parseFloat(document.getElementById('saldo-vrij-'+ name).value) || 0;
+  const notitie = (document.getElementById('notitie-' + name)?.value) || '';
   const key   = name.toLowerCase().replace(/\s+/g,'-');
   const u     = allUsers.find(x => x.name === name);
   if (!u) return;
-  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij };
+  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, notitie };
   newU.jaarsnippers = calcJaarsnippers(newU);
   await setDoc(doc(db, 'users', key), newU);
   await loadUsers();
@@ -612,6 +632,98 @@ window.deleteUser = async function(name) {
 };
 
 // --- Render ---
+function showNotitieBanner() {
+  const banner = document.getElementById('notitie-banner');
+  if (!banner) return;
+  if (me.notitie) {
+    banner.innerHTML = `<div style="background:var(--accent-light);border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:.5rem;font-size:12px">
+      📌 ${me.notitie}
+    </div>`;
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+// --- Herinnering / pushmeldingen ---
+let reminderInterval = null;
+
+function setupReminder() {
+  const aanEl = document.getElementById('rem-aan');
+  const tijdEl = document.getElementById('rem-tijd');
+  if (!aanEl) return;
+  aanEl.checked = !!me.reminderAan;
+  tijdEl.value = me.reminderTijd || '17:00';
+  startReminderCheck();
+}
+
+window.toggleReminder = function() {
+  const aan = document.getElementById('rem-aan').checked;
+  if (aan && 'Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+};
+
+window.saveReminder = async function() {
+  const aan = document.getElementById('rem-aan').checked;
+  const tijd = val('rem-tijd');
+  const err = document.getElementById('rem-err');
+  const ok = document.getElementById('rem-ok');
+  if (aan && !('Notification' in window)) {
+    err.textContent = 'Meldingen worden niet ondersteund op dit toestel/browser';
+    err.style.display = 'block';
+    return;
+  }
+  if (aan && Notification.permission === 'denied') {
+    err.textContent = 'Meldingen zijn geblokkeerd voor deze app in je browserinstellingen';
+    err.style.display = 'block';
+    return;
+  }
+  if (aan && Notification.permission === 'default') {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') {
+      err.textContent = 'Toestemming voor meldingen is nodig';
+      err.style.display = 'block';
+      return;
+    }
+  }
+  err.style.display = 'none';
+  const key = me.name.toLowerCase().replace(/\s+/g,'-');
+  me = { ...me, reminderAan: aan, reminderTijd: tijd };
+  await setDoc(doc(db, 'users', key), me);
+  await loadUsers();
+  startReminderCheck();
+  ok.textContent = '✓ Opgeslagen';
+  ok.style.display = 'block';
+  setTimeout(() => ok.style.display = 'none', 3000);
+};
+
+function startReminderCheck() {
+  if (reminderInterval) clearInterval(reminderInterval);
+  if (!me.reminderAan) return;
+  reminderInterval = setInterval(() => {
+    if (!me || !me.reminderAan) return;
+    const now = new Date();
+    const hhmm = now.toTimeString().substring(0,5);
+    if (hhmm !== (me.reminderTijd || '17:00')) return;
+    const today = todayStr();
+    const heeftVandaag = allEntries.find(e => e.naam === me.name && e.datum === today);
+    if (!heeftVandaag && 'Notification' in window && Notification.permission === 'granted') {
+      new Notification('Urenregistratie', { body: 'Je hebt vandaag nog geen uren ingevuld!', icon: 'icon-192.png' });
+    }
+  }, 60000);
+}
+
+// --- Backup ---
+window.downloadBackup = function() {
+  const data = { exportDatum: new Date().toISOString(), users: allUsers, entries: allEntries, notes: allNotes };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `urenregistratie_backup_${todayStr()}.json`;
+  a.click(); URL.revokeObjectURL(url);
+};
+
 function showSnipperBanner() {
   const banner = document.getElementById('snipper-banner');
   if (!banner) return;
@@ -1098,6 +1210,8 @@ window.renderAdmin = function() {
           <div><label style="margin:0 0 3px;font-size:11px">Vrij</label><input type="number" step="0.5" value="${u.saldo_vrij||0}" id="saldo-vrij-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
           <div><label style="margin:0 0 3px;font-size:11px">Snip.saldo</label><input type="number" step="0.5" value="${u.startsaldo||0}" id="saldo-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
         </div>
+        <label style="margin:0 0 3px;font-size:11px">Notitie (alleen zichtbaar voor jou)</label>
+        <input type="text" value="${(u.notitie||'').replace(/"/g,'&quot;')}" id="notitie-${u.name}" style="margin:0;padding:5px 6px;font-size:12px">
         <button class="btn btn-primary btn-sm" style="width:100%;margin-top:2px" onclick="saveContract('${u.name}')">✓ Opslaan</button>
       </div>`).join('')
     : '<p style="color:var(--muted);font-size:14px">Nog geen medewerkers</p>';
