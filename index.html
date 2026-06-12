@@ -212,6 +212,7 @@
     <button class="tab" onclick="switchTab('admin','mensen',this)">Medewerkers</button>
     <button class="tab" onclick="switchTab('admin','weekcheck',this)">Weekcheck</button>
     <button class="tab" onclick="switchTab('admin','wachtwoord',this)">Wachtwoord</button>
+    <button class="tab" onclick="switchTab('admin','opmerkingen',this)">Opmerkingen</button>
   </div>
   <div id="admin-weekoverzicht" class="tabpanel active">
     <div class="filter-row">
@@ -291,6 +292,17 @@
       <button class="btn btn-primary" onclick="changeAdminPassword()">Wachtwoord wijzigen</button>
     </div>
   </div>
+  <div id="admin-opmerkingen" class="tabpanel">
+    <div class="card card-compact">
+      <label>Datum</label>
+      <input type="date" id="opm-datum">
+      <label>Opmerking</label>
+      <input type="text" id="opm-tekst">
+      <div id="opm-err" class="error" style="display:none"></div>
+      <button class="btn btn-primary" onclick="addOpmerking()">Opslaan</button>
+    </div>
+    <div id="opmerkingen-list"></div>
+  </div>
 </div>
 
 <!-- Firebase SDK -->
@@ -313,6 +325,7 @@ const db = getFirestore(app);
 let me = null;
 let allEntries = [];
 let allUsers = [];
+let allNotes = [];
 
 // --- Init ---
 async function init() {
@@ -335,6 +348,11 @@ async function loadEntries() {
   allEntries = snap.docs.map(d => d.data());
 }
 
+async function loadNotes() {
+  const snap = await getDocs(collection(db, 'notes'));
+  allNotes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
 // --- Auth ---
 window.doLogin = async function() {
   const n = val('login-name').trim().toLowerCase();
@@ -345,6 +363,7 @@ window.doLogin = async function() {
   me = u;
   await loadEntries();
   if (u.role === 'admin') {
+    await loadNotes();
     show('screen-admin');
     fillFilters(); renderAdmin();
   } else {
@@ -743,6 +762,57 @@ window.toggleWeekDetail = function(key) {
   if (el) el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
 };
 
+window.renderOpmerkingen = function() {
+  const dInput = document.getElementById('opm-datum');
+  if (!dInput.value) dInput.value = todayStr();
+
+  // Verzamel opmerkingen: eigen notes + opmerkingen uit entries
+  const items = [];
+  allNotes.forEach(n => items.push({ datum: n.datum, tekst: n.tekst, auteur: n.auteur || 'Beheerder', type: 'note', id: n.id }));
+  allEntries.forEach(e => {
+    if (e.opmerking) items.push({ datum: e.datum, tekst: e.opmerking, auteur: e.naam, type: 'entry', id: e.naam.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum });
+  });
+  items.sort((a,b) => b.datum.localeCompare(a.datum));
+
+  const list = document.getElementById('opmerkingen-list');
+  if (!items.length) { list.innerHTML = '<div class="empty">Nog geen opmerkingen</div>'; return; }
+  list.innerHTML = '<div class="card" style="padding:.75rem 1rem;margin-top:1rem">' + items.map(it => `
+    <div class="entry" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <div>
+        <div style="font-size:12px;color:var(--muted)">${fmtDate(it.datum)} · ${it.auteur}</div>
+        <div style="margin-top:2px">${it.tekst}</div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="deleteOpmerking('${it.type}','${it.id}')">✕</button>
+    </div>`).join('') + '</div>';
+};
+
+window.addOpmerking = async function() {
+  const datum = val('opm-datum') || todayStr();
+  const tekst = val('opm-tekst').trim();
+  const err = document.getElementById('opm-err');
+  if (!tekst) { err.textContent = 'Vul een opmerking in'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  await setDoc(doc(collection(db, 'notes')), { datum, tekst, auteur: me.name });
+  await loadNotes();
+  setVal('opm-tekst', '');
+  renderOpmerkingen();
+};
+
+window.deleteOpmerking = async function(type, id) {
+  if (!confirm('Deze opmerking verwijderen?')) return;
+  if (type === 'note') {
+    await deleteDoc(doc(db, 'notes', id));
+    await loadNotes();
+  } else {
+    const e = allEntries.find(x => (x.naam.toLowerCase().replace(/\s+/g,'-') + '_' + x.datum) === id);
+    if (e) {
+      await setDoc(doc(db, 'entries', id), { ...e, opmerking: '' });
+      await loadEntries();
+    }
+  }
+  renderOpmerkingen();
+};
+
 window.renderWeekcheck = function() {
   // Jaar filter
   const jaren = [...new Set(allEntries.map(e => e.datum.substring(0,4)))].sort().reverse();
@@ -1049,7 +1119,8 @@ window.switchTab = function(scope, tab, btn) {
   if (scope === 'user' && tab === 'weekoverzicht') renderUserWeek();
   if (scope === 'admin' && tab === 'jaaroverzicht') renderJaaroverzicht();
   if (scope === 'admin' && tab === 'weekcheck') renderWeekcheck();
-  if (scope === 'admin' && tab !== 'jaaroverzicht' && tab !== 'weekcheck' && tab !== 'wachtwoord') renderAdmin();
+  if (scope === 'admin' && tab === 'opmerkingen') renderOpmerkingen();
+  if (scope === 'admin' && tab !== 'jaaroverzicht' && tab !== 'weekcheck' && tab !== 'wachtwoord' && tab !== 'opmerkingen') renderAdmin();
 };
 
 window.onDatumChange = function() {
