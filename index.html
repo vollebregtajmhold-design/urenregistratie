@@ -313,6 +313,17 @@
       <div id="new-err" class="error" style="display:none"></div>
       <button class="btn btn-primary" onclick="addUser()">Toevoegen</button>
     </div>
+    <div class="card" style="margin-top:1rem">
+      <div style="font-weight:600;margin-bottom:.75rem">Naam corrigeren in registraties</div>
+      <p class="hint" style="margin-bottom:.75rem">Heb je een medewerker verwijderd en opnieuw aangemaakt met een andere spelling? Hiermee verplaats je alle oude registraties naar de juiste medewerker.</p>
+      <label>Oude naam (in registraties)</label>
+      <select id="fix-oud"><option value="">Kies naam...</option></select>
+      <label>Nieuwe naam (medewerker)</label>
+      <select id="fix-nieuw"><option value="">Kies medewerker...</option></select>
+      <div id="fix-err" class="error" style="display:none"></div>
+      <div id="fix-ok" class="success-msg" style="display:none"></div>
+      <button class="btn btn-primary" onclick="fixNaam()">Corrigeren</button>
+    </div>
   </div>
   <div id="admin-wachtwoord" class="tabpanel">
     <div class="card">
@@ -693,6 +704,37 @@ window.deleteUser = async function(name) {
   await loadUsers();
   renderAdmin();
 };
+window.fixNaam = async function() {
+  const oud = val('fix-oud');
+  const nieuw = val('fix-nieuw');
+  const err = document.getElementById('fix-err');
+  const ok = document.getElementById('fix-ok');
+  if (!oud || !nieuw) { err.textContent = 'Kies beide namen'; err.style.display = 'block'; ok.style.display='none'; return; }
+  if (oud === nieuw) { err.textContent = 'Oude en nieuwe naam zijn gelijk'; err.style.display = 'block'; ok.style.display='none'; return; }
+  err.style.display = 'none';
+  const teWijzigen = allEntries.filter(e => e.naam === oud);
+  let gewijzigd = 0, overgeslagen = 0;
+  for (const e of teWijzigen) {
+    const oldId = oud.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum;
+    const newId = nieuw.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum;
+    if (newId === oldId) {
+      await setDoc(doc(db, 'entries', oldId), { ...e, naam: nieuw });
+      gewijzigd++;
+      continue;
+    }
+    const bestaatAl = allEntries.find(x => (x.naam.toLowerCase().replace(/\s+/g,'-') + '_' + x.datum) === newId);
+    if (bestaatAl) { overgeslagen++; continue; }
+    await setDoc(doc(db, 'entries', newId), { ...e, naam: nieuw });
+    await deleteDoc(doc(db, 'entries', oldId));
+    gewijzigd++;
+  }
+  await loadEntries();
+  renderAdmin();
+  setVal('fix-oud',''); setVal('fix-nieuw','');
+  ok.textContent = `✓ ${gewijzigd} registratie(s) overgezet naar ${nieuw}` + (overgeslagen ? ` · ${overgeslagen} overgeslagen (datum bestond al bij ${nieuw})` : '');
+  ok.style.display = 'block';
+  setTimeout(() => ok.style.display = 'none', 5000);
+};
 // --- Render ---
 function showNotitieBanner() {
   const banner = document.getElementById('notitie-banner');
@@ -868,7 +910,7 @@ window.exportExcel = function() {
     rows.push([e.naam, fmtDate(e.datum), weekLabel(e.datum), e.aanvang||'', e.einde||'', e.gewerkt||0, e.ziek||0, e.dokter||0, e.vrij||0, tot.toFixed(1)]);
   });
   const csv = rows.map(r => r.map(v => `"${v}"`).join(';')).join('\n');
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `urenregistratie_${curJaar}${curNaam?'_'+curNaam:''}.csv`;
@@ -1152,6 +1194,7 @@ window.renderJaaroverzicht = function() {
 };
 window.renderAdmin = function() {
   fillFilters();
+  fillFixNaamSelects();
   const week  = document.getElementById('f-week')  ? document.getElementById('f-week').value  : '';
   const weekNaam = document.getElementById('f-week-naam') ? document.getElementById('f-week-naam').value : '';
   const naam  = document.getElementById('f-naam')  ? document.getElementById('f-naam').value  : '';
@@ -1296,6 +1339,17 @@ function fillFilters() {
     }).join('');
   });
 }
+function fillFixNaamSelects() {
+  const oudSel = document.getElementById('fix-oud');
+  const nieuwSel = document.getElementById('fix-nieuw');
+  if (!oudSel || !nieuwSel) return;
+  const oudNamen = [...new Set(allEntries.map(e => e.naam))].sort();
+  const huidigeNamen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
+  const curOud = oudSel.value;
+  const curNieuw = nieuwSel.value;
+  oudSel.innerHTML = '<option value="">Kies naam...</option>' + oudNamen.map(n => `<option ${n===curOud?'selected':''} value="${n}">${n}</option>`).join('');
+  nieuwSel.innerHTML = '<option value="">Kies medewerker...</option>' + huidigeNamen.map(n => `<option ${n===curNieuw?'selected':''} value="${n}">${n}</option>`).join('');
+}
 // --- Teelten overzicht ---
 window.renderTeelten = function() {
   const teelten = ['Jonge planten','Hortensia','Micro','Mini','Cyclamen','Algemeen'];
@@ -1316,7 +1370,7 @@ window.renderTeelten = function() {
   const weekSet = [...new Set(filtered.map(e => weekKey(e.datum)))].sort().reverse();
   let html = `<div class="uren-table-wrap"><table class="uren-table">
     <colgroup><col style="width:32%">${teelten.map(() => '<col class="c-num">').join('')}<col class="c-num"></colgroup>
-    <thead><tr><th class="left">Week</th>${teelten.map(t => `<th style="font-size:9px">${t.replace(' ',' ')}</th>`).join('')}<th>Totaal</th></tr></thead>
+    <thead><tr><th class="left">Week</th>${teelten.map(t => `<th style="font-size:9px">${t.replace(' ',' ')}</th>`).join('')}<th>Totaal</th></tr></thead>
     <tbody>`;
   let grandTotals = Object.fromEntries(teelten.map(t => [t, 0]));
   let grandTotal = 0;
