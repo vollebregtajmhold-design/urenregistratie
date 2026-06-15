@@ -698,6 +698,12 @@ window.saveEditEntry = async function(id, naam, datum) {
   await loadEntries();
   renderAdmin();
 };
+window.deleteEntry = async function(id) {
+  if (!confirm('Deze registratie definitief verwijderen?')) return;
+  await deleteDoc(doc(db, 'entries', id));
+  await loadEntries();
+  renderAdmin();
+};
 window.deleteUser = async function(name) {
   if (!confirm(`Medewerker "${name}" verwijderen?`)) return;
   await deleteDoc(doc(db, 'users', name.toLowerCase().replace(/\s+/g,'-')));
@@ -1284,6 +1290,7 @@ window.renderAdmin = function() {
             <div style="display:flex;gap:8px;margin-top:8px">
               <button class="btn btn-primary btn-sm" onclick="saveEditEntry('${id}','${e.naam}','${e.datum}')">Opslaan</button>
               <button class="btn btn-secondary btn-sm" onclick="cancelEditEntry('${id}')">Annuleren</button>
+              <button class="btn btn-secondary btn-sm" style="color:var(--danger)" onclick="deleteEntry('${id}')">🗑️ Verwijderen</button>
             </div>
           </div>
         </div>`;
