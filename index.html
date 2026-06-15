@@ -144,37 +144,37 @@
       <div class="logo">Urenregistratie</div>
       <span id="user-name-label" style="font-weight:600;font-size:16px"></span>
     </div>
-    <button class="logout" onclick="doLogout()">Uitloggen</button>
+    <button class="logout" onclick="doLogout()" data-i18n="btn_uitloggen">Uitloggen</button>
   </div>
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('user','invullen',this)">Invullen</button>
-    <button class="tab" onclick="switchTab('user','weekoverzicht',this)">Weekoverzicht</button>
-    <button class="tab" onclick="switchTab('user','wachtwoord',this)">Wachtwoord</button>
-    <button class="tab" onclick="switchTab('user','herinnering',this)">Herinnering</button>
+    <button class="tab active" onclick="switchTab('user','invullen',this)" data-i18n="tab_invullen">Invullen</button>
+    <button class="tab" onclick="switchTab('user','weekoverzicht',this)" data-i18n="tab_weekoverzicht">Weekoverzicht</button>
+    <button class="tab" onclick="switchTab('user','wachtwoord',this)" data-i18n="tab_wachtwoord">Wachtwoord</button>
+    <button class="tab" onclick="switchTab('user','herinnering',this)" data-i18n="tab_herinnering">Herinnering</button>
   </div>
   <div id="user-invullen" class="tabpanel active">
     <div id="notitie-banner" style="display:none"></div>
     <div id="snipper-banner" style="display:none"></div>
     <div id="vergeten-banner" style="display:none"></div>
-    <div id="lock-notice" class="lock-notice" style="display:none">🔒 Deze dag is definitief en kan niet meer worden aangepast.</div>
+    <div id="lock-notice" class="lock-notice" style="display:none" data-i18n="lock_msg">🔒 Deze dag is definitief en kan niet meer worden aangepast.</div>
     <div class="card card-compact">
-      <label>Datum <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:11px">(max. 6 dagen terug)</span></label>
+      <label><span data-i18n="lbl_datum">Datum</span> <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:11px" data-i18n="datum_max">(max. 6 dagen terug)</span></label>
       <input type="date" id="u-datum" onchange="onDatumChange()">
       <div class="row2">
-        <div><label>Aanvang</label><input type="time" id="u-aanvang"></div>
-        <div><label>Einde</label><input type="time" id="u-einde"></div>
+        <div><label data-i18n="lbl_aanvang">Aanvang</label><input type="time" id="u-aanvang"></div>
+        <div><label data-i18n="lbl_einde">Einde</label><input type="time" id="u-einde"></div>
       </div>
-      <label>Gewerkte uren</label>
+      <label data-i18n="lbl_gewerkt">Gewerkte uren</label>
       <input type="number" id="u-gewerkt" min="0" max="24" step="0.5" placeholder="0">
-      <label>Uren ziek</label>
+      <label data-i18n="lbl_ziek">Uren ziek</label>
       <input type="number" id="u-ziek" min="0" max="24" step="0.5" placeholder="0">
-      <label>Uren dokter</label>
+      <label data-i18n="lbl_dokter">Uren dokter</label>
       <input type="number" id="u-dokter" min="0" max="24" step="0.5" placeholder="0">
-      <label>Betaald vrij / feestdag</label>
+      <label data-i18n="lbl_vrij">Betaald vrij / feestdag</label>
       <input type="number" id="u-vrij" min="0" max="24" step="0.5" placeholder="0">
-      <label>Opmerking (optioneel)</label>
+      <label data-i18n="lbl_opmerking">Opmerking (optioneel)</label>
       <input type="text" id="u-opmerking">
-      <label>Vink de teelt aan waarin je het meest gewerkt hebt</label>
+      <label data-i18n="lbl_teelt">Vink de teelt aan waarin je het meest gewerkt hebt</label>
       <div class="row2" style="grid-template-columns:1fr 1fr;gap:6px 12px">
         <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Jonge planten" style="width:auto;margin:0"> Jonge planten</label>
         <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Hortensia" style="width:auto;margin:0"> Hortensia</label>
@@ -185,39 +185,39 @@
       </div>
       <div id="u-err" class="error" style="display:none"></div>
       <div id="u-ok" class="success-msg" style="display:none"></div>
-      <button class="btn btn-primary" id="btn-opslaan" onclick="saveEntry()">Opslaan</button>
+      <button class="btn btn-primary" id="btn-opslaan" onclick="saveEntry()" data-i18n="btn_opslaan">Opslaan</button>
     </div>
   </div>
   <div id="user-weekoverzicht" class="tabpanel">
     <div id="user-snipper-summary"></div>
-    <div id="user-week-list"><div class="loading">Laden...</div></div>
+    <div id="user-week-list"><div class="loading" data-i18n="loading">Laden...</div></div>
   </div>
   <div id="user-wachtwoord" class="tabpanel">
     <div class="card">
-      <div style="font-weight:600;margin-bottom:.75rem">Wachtwoord wijzigen</div>
-      <label>Huidig wachtwoord</label>
+      <div style="font-weight:600;margin-bottom:.75rem" data-i18n="pw_title">Wachtwoord wijzigen</div>
+      <label data-i18n="pw_lbl_oud">Huidig wachtwoord</label>
       <input type="password" id="pw-oud" placeholder="Huidig wachtwoord">
-      <label>Nieuw wachtwoord</label>
+      <label data-i18n="pw_lbl_nieuw">Nieuw wachtwoord</label>
       <input type="password" id="pw-nieuw" placeholder="Nieuw wachtwoord">
-      <label>Nieuw wachtwoord herhalen</label>
+      <label data-i18n="pw_lbl_herhaal">Nieuw wachtwoord herhalen</label>
       <input type="password" id="pw-herhaal" placeholder="Herhaal nieuw wachtwoord">
       <div id="pw-err" class="error" style="display:none"></div>
       <div id="pw-ok" class="success-msg" style="display:none"></div>
-      <button class="btn btn-primary" onclick="changePassword()">Wachtwoord wijzigen</button>
+      <button class="btn btn-primary" onclick="changePassword()" data-i18n="pw_btn">Wachtwoord wijzigen</button>
     </div>
   </div>
   <div id="user-herinnering" class="tabpanel">
     <div class="card">
-      <div style="font-weight:600;margin-bottom:.5rem">Dagelijkse herinnering</div>
-      <p class="hint" style="margin-bottom:.75rem">Krijg een melding op dit toestel als je vandaag nog geen uren hebt ingevuld. Werkt alleen zolang deze app open of op de achtergrond actief is op dit toestel.</p>
+      <div style="font-weight:600;margin-bottom:.5rem" data-i18n="rem_title">Dagelijkse herinnering</div>
+      <p class="hint" style="margin-bottom:.75rem" data-i18n="rem_hint">Krijg een melding op dit toestel als je vandaag nog geen uren hebt ingevuld. Werkt alleen zolang deze app open of op de achtergrond actief is op dit toestel.</p>
       <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;font-weight:500;color:var(--text)">
-        <input type="checkbox" id="rem-aan" style="width:auto;margin:0" onchange="toggleReminder()"> Herinnering inschakelen
+        <input type="checkbox" id="rem-aan" style="width:auto;margin:0" onchange="toggleReminder()"> <span data-i18n="rem_aan">Herinnering inschakelen</span>
       </label>
-      <label>Tijdstip</label>
+      <label data-i18n="rem_tijd_lbl">Tijdstip</label>
       <input type="time" id="rem-tijd" value="17:00">
       <div id="rem-err" class="error" style="display:none"></div>
       <div id="rem-ok" class="success-msg" style="display:none"></div>
-      <button class="btn btn-primary" onclick="saveReminder()">Opslaan</button>
+      <button class="btn btn-primary" onclick="saveReminder()" data-i18n="btn_opslaan">Opslaan</button>
     </div>
   </div>
 </div>
@@ -355,6 +355,76 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 let me = null;
+// --- Vertalingen ---
+let curLang = 'nl';
+const LANG = {
+  nl: {
+    tab_invullen:'Invullen', tab_weekoverzicht:'Weekoverzicht', tab_wachtwoord:'Wachtwoord', tab_herinnering:'Herinnering',
+    btn_uitloggen:'Uitloggen', btn_opslaan:'Opslaan', loading:'Laden...',
+    lbl_datum:'Datum', datum_max:'(max. 6 dagen terug)', lbl_aanvang:'Aanvang', lbl_einde:'Einde',
+    lbl_gewerkt:'Gewerkte uren', lbl_ziek:'Uren ziek', lbl_dokter:'Uren dokter', lbl_vrij:'Betaald vrij / feestdag',
+    lbl_opmerking:'Opmerking (optioneel)', lbl_teelt:'Vink de teelt aan waarin je het meest gewerkt hebt',
+    lock_msg:'🔒 Deze dag is definitief en kan niet meer worden aangepast.',
+    pw_title:'Wachtwoord wijzigen', pw_lbl_oud:'Huidig wachtwoord', pw_lbl_nieuw:'Nieuw wachtwoord', pw_lbl_herhaal:'Nieuw wachtwoord herhalen', pw_btn:'Wachtwoord wijzigen',
+    rem_title:'Dagelijkse herinnering', rem_hint:'Krijg een melding op dit toestel als je vandaag nog geen uren hebt ingevuld. Werkt alleen zolang deze app open of op de achtergrond actief is op dit toestel.',
+    rem_aan:'Herinnering inschakelen', rem_tijd_lbl:'Tijdstip',
+    snip_saldo:'Snipperuren saldo', snip_contract:'Contract/week', snip_jaar:'Snip./jaar', snip_saldo_over:'Saldo over:', snip_dagen:'dagen',
+    week_empty:'Nog geen uren geregistreerd', week_totaal:'Totaal',
+    col_week:'Week', col_gew:'Gew.', col_ziek:'Ziek', col_dok:'Dok.', col_vrij:'Vrij', col_tot:'Tot.', col_snip:'Snip.',
+    col_datum:'Datum', col_tijd:'Tijd',
+    saved_for:'✓ Opgeslagen voor', err_datum:'Selecteer een datum', err_definitief:'Deze dag is definitief',
+    pw_err_vul:'Vul alle velden in', pw_err_oud:'Huidig wachtwoord is onjuist', pw_err_match:'Nieuwe wachtwoorden komen niet overeen', pw_err_kort:'Wachtwoord moet minimaal 4 tekens zijn', pw_ok:'✓ Wachtwoord gewijzigd!',
+    rem_not_supported:'Meldingen worden niet ondersteund op dit toestel/browser', rem_blocked:'Meldingen zijn geblokkeerd in je browserinstellingen', rem_denied:'Toestemming voor meldingen is nodig', rem_ok:'✓ Opgeslagen',
+    notif_title:'Urenregistratie', notif_body:'Je hebt vandaag nog geen uren ingevuld!',
+    verg_prefix:'⚠️ Je hebt gisteren (', verg_suffix:') nog geen uren ingevuld!', verg_btn:'Alsnog invullen',
+  },
+  en: {
+    tab_invullen:'Enter hours', tab_weekoverzicht:'Week overview', tab_wachtwoord:'Password', tab_herinnering:'Reminder',
+    btn_uitloggen:'Log out', btn_opslaan:'Save', loading:'Loading...',
+    lbl_datum:'Date', datum_max:'(max. 6 days back)', lbl_aanvang:'Start time', lbl_einde:'End time',
+    lbl_gewerkt:'Hours worked', lbl_ziek:'Sick hours', lbl_dokter:'Doctor hours', lbl_vrij:'Paid leave / public holiday',
+    lbl_opmerking:'Remark (optional)', lbl_teelt:'Check the crop you worked in most',
+    lock_msg:'🔒 This day is final and can no longer be changed.',
+    pw_title:'Change password', pw_lbl_oud:'Current password', pw_lbl_nieuw:'New password', pw_lbl_herhaal:'Repeat new password', pw_btn:'Change password',
+    rem_title:'Daily reminder', rem_hint:'Receive a notification on this device if you have not entered your hours today. Only works while this app is open or active in the background.',
+    rem_aan:'Enable reminder', rem_tijd_lbl:'Time',
+    snip_saldo:'Vacation hours balance', snip_contract:'Contract/week', snip_jaar:'Vac./year', snip_saldo_over:'Balance left:', snip_dagen:'days',
+    week_empty:'No hours registered yet', week_totaal:'Total',
+    col_week:'Week', col_gew:'Work.', col_ziek:'Sick', col_dok:'Doc.', col_vrij:'Leave', col_tot:'Total', col_snip:'Vac.',
+    col_datum:'Date', col_tijd:'Time',
+    saved_for:'✓ Saved for', err_datum:'Select a date', err_definitief:'This day is final',
+    pw_err_vul:'Fill in all fields', pw_err_oud:'Current password is incorrect', pw_err_match:'New passwords do not match', pw_err_kort:'Password must be at least 4 characters', pw_ok:'✓ Password changed!',
+    rem_not_supported:'Notifications are not supported on this device/browser', rem_blocked:'Notifications are blocked in your browser settings', rem_denied:'Permission for notifications is required', rem_ok:'✓ Saved',
+    notif_title:'Time registration', notif_body:'You have not entered your hours today!',
+    verg_prefix:'⚠️ You did not enter hours for yesterday (', verg_suffix:') yet!', verg_btn:'Enter now',
+  },
+  pl: {
+    tab_invullen:'Wpisz godziny', tab_weekoverzicht:'Przegląd tygodnia', tab_wachtwoord:'Hasło', tab_herinnering:'Przypomnienie',
+    btn_uitloggen:'Wyloguj', btn_opslaan:'Zapisz', loading:'Ładowanie...',
+    lbl_datum:'Data', datum_max:'(maks. 6 dni wstecz)', lbl_aanvang:'Godzina rozpoczęcia', lbl_einde:'Godzina zakończenia',
+    lbl_gewerkt:'Przepracowane godziny', lbl_ziek:'Godziny chorobowe', lbl_dokter:'Godziny u lekarza', lbl_vrij:'Płatny urlop / święto',
+    lbl_opmerking:'Uwaga (opcjonalnie)', lbl_teelt:'Zaznacz uprawę, przy której pracowałeś/aś najwięcej',
+    lock_msg:'🔒 Ten dzień jest ostateczny i nie można go już zmieniać.',
+    pw_title:'Zmień hasło', pw_lbl_oud:'Aktualne hasło', pw_lbl_nieuw:'Nowe hasło', pw_lbl_herhaal:'Powtórz nowe hasło', pw_btn:'Zmień hasło',
+    rem_title:'Codzienne przypomnienie', rem_hint:'Otrzymaj powiadomienie na tym urządzeniu, jeśli nie wpisałeś/aś jeszcze godzin dzisiaj. Działa tylko gdy aplikacja jest otwarta lub aktywna w tle.',
+    rem_aan:'Włącz przypomnienie', rem_tijd_lbl:'Godzina',
+    snip_saldo:'Saldo godzin urlopowych', snip_contract:'Kontrakt/tydz.', snip_jaar:'Urlop/rok', snip_saldo_over:'Pozostało:', snip_dagen:'dni',
+    week_empty:'Brak zarejestrowanych godzin', week_totaal:'Razem',
+    col_week:'Tydz.', col_gew:'Praca', col_ziek:'Choroba', col_dok:'Lekarz', col_vrij:'Urlop', col_tot:'Razem', col_snip:'Wak.',
+    col_datum:'Data', col_tijd:'Czas',
+    saved_for:'✓ Zapisano dla', err_datum:'Wybierz datę', err_definitief:'Ten dzień jest ostateczny',
+    pw_err_vul:'Wypełnij wszystkie pola', pw_err_oud:'Aktualne hasło jest nieprawidłowe', pw_err_match:'Nowe hasła nie są zgodne', pw_err_kort:'Hasło musi mieć co najmniej 4 znaki', pw_ok:'✓ Hasło zmienione!',
+    rem_not_supported:'Powiadomienia nie są obsługiwane na tym urządzeniu/przeglądarce', rem_blocked:'Powiadomienia są zablokowane w ustawieniach przeglądarki', rem_denied:'Wymagane jest zezwolenie na powiadomienia', rem_ok:'✓ Zapisano',
+    notif_title:'Rejestracja czasu pracy', notif_body:'Nie wpisałeś/aś jeszcze godzin dzisiaj!',
+    verg_prefix:'⚠️ Nie wpisałeś/aś godzin za wczoraj (', verg_suffix:')!', verg_btn:'Wpisz teraz',
+  }
+};
+function t(key) { return (LANG[curLang] && LANG[curLang][key]) || LANG.nl[key] || key; }
+function applyUserLang() {
+  document.querySelectorAll('#screen-user [data-i18n]').forEach(el => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+}
 let allEntries = [];
 let allUsers = [];
 let allNotes = [];
@@ -394,9 +464,11 @@ window.doLogin = async function() {
     show('screen-admin');
     fillFilters(); renderAdmin();
   } else {
+    curLang = u.taal || 'nl';
     document.getElementById('user-name-label').textContent = u.name;
     initEntryForm(todayStr());
     show('screen-user');
+    applyUserLang();
     resetUserTabs();
     showSnipperBanner();
     checkVergeten();
@@ -423,8 +495,8 @@ window.doLogout = function() {
 // --- Entry opslaan ---
 window.saveEntry = async function() {
   const datum = val('u-datum');
-  if (!datum) { showErr('u-err', 'Selecteer een datum'); return; }
-  if (isLocked(datum)) { showErr('u-err', 'Deze dag is definitief'); return; }
+  if (!datum) { showErr('u-err', t('err_datum')); return; }
+  if (isLocked(datum)) { showErr('u-err', t('err_definitief')); return; }
   hideEl('u-err');
   const btn = document.getElementById('btn-opslaan');
   btn.textContent = 'Opslaan...'; btn.disabled = true;
@@ -443,7 +515,7 @@ window.saveEntry = async function() {
   await loadEntries();
   btn.textContent = 'Opslaan'; btn.disabled = false;
   const okEl = document.getElementById('u-ok');
-  okEl.textContent = '✓ Opgeslagen voor ' + fmtDate(datum);
+  okEl.textContent = t('saved_for') + ' ' + fmtDate(datum);
   okEl.style.display = 'block';
   setTimeout(() => okEl.style.display = 'none', 3000);
 };
@@ -476,17 +548,17 @@ window.changePassword = async function() {
   const herhaal = val('pw-herhaal');
   const err = document.getElementById('pw-err');
   const ok = document.getElementById('pw-ok');
-  if (!oud || !nieuw || !herhaal) { err.textContent = 'Vul alle velden in'; err.style.display='block'; return; }
-  if (me.pass !== oud) { err.textContent = 'Huidig wachtwoord is onjuist'; err.style.display='block'; return; }
-  if (nieuw !== herhaal) { err.textContent = 'Nieuwe wachtwoorden komen niet overeen'; err.style.display='block'; return; }
-  if (nieuw.length < 4) { err.textContent = 'Wachtwoord moet minimaal 4 tekens zijn'; err.style.display='block'; return; }
+  if (!oud || !nieuw || !herhaal) { err.textContent = t('pw_err_vul'); err.style.display='block'; return; }
+  if (me.pass !== oud) { err.textContent = t('pw_err_oud'); err.style.display='block'; return; }
+  if (nieuw !== herhaal) { err.textContent = t('pw_err_match'); err.style.display='block'; return; }
+  if (nieuw.length < 4) { err.textContent = t('pw_err_kort'); err.style.display='block'; return; }
   err.style.display='none';
   const key = me.name.toLowerCase().replace(/\s+/g,'-');
   await setDoc(doc(db, 'users', key), { ...me, pass: nieuw });
   await loadUsers();
   me = allUsers.find(u => u.name === me.name);
   setVal('pw-oud',''); setVal('pw-nieuw',''); setVal('pw-herhaal','');
-  ok.textContent = '✓ Wachtwoord gewijzigd!';
+  ok.textContent = t('pw_ok');
   ok.style.display = 'block';
   setTimeout(() => ok.style.display = 'none', 3000);
 };
@@ -580,10 +652,11 @@ window.saveContract = async function(name) {
   const sdok  = parseFloat(document.getElementById('saldo-dok-' + name).value) || 0;
   const svrij = parseFloat(document.getElementById('saldo-vrij-'+ name).value) || 0;
   const notitie = (document.getElementById('notitie-' + name)?.value) || '';
+  const taal    = document.getElementById('taal-' + name)?.value || 'nl';
   const key   = name.toLowerCase().replace(/\s+/g,'-');
   const u     = allUsers.find(x => x.name === name);
   if (!u) return;
-  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, notitie };
+  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, notitie, taal };
   newU.jaarsnippers = calcJaarsnippers(newU);
   await setDoc(doc(db, 'users', key), newU);
   await loadUsers();
@@ -655,19 +728,19 @@ window.saveReminder = async function() {
   const err = document.getElementById('rem-err');
   const ok = document.getElementById('rem-ok');
   if (aan && !('Notification' in window)) {
-    err.textContent = 'Meldingen worden niet ondersteund op dit toestel/browser';
+    err.textContent = t('rem_not_supported');
     err.style.display = 'block';
     return;
   }
   if (aan && Notification.permission === 'denied') {
-    err.textContent = 'Meldingen zijn geblokkeerd voor deze app in je browserinstellingen';
+    err.textContent = t('rem_blocked');
     err.style.display = 'block';
     return;
   }
   if (aan && Notification.permission === 'default') {
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') {
-      err.textContent = 'Toestemming voor meldingen is nodig';
+      err.textContent = t('rem_denied');
       err.style.display = 'block';
       return;
     }
@@ -678,7 +751,7 @@ window.saveReminder = async function() {
   await setDoc(doc(db, 'users', key), me);
   await loadUsers();
   startReminderCheck();
-  ok.textContent = '✓ Opgeslagen';
+  ok.textContent = t('rem_ok');
   ok.style.display = 'block';
   setTimeout(() => ok.style.display = 'none', 3000);
 };
@@ -722,7 +795,7 @@ function startReminderCheck() {
     const today = todayStr();
     const heeftVandaag = allEntries.find(e => e.naam === me.name && e.datum === today);
     if (!heeftVandaag && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification('Urenregistratie', { body: 'Je hebt vandaag nog geen uren ingevuld!', icon: 'icon-192.png' });
+      new Notification(t('notif_title'), { body: t('notif_body'), icon: 'icon-192.png' });
     }
   }, 60000);
 }
@@ -753,7 +826,7 @@ function showSnipperBanner() {
   const snip = +(startsaldo + jaarsnippers - sommeSnip).toFixed(1);
   const kleur = snip >= 0 ? 'var(--success)' : 'var(--danger)';
   banner.innerHTML = `<div style="background:var(--accent-light);border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;font-size:12px">
-    <span>Snipperuren saldo</span>
+    <span>${t('snip_saldo')}</span>
     <b style="color:${kleur};font-size:14px">${snip} uur</b>
   </div>`;
   banner.style.display = 'block';
@@ -769,8 +842,8 @@ function checkVergeten() {
   const heeftGisteren = allEntries.find(e => e.naam === me.name && e.datum === gisteren_str);
   if (!heeftGisteren) {
     banner.innerHTML = `<div style="background:var(--warn-bg);border:1px solid var(--warn);border-radius:8px;padding:10px 12px;margin-bottom:1rem;font-size:13px;color:var(--warn)">
-      ⚠️ Je hebt gisteren (${fmtDate(gisteren_str)}) nog geen uren ingevuld!
-      <button onclick="setDatum('${gisteren_str}')" style="margin-left:8px;background:var(--warn);color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer">Alsnog invullen</button>
+      ${t('verg_prefix')}${fmtDate(gisteren_str)}${t('verg_suffix')}
+      <button onclick="setDatum('${gisteren_str}')" style="margin-left:8px;background:var(--warn);color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer">${t('verg_btn')}</button>
     </div>`;
     banner.style.display = 'block';
   } else {
@@ -850,18 +923,18 @@ window.renderUserWeek = function() {
     const sf = snipFactor(me);
     const snipperDagen = (jaarsnippers > 0 && sf > 0) ? +(snipperSaldo / sf).toFixed(2) : null;
     summary.innerHTML = `<div style="display:flex;gap:8px;margin-bottom:.75rem">
-      ${contract>0?`<div class="stat" style="flex:1"><div class="stat-val">${contract} uur</div><div class="stat-lbl">Contract/week</div></div>`:''}
-      ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val">${jaarsnippers} uur</div><div class="stat-lbl">Snip./jaar</div></div>`:''}
-      ${snipperSaldo!==null?`<div class="stat" style="flex:1"><div class="stat-val" style="color:${snipperSaldo>=0?'#155C36':'#A6362A'}">${snipperSaldo} uur</div><div class="stat-lbl" style="color:${snipperSaldo>=0?'#155C36':'#A6362A'};font-weight:600;margin-top:2px">${snipperDagen!==null?'Saldo over: '+Math.round(snipperDagen)+' dagen':''}</div></div>`:''}
+      ${contract>0?`<div class="stat" style="flex:1"><div class="stat-val">${contract} uur</div><div class="stat-lbl">${t('snip_contract')}</div></div>`:''}
+      ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val">${jaarsnippers} uur</div><div class="stat-lbl">${t('snip_jaar')}</div></div>`:''}
+      ${snipperSaldo!==null?`<div class="stat" style="flex:1"><div class="stat-val" style="color:${snipperSaldo>=0?'#155C36':'#A6362A'}">${snipperSaldo} uur</div><div class="stat-lbl" style="color:${snipperSaldo>=0?'#155C36':'#A6362A'};font-weight:600;margin-top:2px">${snipperDagen!==null?t('snip_saldo_over')+' '+Math.round(snipperDagen)+' '+t('snip_dagen'):''}</div></div>`:''}
     </div>`;
   } else {
     summary.innerHTML = '';
   }
-  if (!mine.length) { el.innerHTML = '<div class="empty">Nog geen uren geregistreerd</div>'; return; }
+  if (!mine.length) { el.innerHTML = `<div class="empty">${t('week_empty')}</div>`; return; }
   const weken = groupByWeek(mine);
   el.innerHTML = `<div class="uren-table-wrap"><table class="uren-table">
     <colgroup><col style="width:28%"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num">${contract>0?'<col class="c-num">':''}</colgroup>
-    <thead><tr><th class="left">Week</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th>${jaarsnippers>0?'<th>Snip.</th>':''}</tr></thead>
+    <thead><tr><th class="left">${t('col_week')}</th><th>${t('col_gew')}</th><th>${t('col_ziek')}</th><th>${t('col_dok')}</th><th>${t('col_vrij')}</th><th>${t('col_tot')}</th>${jaarsnippers>0?`<th>${t('col_snip')}</th>`:''}</tr></thead>
     <tbody>
     ${weken.map(({label, items, key}) => {
       const t = totals(items);
@@ -1196,6 +1269,12 @@ window.renderAdmin = function() {
         </div>
         <label style="margin:0 0 3px;font-size:11px">Notitie (alleen zichtbaar voor jou)</label>
         <input type="text" value="${(u.notitie||'').replace(/"/g,'&quot;')}" id="notitie-${u.name}" style="margin:0;padding:5px 6px;font-size:12px">
+        <label style="margin:4px 0 3px;font-size:11px">Taal medewerker</label>
+        <select id="taal-${u.name}" style="margin:0;padding:5px 6px;font-size:12px">
+          <option value="nl" ${(u.taal||'nl')==='nl'?'selected':''}>🇳🇱 Nederlands</option>
+          <option value="en" ${u.taal==='en'?'selected':''}>🇬🇧 English</option>
+          <option value="pl" ${u.taal==='pl'?'selected':''}>🇵🇱 Polski</option>
+        </select>
         <button class="btn btn-primary btn-sm" style="width:100%;margin-top:2px" onclick="saveContract('${u.name}')">✓ Opslaan</button>
       </div>`).join('')
     : '<p style="color:var(--muted);font-size:14px">Nog geen medewerkers</p>';
@@ -1330,9 +1409,9 @@ function weekTable(items) {
   const totT = +(tot.g||0)+ +(tot.z||0)+ +(tot.d||0)+ +(tot.v||0);
   return `<div class="uren-table-wrap"><table class="uren-table">
     <colgroup><col class="c-datum"><col class="c-tijd"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"></colgroup>
-    <thead><tr><th class="left">Datum</th><th class="left">Tijd</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th></tr></thead>
+    <thead><tr><th class="left">${t('col_datum')}</th><th class="left">${t('col_tijd')}</th><th>${t('col_gew')}</th><th>${t('col_ziek')}</th><th>${t('col_dok')}</th><th>${t('col_vrij')}</th><th>${t('col_tot')}</th></tr></thead>
     <tbody>${rows}</tbody>
-    <tfoot><tr class="totaalrij"><td class="left" colspan="2">Totaal</td>
+    <tfoot><tr class="totaalrij"><td class="left" colspan="2">${t('week_totaal')}</td>
       <td>${tot.g||'–'}</td><td>${tot.z>0?tot.z:'–'}</td><td>${tot.d>0?tot.d:'–'}</td><td>${tot.v>0?tot.v:'–'}</td>
       <td><b>${totT>0?totT.toFixed(1):'–'}</b></td>
     </tr></tfoot>
