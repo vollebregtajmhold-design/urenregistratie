@@ -48,7 +48,6 @@
   .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.25rem;overflow-x:auto}
   .tab{padding:10px 0;margin-right:1.5rem;font-size:15px;font-weight:500;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;font-family:var(--font);transition:color .15s;white-space:nowrap}
   .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-  .tabpanel{display:none}.tabpanel.active{display:block}
   .week-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1rem;overflow:hidden}
   .week-header{padding:10px 14px;background:var(--accent-light);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
   .week-title{font-weight:600;font-size:15px;color:var(--accent)}
@@ -177,6 +176,15 @@
       <input type="number" id="u-vrij" min="0" max="24" step="0.5" placeholder="0">
       <label>Opmerking (optioneel)</label>
       <input type="text" id="u-opmerking">
+      <label>Vink de teelt aan waarin je het meest gewerkt hebt</label>
+      <div class="row2" style="grid-template-columns:1fr 1fr;gap:6px 12px">
+        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Jonge planten" style="width:auto;margin:0"> Jonge planten</label>
+        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Hortensia" style="width:auto;margin:0"> Hortensia</label>
+        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Micro" style="width:auto;margin:0"> Micro</label>
+        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Mini" style="width:auto;margin:0"> Mini</label>
+        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Cyclamen" style="width:auto;margin:0"> Cyclamen</label>
+        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Algemeen" style="width:auto;margin:0"> Algemeen</label>
+      </div>
       <div id="u-err" class="error" style="display:none"></div>
       <div id="u-ok" class="success-msg" style="display:none"></div>
       <button class="btn btn-primary" id="btn-opslaan" onclick="saveEntry()">Opslaan</button>
@@ -435,7 +443,8 @@ window.saveEntry = async function() {
     ziek:    parseFloat(val('u-ziek'))    || 0,
     dokter:  parseFloat(val('u-dokter'))  || 0,
     vrij:    parseFloat(val('u-vrij'))    || 0,
-    opmerking: val('u-opmerking') || ''
+    opmerking: val('u-opmerking') || '',
+    teelten: Array.from(document.querySelectorAll('.u-teelt:checked')).map(c => c.value)
   };
   const id = me.name.toLowerCase().replace(/\s+/g,'-') + '_' + datum;
   await setDoc(doc(db, 'entries', id), rec);
@@ -618,6 +627,7 @@ window.saveEditEntry = async function(id, naam, datum) {
     dokter:  parseFloat(document.getElementById('ea-dok-'  + id).value) || 0,
     vrij:    parseFloat(document.getElementById('ea-vrij-' + id).value) || 0,
     opmerking: document.getElementById('ea-opm-' + id).value || '',
+    teelten: Array.from(document.querySelectorAll('.ea-teelt-' + id + ':checked')).map(c => c.value),
   };
   await setDoc(doc(db, 'entries', id), rec);
   await loadEntries();
@@ -1192,6 +1202,7 @@ window.renderAdmin = function() {
           <div id="entry-view-${id}" style="font-size:13px;color:var(--muted);margin-top:3px">
             ${e.aanvang||'–'} – ${e.einde||'–'} · ${e.gewerkt}u gewerkt
             ${e.ziek ? ` · ${e.ziek}u ziek` : ''}${e.dokter ? ` · ${e.dokter}u dokter` : ''}${e.vrij ? ` · ${e.vrij}u vrij` : ''}
+            ${e.teelten && e.teelten.length ? `<div style="margin-top:3px">🌱 ${e.teelten.join(', ')}</div>` : ''}
             ${e.opmerking ? `<div style="margin-top:3px;font-style:italic">💬 ${e.opmerking}</div>` : ''}
           </div>
           <div id="entry-edit-${id}" style="display:none;margin-top:8px">
@@ -1207,6 +1218,10 @@ window.renderAdmin = function() {
             </div>
             <label style="margin-top:6px">Opmerking</label>
             <input type="text" id="ea-opm-${id}" value="${(e.opmerking||'').replace(/"/g,'&quot;')}" placeholder="Geen opmerking">
+            <label style="margin-top:6px">Teelt</label>
+            <div class="row2" style="grid-template-columns:1fr 1fr;gap:4px 8px">
+              ${['Jonge planten','Hortensia','Micro','Mini','Cyclamen','Algemeen'].map(t => `<label style="display:flex;align-items:center;gap:6px;text-transform:none;font-size:13px;font-weight:400;margin-top:0"><input type="checkbox" class="ea-teelt-${id}" value="${t}" ${e.teelten&&e.teelten.includes(t)?'checked':''} style="width:auto;margin:0"> ${t}</label>`).join('')}
+            </div>
             <div style="display:flex;gap:8px;margin-top:8px">
               <button class="btn btn-primary btn-sm" onclick="saveEditEntry('${id}','${e.naam}','${e.datum}')">Opslaan</button>
               <button class="btn btn-secondary btn-sm" onclick="cancelEditEntry('${id}')">Annuleren</button>
@@ -1285,13 +1300,18 @@ window.onDatumChange = function() {
   const locked = isLocked(datum);
   document.getElementById('lock-notice').style.display = locked ? 'block' : 'none';
   ['u-aanvang','u-einde','u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id => document.getElementById(id).disabled = locked);
+  document.querySelectorAll('.u-teelt').forEach(c => c.disabled = locked);
   document.getElementById('btn-opslaan').disabled = locked;
   if (datum) {
     const ex = allEntries.find(e => e.naam === me.name && e.datum === datum);
-    if (ex) { setVal('u-aanvang',ex.aanvang||''); setVal('u-einde',ex.einde||''); setVal('u-gewerkt',ex.gewerkt||''); setVal('u-ziek',ex.ziek||''); setVal('u-dokter',ex.dokter||''); setVal('u-vrij',ex.vrij||''); setVal('u-opmerking',ex.opmerking||''); }
-    else { setVal('u-aanvang','08:00'); setVal('u-einde','17:00'); ['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,'')); }
+    if (ex) { setVal('u-aanvang',ex.aanvang||''); setVal('u-einde',ex.einde||''); setVal('u-gewerkt',ex.gewerkt||''); setVal('u-ziek',ex.ziek||''); setVal('u-dokter',ex.dokter||''); setVal('u-vrij',ex.vrij||''); setVal('u-opmerking',ex.opmerking||''); setTeelten(ex.teelten||[]); }
+    else { setVal('u-aanvang','08:00'); setVal('u-einde','17:00'); ['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,'')); setTeelten([]); }
   }
 };
+
+function setTeelten(arr) {
+  document.querySelectorAll('.u-teelt').forEach(c => c.checked = arr.includes(c.value));
+}
 
 window.toggleWeek = function(h) { const b=h.nextElementSibling; b.style.display=b.style.display==='none'?'block':'none'; };
 window.togglePerson = function(h) { const b=h.nextElementSibling; b.style.display=b.style.display==='none'?'block':'none'; };
@@ -1317,7 +1337,7 @@ function weekTable(items) {
     const locked = isLocked(e.datum);
     const dag = +(e.gewerkt||0)+ +(e.ziek||0)+ +(e.dokter||0)+ +(e.vrij||0);
     return `<tr>
-      <td class="left">${fmtDate(e.datum)}${locked?'🔒':''}</td>
+      <td class="left">${fmtDate(e.datum)}${locked?'🔒':''}${e.teelten&&e.teelten.length?`<div style="font-size:9px;color:var(--muted);font-weight:400">${e.teelten.join(', ')}</div>`:''}</td>
       <td class="left">${(e.aanvang||'–').substring(0,5)}/${(e.einde||'–').substring(0,5)}</td>
       <td>${fmt(e.gewerkt)}</td><td>${fmt(e.ziek)}</td><td>${fmt(e.dokter)}</td><td>${fmt(e.vrij)}</td>
       <td><b>${dag>0?dag.toFixed(1):'–'}</b></td>
