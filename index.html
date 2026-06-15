@@ -45,9 +45,9 @@
   .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
   .logout{background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);font-family:var(--font);padding:4px 0}
   .logout:hover{color:var(--text)}
-  .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.25rem;overflow-x:auto}
-  .tab{padding:10px 0;margin-right:1.5rem;font-size:15px;font-weight:500;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;font-family:var(--font);transition:color .15s;white-space:nowrap}
-  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tabs{display:flex;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.25rem;overflow-x:auto;background:var(--surface);padding:4px;gap:4px;flex-wrap:wrap}
+  .tab{padding:7px 12px;font-size:14px;font-weight:500;color:var(--muted);background:none;border:none;cursor:pointer;border-radius:7px;font-family:var(--font);transition:background .15s,color .15s;white-space:nowrap}
+  .tab.active{color:var(--accent);background:var(--accent-light);font-weight:600}
   .week-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1rem;overflow:hidden}
   .week-header{padding:10px 14px;background:var(--accent-light);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
   .week-title{font-weight:600;font-size:15px;color:var(--accent)}
@@ -230,11 +230,11 @@
     </div>
     <button class="logout" onclick="doLogout()">Uitloggen</button>
   </div>
-  <div class="tabs" style="flex-wrap:wrap">
+  <div class="tabs">
     <button class="tab active" onclick="switchTab('admin','weekoverzicht',this)">Weekoverzicht</button>
     <button class="tab" onclick="switchTab('admin','jaaroverzicht',this)">Jaaroverzicht</button>
+    <button class="tab" onclick="switchTab('admin','teelten',this)">Teelten</button>
     <button class="tab" onclick="switchTab('admin','details',this)">Details</button>
-    <div style="flex-basis:100%"></div>
     <button class="tab" onclick="switchTab('admin','mensen',this)">Medewerkers</button>
     <button class="tab" onclick="switchTab('admin','weekcheck',this)">Weekcheck</button>
     <button class="tab" onclick="switchTab('admin','wachtwoord',this)">Wachtwoord</button>
@@ -255,6 +255,13 @@
       <select id="f-wc-jaar" onchange="renderWeekcheck()"><option value="">Huidig jaar</option></select>
     </div>
     <div id="weekcheck-list"></div>
+  </div>
+  <div id="admin-teelten" class="tabpanel">
+    <div class="filter-row">
+      <label>Week</label>
+      <select id="f-teelt-week" onchange="renderTeelten()"><option value="">Alle weken</option></select>
+    </div>
+    <div id="teelten-list"><div class="loading">Laden...</div></div>
   </div>
   <div id="admin-jaaroverzicht" class="tabpanel">
     <div class="filter-row">
@@ -1208,6 +1215,60 @@ function fillFilters() {
     }).join('');
   });
 }
+// --- Teelten overzicht ---
+window.renderTeelten = function() {
+  const teelten = ['Jonge planten','Hortensia','Micro','Mini','Cyclamen','Algemeen'];
+  // Vul week-filter
+  const weeks = [...new Set(allEntries.map(e => weekKey(e.datum)))].sort().reverse();
+  const sel = document.getElementById('f-teelt-week');
+  const curWeek = sel.value;
+  sel.innerHTML = '<option value="">Alle weken</option>' + weeks.map(w => {
+    const e = allEntries.find(x => weekKey(x.datum) === w);
+    return `<option ${w===curWeek?'selected':''} value="${w}">${e ? weekLabel(e.datum) : w}</option>`;
+  }).join('');
+  const filtered = curWeek ? allEntries.filter(e => weekKey(e.datum) === curWeek) : allEntries;
+  if (!filtered.length) {
+    document.getElementById('teelten-list').innerHTML = '<div class="empty">Geen registraties gevonden</div>';
+    return;
+  }
+  // Bereken uren per teelt per week
+  const weekSet = [...new Set(filtered.map(e => weekKey(e.datum)))].sort().reverse();
+  let html = `<div class="uren-table-wrap"><table class="uren-table">
+    <colgroup><col style="width:32%">${teelten.map(() => '<col class="c-num">').join('')}<col class="c-num"></colgroup>
+    <thead><tr><th class="left">Week</th>${teelten.map(t => `<th style="font-size:9px">${t.replace(' ',' ')}</th>`).join('')}<th>Totaal</th></tr></thead>
+    <tbody>`;
+  let grandTotals = Object.fromEntries(teelten.map(t => [t, 0]));
+  let grandTotal = 0;
+  weekSet.forEach(wk => {
+    const wkEntries = filtered.filter(e => weekKey(e.datum) === wk);
+    const label = weekLabel(wkEntries[0].datum);
+    // Per teelt: som gewerkte uren van entries waarbij die teelt aangevinkt is
+    const perTeelt = Object.fromEntries(teelten.map(t => [t, 0]));
+    wkEntries.forEach(e => {
+      if (!e.teelten || !e.teelten.length || !e.gewerkt) return;
+      const aandeel = e.gewerkt / e.teelten.length;
+      e.teelten.forEach(t => { if (perTeelt[t] !== undefined) perTeelt[t] += aandeel; });
+    });
+    const weekTot = teelten.reduce((s, t) => s + perTeelt[t], 0);
+    teelten.forEach(t => { grandTotals[t] += perTeelt[t]; });
+    grandTotal += weekTot;
+    html += `<tr><td class="left">${label}</td>`;
+    teelten.forEach(t => {
+      const v = perTeelt[t];
+      html += `<td ${v===0?'class="zero"':''}>${v>0 ? v.toFixed(1) : '–'}</td>`;
+    });
+    html += `<td><b>${weekTot>0 ? weekTot.toFixed(1) : '–'}</b></td></tr>`;
+  });
+  html += `<tr class="totaalrij"><td class="left">Totaal</td>`;
+  teelten.forEach(t => {
+    const v = grandTotals[t];
+    html += `<td>${v>0 ? v.toFixed(1) : '–'}</td>`;
+  });
+  html += `<td><b>${grandTotal>0 ? grandTotal.toFixed(1) : '–'}</b></td></tr>`;
+  html += '</tbody></table></div>';
+  html += `<p style="font-size:11px;color:var(--muted);margin-top:.5rem">* Uren worden evenredig verdeeld als meerdere teelten zijn aangevinkt.</p>`;
+  document.getElementById('teelten-list').innerHTML = html;
+};
 // --- Helpers ---
 window.switchTab = function(scope, tab, btn) {
   document.querySelectorAll(`#screen-${scope} .tabpanel`).forEach(p => p.classList.remove('active'));
@@ -1218,7 +1279,8 @@ window.switchTab = function(scope, tab, btn) {
   if (scope === 'admin' && tab === 'jaaroverzicht') renderJaaroverzicht();
   if (scope === 'admin' && tab === 'weekcheck') renderWeekcheck();
   if (scope === 'admin' && tab === 'opmerkingen') renderOpmerkingen();
-  if (scope === 'admin' && tab !== 'jaaroverzicht' && tab !== 'weekcheck' && tab !== 'wachtwoord' && tab !== 'opmerkingen') renderAdmin();
+  if (scope === 'admin' && tab === 'teelten') renderTeelten();
+  if (scope === 'admin' && !['jaaroverzicht','weekcheck','wachtwoord','opmerkingen','teelten'].includes(tab)) renderAdmin();
 };
 window.onDatumChange = function() {
   const datum = val('u-datum');
