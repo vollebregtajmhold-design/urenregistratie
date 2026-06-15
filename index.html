@@ -723,7 +723,12 @@ window.fixNaam = async function() {
       continue;
     }
     const bestaatAl = allEntries.find(x => (x.naam.toLowerCase().replace(/\s+/g,'-') + '_' + x.datum) === newId);
-    if (bestaatAl) { overgeslagen++; continue; }
+    if (bestaatAl) {
+      const leeg = !(+(e.gewerkt||0) || +(e.ziek||0) || +(e.dokter||0) || +(e.vrij||0) || e.opmerking || (e.teelten && e.teelten.length));
+      if (leeg) { await deleteDoc(doc(db, 'entries', oldId)); gewijzigd++; }
+      else { overgeslagen++; }
+      continue;
+    }
     await setDoc(doc(db, 'entries', newId), { ...e, naam: nieuw });
     await deleteDoc(doc(db, 'entries', oldId));
     gewijzigd++;
