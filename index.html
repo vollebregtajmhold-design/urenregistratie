@@ -69,6 +69,8 @@
   .person-name{font-weight:600;font-size:15px}
   .person-toggle{font-size:13px;color:var(--muted)}
   .person-body{padding:0}
+  .tabpanel{display:none}
+  .tabpanel.active{display:block}
   .loading{text-align:center;padding:2rem;color:var(--muted);font-size:14px}
   .stat{background:var(--accent-light);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem;text-align:center}
   .stat-val{font-size:21px;font-weight:600;color:var(--accent)}
@@ -94,7 +96,6 @@
 </style>
 </head>
 <body>
-
 <!-- LADEN -->
 <div id="screen-loading" class="screen active">
   <div style="padding-top:4rem;text-align:center">
@@ -102,7 +103,6 @@
     <p style="margin-top:1rem;color:var(--muted)">Verbinden...</p>
   </div>
 </div>
-
 <!-- LOGIN -->
 <div id="screen-login" class="screen">
   <div style="padding-top:1.5rem">
@@ -121,7 +121,6 @@
     </div>
   </div>
 </div>
-
 <!-- REGISTER -->
 <div id="screen-register" class="screen">
   <div class="topbar">
@@ -138,7 +137,6 @@
     <button class="btn btn-primary" onclick="doRegister()">Account aanmaken</button>
   </div>
 </div>
-
 <!-- MEDEWERKER -->
 <div id="screen-user" class="screen">
   <div class="topbar">
@@ -223,7 +221,6 @@
     </div>
   </div>
 </div>
-
 <!-- ADMIN -->
 <div id="screen-admin" class="screen">
   <div class="topbar">
@@ -336,12 +333,10 @@
     <div id="opmerkingen-list"></div>
   </div>
 </div>
-
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyDha05hLJuL1O-4cjcCOdutdQmbUPXGN4Q",
   authDomain: "urenregistratie-416e5.firebaseapp.com",
@@ -350,15 +345,12 @@ const firebaseConfig = {
   messagingSenderId: "324133291974",
   appId: "1:324133291974:web:e185a51b03a86e15ced4c7"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
 let me = null;
 let allEntries = [];
 let allUsers = [];
 let allNotes = [];
-
 // --- Init ---
 async function init() {
   await loadUsers();
@@ -369,22 +361,18 @@ async function init() {
   }
   show('screen-login');
 }
-
 async function loadUsers() {
   const snap = await getDocs(collection(db, 'users'));
   allUsers = snap.docs.map(d => d.data());
 }
-
 async function loadEntries() {
   const snap = await getDocs(query(collection(db, 'entries'), orderBy('datum', 'desc')));
   allEntries = snap.docs.map(d => d.data());
 }
-
 async function loadNotes() {
   const snap = await getDocs(collection(db, 'notes'));
   allNotes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
-
 // --- Auth ---
 window.doLogin = async function() {
   const n = val('login-name').trim().toLowerCase();
@@ -409,7 +397,6 @@ window.doLogin = async function() {
     setupReminder();
   }
 };
-
 window.doRegister = async function() {
   const n = val('reg-name').trim();
   const p = val('reg-pass');
@@ -421,13 +408,11 @@ window.doRegister = async function() {
   alert('Account aangemaakt! U kunt nu inloggen.');
   show('screen-login');
 };
-
 window.doLogout = function() {
   me = null; allEntries = [];
   setVal('login-name',''); setVal('login-pass','');
   show('screen-login');
 };
-
 // --- Entry opslaan ---
 window.saveEntry = async function() {
   const datum = val('u-datum');
@@ -455,7 +440,6 @@ window.saveEntry = async function() {
   okEl.style.display = 'block';
   setTimeout(() => okEl.style.display = 'none', 3000);
 };
-
 // --- Admin medewerkers ---
 window.addUser = async function() {
   const n    = val('new-naam').trim();
@@ -479,7 +463,6 @@ window.addUser = async function() {
   hideEl('new-err');
   renderAdmin();
 };
-
 window.changePassword = async function() {
   const oud = val('pw-oud');
   const nieuw = val('pw-nieuw');
@@ -500,7 +483,6 @@ window.changePassword = async function() {
   ok.style.display = 'block';
   setTimeout(() => ok.style.display = 'none', 3000);
 };
-
 window.changeAdminPassword = async function() {
   const oud = val('apw-oud');
   const nieuw = val('apw-nieuw');
@@ -521,7 +503,6 @@ window.changeAdminPassword = async function() {
   ok.style.display = 'block';
   setTimeout(() => ok.style.display = 'none', 3000);
 };
-
 window.resetPassword = async function(name) {
   const nieuw = prompt(`Nieuw wachtwoord voor ${name}:`);
   if (!nieuw) return;
@@ -533,13 +514,11 @@ window.resetPassword = async function(name) {
   await loadUsers();
   alert(`Wachtwoord van ${name} is gewijzigd.`);
 };
-
 function snipFactor(u) {
   const c  = u.contracturen || 0;
   const wd = u.werkdagen || 5;
   return wd > 0 ? c / wd : 0;
 }
-
 function calcJaarsnippers(u) {
   const c  = u.contracturen  || 0;
   const wd = u.werkdagen     || 5;
@@ -549,7 +528,6 @@ function calcJaarsnippers(u) {
   const aandeel = sd / (wd * wj);
   return Math.round(wj * c * aandeel * 10) / 10;
 }
-
 function calcSnipPreview(u) {
   const sd  = u.snipperdagen || 0;
   const wd  = u.werkdagen    || 5;
@@ -560,7 +538,6 @@ function calcSnipPreview(u) {
   const jaarsnip = Math.round(wj * c * aandeel * 10) / 10;
   return `Aandeel: ${aandeel} · Jaarlijkse snipperuren: <b>${jaarsnip}u</b>`;
 }
-
 window.updateNewSnipPreview = function() {
   const el = document.getElementById('new-snip-preview');
   if (!el) return;
@@ -572,7 +549,6 @@ window.updateNewSnipPreview = function() {
   };
   el.innerHTML = calcSnipPreview(u);
 };
-
 window.updateSnipPreview = function(name) {
   const el = document.getElementById('snip-preview-' + name);
   if (!el) return;
@@ -584,7 +560,6 @@ window.updateSnipPreview = function(name) {
   };
   el.innerHTML = calcSnipPreview(u);
 };
-
 window.saveContract = async function(name) {
   const c   = parseFloat(document.getElementById('contract-'   + name).value) || 0;
   const wd  = parseFloat(document.getElementById('werkdagen-'  + name).value) || 5;
@@ -606,17 +581,14 @@ window.saveContract = async function(name) {
   renderAdmin();
   alert(`Gegevens voor ${name} opgeslagen (${newU.jaarsnippers}u snipperuren/jaar)`);
 };
-
 window.editEntry = function(id, naam, datum) {
   document.getElementById('entry-view-' + id).style.display = 'none';
   document.getElementById('entry-edit-' + id).style.display = 'block';
 };
-
 window.cancelEditEntry = function(id) {
   document.getElementById('entry-view-' + id).style.display = 'block';
   document.getElementById('entry-edit-' + id).style.display = 'none';
 };
-
 window.saveEditEntry = async function(id, naam, datum) {
   const rec = {
     naam, datum,
@@ -633,14 +605,12 @@ window.saveEditEntry = async function(id, naam, datum) {
   await loadEntries();
   renderAdmin();
 };
-
 window.deleteUser = async function(name) {
   if (!confirm(`Medewerker "${name}" verwijderen?`)) return;
   await deleteDoc(doc(db, 'users', name.toLowerCase().replace(/\s+/g,'-')));
   await loadUsers();
   renderAdmin();
 };
-
 // --- Render ---
 function showNotitieBanner() {
   const banner = document.getElementById('notitie-banner');
@@ -654,10 +624,8 @@ function showNotitieBanner() {
     banner.style.display = 'none';
   }
 }
-
 // --- Herinnering / pushmeldingen ---
 let reminderInterval = null;
-
 function setupReminder() {
   const aanEl = document.getElementById('rem-aan');
   const tijdEl = document.getElementById('rem-tijd');
@@ -666,14 +634,12 @@ function setupReminder() {
   tijdEl.value = me.reminderTijd || '17:00';
   startReminderCheck();
 }
-
 window.toggleReminder = function() {
   const aan = document.getElementById('rem-aan').checked;
   if (aan && 'Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission();
   }
 };
-
 window.saveReminder = async function() {
   const aan = document.getElementById('rem-aan').checked;
   const tijd = val('rem-tijd');
@@ -707,7 +673,6 @@ window.saveReminder = async function() {
   ok.style.display = 'block';
   setTimeout(() => ok.style.display = 'none', 3000);
 };
-
 function isFeestdag(d) {
   const y = d.getFullYear();
   const md = (m,day) => d.getMonth()===m && d.getDate()===day;
@@ -722,13 +687,11 @@ function isFeestdag(d) {
   ];
   return days.some(e => e.getFullYear()===y && e.getMonth()===d.getMonth() && e.getDate()===d.getDate());
 }
-
 function addDays(date, n) {
   const r = new Date(date);
   r.setDate(r.getDate()+n);
   return r;
 }
-
 function getEaster(y) {
   const a=y%19,b=Math.floor(y/100),c=y%100,dd=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3);
   const h=(19*a+b-dd-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7;
@@ -736,7 +699,6 @@ function getEaster(y) {
   const month=Math.floor((h+l-7*m+114)/31)-1, day=((h+l-7*m+114)%31)+1;
   return new Date(y, month, day);
 }
-
 function startReminderCheck() {
   if (reminderInterval) clearInterval(reminderInterval);
   if (!me.reminderAan) return;
@@ -755,7 +717,6 @@ function startReminderCheck() {
     }
   }, 60000);
 }
-
 // --- Backup ---
 window.downloadBackup = function() {
   const data = { exportDatum: new Date().toISOString(), users: allUsers, entries: allEntries, notes: allNotes };
@@ -765,7 +726,6 @@ window.downloadBackup = function() {
   a.href = url; a.download = `urenregistratie_backup_${todayStr()}.json`;
   a.click(); URL.revokeObjectURL(url);
 };
-
 function showSnipperBanner() {
   const banner = document.getElementById('snipper-banner');
   if (!banner) return;
@@ -789,7 +749,6 @@ function showSnipperBanner() {
   </div>`;
   banner.style.display = 'block';
 }
-
 function checkVergeten() {
   const banner = document.getElementById('vergeten-banner');
   if (!banner) return;
@@ -809,19 +768,16 @@ function checkVergeten() {
     banner.style.display = 'none';
   }
 }
-
 window.setDatum = function(datum) {
   setVal('u-datum', datum);
   onDatumChange();
   document.getElementById('vergeten-banner').style.display = 'none';
 };
-
 window.exportExcel = function() {
   const curJaar = document.getElementById('f-jaar') ? document.getElementById('f-jaar').value || new Date().getFullYear().toString() : new Date().getFullYear().toString();
   const curNaam = document.getElementById('f-jaar-naam') ? document.getElementById('f-jaar-naam').value : '';
   const filtered = allEntries.filter(e => e.datum.startsWith(curJaar) && (!curNaam || e.naam === curNaam));
   if (!filtered.length) { alert('Geen data om te exporteren'); return; }
-
   // CSV aanmaken
   const rows = [['Naam','Datum','Week','Aanvang','Einde','Gewerkt','Ziek','Dokter','Vrij/Feestdag','Totaal']];
   filtered.sort((a,b) => a.naam.localeCompare(b.naam) || a.datum.localeCompare(b.datum));
@@ -830,13 +786,12 @@ window.exportExcel = function() {
     rows.push([e.naam, fmtDate(e.datum), weekLabel(e.datum), e.aanvang||'', e.einde||'', e.gewerkt||0, e.ziek||0, e.dokter||0, e.vrij||0, tot.toFixed(1)]);
   });
   const csv = rows.map(r => r.map(v => `"${v}"`).join(';')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `urenregistratie_${curJaar}${curNaam?'_'+curNaam:''}.csv`;
   a.click(); URL.revokeObjectURL(url);
 };
-
 window.printOverzicht = function() {
   const el = document.getElementById('jaar-list');
   if (!el || !el.innerHTML.trim()) { alert('Laad eerst het jaaroverzicht'); return; }
@@ -864,7 +819,6 @@ window.printOverzicht = function() {
   win.document.close();
   win.print();
 };
-
 window.renderUserWeek = function() {
   const mine = allEntries.filter(e => e.naam === me.name);
   const el = document.getElementById('user-week-list');
@@ -872,7 +826,6 @@ window.renderUserWeek = function() {
   const jaarsnippers = me.jaarsnippers  || 0;
   const startsaldo   = me.startsaldo    || 0;
   const curYear      = new Date().getFullYear().toString();
-
   // Snipperuren samenvatting
   const summary = document.getElementById('user-snipper-summary');
   if (contract > 0 || jaarsnippers > 0) {
@@ -895,7 +848,6 @@ window.renderUserWeek = function() {
   } else {
     summary.innerHTML = '';
   }
-
   if (!mine.length) { el.innerHTML = '<div class="empty">Nog geen uren geregistreerd</div>'; return; }
   const weken = groupByWeek(mine);
   el.innerHTML = `<div class="uren-table-wrap"><table class="uren-table">
@@ -917,16 +869,13 @@ window.renderUserWeek = function() {
     </tbody>
   </table></div>`;
 };
-
 window.toggleWeekDetail = function(key) {
   const el = document.getElementById('detail-' + key);
   if (el) el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
 };
-
 window.renderOpmerkingen = function() {
   const dInput = document.getElementById('opm-datum');
   if (!dInput.value) dInput.value = todayStr();
-
   // Verzamel opmerkingen: eigen notes + opmerkingen uit entries
   const items = [];
   allNotes.forEach(n => items.push({ datum: n.datum, tekst: n.tekst, auteur: n.auteur || 'Beheerder', type: 'note', id: n.id }));
@@ -934,7 +883,6 @@ window.renderOpmerkingen = function() {
     if (e.opmerking) items.push({ datum: e.datum, tekst: e.opmerking, auteur: e.naam, type: 'entry', id: e.naam.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum });
   });
   items.sort((a,b) => b.datum.localeCompare(a.datum));
-
   const list = document.getElementById('opmerkingen-list');
   if (!items.length) { list.innerHTML = '<div class="empty">Nog geen opmerkingen</div>'; return; }
   list.innerHTML = '<div class="card" style="padding:.75rem 1rem;margin-top:1rem">' + items.map(it => `
@@ -946,7 +894,6 @@ window.renderOpmerkingen = function() {
       <button class="btn btn-secondary btn-sm" onclick="deleteOpmerking('${it.type}','${it.id}')">✕</button>
     </div>`).join('') + '</div>';
 };
-
 window.addOpmerking = async function() {
   const datum = val('opm-datum') || todayStr();
   const tekst = val('opm-tekst').trim();
@@ -958,7 +905,6 @@ window.addOpmerking = async function() {
   setVal('opm-tekst', '');
   renderOpmerkingen();
 };
-
 window.deleteOpmerking = async function(type, id) {
   if (!confirm('Deze opmerking verwijderen?')) return;
   if (type === 'note') {
@@ -973,7 +919,6 @@ window.deleteOpmerking = async function(type, id) {
   }
   renderOpmerkingen();
 };
-
 window.renderWeekcheck = function() {
   // Jaar filter
   const jaren = [...new Set(allEntries.map(e => e.datum.substring(0,4)))].sort().reverse();
@@ -982,16 +927,13 @@ window.renderWeekcheck = function() {
   const jaarSel = document.getElementById('f-wc-jaar');
   const curJaar = jaarSel.value || huidigJaar;
   jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
-
   const namen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
   if (!namen.length) { document.getElementById('weekcheck-list').innerHTML = '<div class="empty">Nog geen medewerkers</div>'; return; }
-
   // Bepaal aantal weken: tot huidige week als curJaar = huidig jaar, anders 53
   let maxWeek = 53;
   if (curJaar === huidigJaar) {
     maxWeek = getWeekNr(todayStr());
   }
-
   // Maak set van naam_week die ingevuld zijn
   const ingevuld = new Set();
   allEntries.forEach(e => {
@@ -999,7 +941,6 @@ window.renderWeekcheck = function() {
       ingevuld.add(e.naam + '_' + getWeekNr(e.datum));
     }
   });
-
   let rows = '';
   for (let w = 1; w <= maxWeek; w++) {
     rows += `<tr><td class="left"><b>${w}</b></td>`;
@@ -1009,7 +950,6 @@ window.renderWeekcheck = function() {
     });
     rows += '</tr>';
   }
-
   const colWidth = Math.max(8, Math.floor(72 / namen.length));
   document.getElementById('weekcheck-list').innerHTML = `
     <div style="font-size:12px;color:var(--muted);margin-bottom:.5rem">✓ = minstens 1 dag ingevuld die week &nbsp;·&nbsp; ✕ = niets ingevuld</div>
@@ -1021,7 +961,6 @@ window.renderWeekcheck = function() {
       </table>
     </div>`;
 };
-
 window.renderJaaroverzicht = function() {
   // Vul jaar-filter
   const jaren = [...new Set(allEntries.map(e => e.datum.substring(0,4)))].sort().reverse();
@@ -1032,11 +971,9 @@ window.renderJaaroverzicht = function() {
   jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
   const namen = [...new Set(allEntries.map(e => e.naam))].sort();
   naamSel.innerHTML = '<option value="">Alle medewerkers</option>' + namen.map(n => `<option ${n===curNaam?'selected':''} value="${n}">${n}</option>`).join('');
-
   const filtered = allEntries.filter(e => e.datum.startsWith(curJaar) && (!curNaam || e.naam === curNaam));
   const el = document.getElementById('jaar-list');
   if (!filtered.length) { el.innerHTML = '<div class="empty">Geen registraties gevonden</div>'; return; }
-
   const namen2 = curNaam ? [curNaam] : [...new Set(filtered.map(e => e.naam))].sort();
   el.innerHTML = namen2.map(naam => {
     const pEntries = filtered.filter(e => e.naam === naam);
@@ -1051,7 +988,6 @@ window.renderJaaroverzicht = function() {
     const s_dok  = u ? (u.saldo_dok  || 0) : 0;
     const s_vrij = u ? (u.saldo_vrij || 0) : 0;
     const heeftSaldo = s_gew||s_ziek||s_dok||s_vrij||startsaldo;
-
     // Snipperuren per week berekend
     const gebruikteSnip = weken.reduce((acc, {items}) => {
       const t = totals(items);
@@ -1059,7 +995,6 @@ window.renderJaaroverzicht = function() {
       const snip = contract > 0 ? contract - tot : 0;
       return acc + (snip < 0 ? snip : 0); // alleen negatieve snipper telt als gebruik
     }, 0);
-
     const rows = weken.map(({label, items}) => {
       const t = totals(items);
       const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
@@ -1074,14 +1009,12 @@ window.renderJaaroverzicht = function() {
         ${jaarSnippers>0&&contract>0?`<td style="color:${snip<0?'var(--danger)':snip>0?'var(--success)':'var(--muted)'};font-weight:600">${snip!==null?snip:'–'}</td>`:''}
       </tr>`;
     }).join('');
-
     // Totalen inclusief beginsaldo
     const totGew  = +(jaarTot.g + s_gew).toFixed(1);
     const totZiek = +(jaarTot.z + s_ziek).toFixed(1);
     const totDok  = +(jaarTot.d + s_dok).toFixed(1);
     const totVrij = +(jaarTot.v + s_vrij).toFixed(1);
     const jTot    = +(totGew + totZiek + totDok + totVrij).toFixed(1);
-
     // Snipper saldo = startsaldo + jaarsnippers - som van alle wekelijkse snip waarden
     const sommeSnip = weken.reduce((acc, {items}) => {
       const t2 = totals(items);
@@ -1092,7 +1025,6 @@ window.renderJaaroverzicht = function() {
     const snipperSaldo = jaarSnippers > 0 ? +(startsaldo + jaarSnippers - sommeSnip).toFixed(1) : null;
     const sf = snipFactor(u || {});
     const snipperDagen = (jaarSnippers > 0 && sf > 0) ? +(snipperSaldo / sf).toFixed(2) : null;
-
     return `<div class="week-block" style="margin-bottom:1.25rem">
       <div class="week-header" style="flex-direction:column;align-items:stretch;gap:4px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
@@ -1136,14 +1068,12 @@ window.renderJaaroverzicht = function() {
     </div>`;
   }).join('');
 };
-
 window.renderAdmin = function() {
   fillFilters();
   const week  = document.getElementById('f-week')  ? document.getElementById('f-week').value  : '';
   const weekNaam = document.getElementById('f-week-naam') ? document.getElementById('f-week-naam').value : '';
   const naam  = document.getElementById('f-naam')  ? document.getElementById('f-naam').value  : '';
   const week2 = document.getElementById('f-week2') ? document.getElementById('f-week2').value : '';
-
   // Weekoverzicht
   const nonAdminNames = weekNaam ? [weekNaam] : [...new Set(allEntries.map(e => e.naam))].sort();
   const allWeeks = [...new Set(allEntries.map(e => weekKey(e.datum)))].sort().reverse();
@@ -1181,7 +1111,6 @@ window.renderAdmin = function() {
     if (!weekHtml) weekHtml = '<div class="empty">Geen registraties gevonden</div>';
   }
   document.getElementById('admin-week-list').innerHTML = weekHtml;
-
   // Details
   let filtered = allEntries.filter(e => {
     if (naam && e.naam !== naam) return false;
@@ -1230,7 +1159,6 @@ window.renderAdmin = function() {
         </div>`;
       }).join('') + '</div>'
     : '<div class="empty">Geen registraties gevonden</div>';
-
   // Medewerkers
   const nonAdmin = allUsers.filter(u => u.role !== 'admin');
   document.getElementById('admin-users-list').innerHTML = nonAdmin.length
@@ -1263,7 +1191,6 @@ window.renderAdmin = function() {
       </div>`).join('')
     : '<p style="color:var(--muted);font-size:14px">Nog geen medewerkers</p>';
 };
-
 function fillFilters() {
   const names = [...new Set(allEntries.map(e => e.naam))].sort();
   const weeks = [...new Set(allEntries.map(e => weekKey(e.datum)))].sort().reverse();
@@ -1281,7 +1208,6 @@ function fillFilters() {
     }).join('');
   });
 }
-
 // --- Helpers ---
 window.switchTab = function(scope, tab, btn) {
   document.querySelectorAll(`#screen-${scope} .tabpanel`).forEach(p => p.classList.remove('active'));
@@ -1294,7 +1220,6 @@ window.switchTab = function(scope, tab, btn) {
   if (scope === 'admin' && tab === 'opmerkingen') renderOpmerkingen();
   if (scope === 'admin' && tab !== 'jaaroverzicht' && tab !== 'weekcheck' && tab !== 'wachtwoord' && tab !== 'opmerkingen') renderAdmin();
 };
-
 window.onDatumChange = function() {
   const datum = val('u-datum');
   const locked = isLocked(datum);
@@ -1308,14 +1233,11 @@ window.onDatumChange = function() {
     else { setVal('u-aanvang','08:00'); setVal('u-einde','17:00'); ['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,'')); setTeelten([]); }
   }
 };
-
 function setTeelten(arr) {
   document.querySelectorAll('.u-teelt').forEach(c => c.checked = arr.includes(c.value));
 }
-
 window.toggleWeek = function(h) { const b=h.nextElementSibling; b.style.display=b.style.display==='none'?'block':'none'; };
 window.togglePerson = function(h) { const b=h.nextElementSibling; b.style.display=b.style.display==='none'?'block':'none'; };
-
 function initEntryForm(datum) {
   const inp = document.getElementById('u-datum');
   inp.value = datum; inp.min = minDate(); inp.max = todayStr();
@@ -1323,13 +1245,11 @@ function initEntryForm(datum) {
   ['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,''));
   onDatumChange();
 }
-
 function resetUserTabs() {
   document.querySelectorAll('#screen-user .tab').forEach((t,i)=>t.classList.toggle('active',i===0));
   document.getElementById('user-invullen').classList.add('active');
   document.getElementById('user-weekoverzicht').classList.remove('active');
 }
-
 function weekTable(items) {
   const tot = totals(items);
   const fmt = v => (v && v > 0) ? v : '<span class="zero">–</span>';
@@ -1354,19 +1274,16 @@ function weekTable(items) {
     </tr></tfoot>
   </table></div>`;
 }
-
 function groupByWeek(list) {
   const map = {};
   list.forEach(e => { const k=weekKey(e.datum); if(!map[k])map[k]={key:k,label:weekLabel(e.datum),items:[]}; map[k].items.push(e); });
   return Object.values(map).sort((a,b)=>b.key.localeCompare(a.key));
 }
-
 function totals(items) {
   let g=0,z=0,d=0,v=0;
   items.forEach(e=>{g+=+(e.gewerkt||0);z+=+(e.ziek||0);d+=+(e.dokter||0);v+=+(e.vrij||0);});
   return {g:+g.toFixed(1),z:+z.toFixed(1),d:+d.toFixed(1),v:+v.toFixed(1)};
 }
-
 function todayStr(){return new Date().toISOString().split('T')[0];}
 function minDate(){const d=new Date();d.setDate(d.getDate()-6);return d.toISOString().split('T')[0];}
 function isLocked(datum){return datum<minDate();}
@@ -1379,9 +1296,7 @@ window.val = function(id){return document.getElementById(id).value;}
 window.setVal = function(id,v){document.getElementById(id).value=v;}
 window.showErr = function(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
 window.hideEl = function(id){document.getElementById(id).style.display='none';}
-
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('screen-login').classList.contains('active'))doLogin();});
-
 init();
 </script>
 </body>
