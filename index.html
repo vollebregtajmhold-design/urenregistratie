@@ -541,9 +541,11 @@ function calcSnipPreview(u) {
   const wj  = u.wekenperjaar || 52;
   const c   = u.contracturen || 0;
   if (!sd || !wd || !wj || !c) return 'Vul de velden in voor berekening';
-  const aandeel = Math.round(sd / (wd * wj) * 1000) / 1000;
-  const jaarsnip = Math.round(wj * c * aandeel * 10) / 10;
-  return `Aandeel: ${aandeel} · Jaarlijkse snipperuren: <b>${jaarsnip}u</b>`;
+  const aandeelRaw = sd / (wd * wj);
+  const aandeelDisplay = Math.round(aandeelRaw * 1000) / 1000;
+  const jaarsnip = Math.round(wj * c * aandeelRaw * 10) / 10;
+  const uurPerDag = c / wd;
+  return `Aandeel: ${aandeelDisplay} · Snipperuren/jaar: <b>${jaarsnip}u</b> · Uren/dag: ${uurPerDag.toFixed(1)}u`;
 }
 window.updateNewSnipPreview = function() {
   const el = document.getElementById('new-snip-preview');
