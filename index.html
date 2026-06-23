@@ -1041,6 +1041,8 @@ window.renderVrijeDagen = async function() {
 
   for (let w = 1; w <= 52; w++) {
     const isHuidig = w === huidigWeek;
+    const heeftDagen = countVrijeDagen(vrijeDagen, jaar, w) > 0;
+    const openKlap = isHuidig || heeftDagen;
     const count = countVrijeDagen(vrijeDagen, jaar, w);
 
     const blok = document.createElement('div');
@@ -1056,7 +1058,7 @@ window.renderVrijeDagen = async function() {
 
     const body = document.createElement('div');
     body.id = 'vd-body-' + w;
-    body.style.cssText = `display:${isHuidig?'block':'none'};padding:10px 14px;background:var(--surface)`;
+    body.style.cssText = `display:${openKlap?'block':'none'};padding:10px 14px;background:var(--surface)`;
 
     const grid = document.createElement('div');
     grid.style.cssText = 'display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px';
