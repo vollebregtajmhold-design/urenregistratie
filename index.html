@@ -1041,7 +1041,7 @@ window.renderVrijeDagen = async function() {
 
   for (let w = 1; w <= 52; w++) {
     const isHuidig = w === huidigWeek;
-    const heeftDagen = countVrijeDagen(vrijeDagen, jaar, w) > 0;
+    const heeftDagen = Object.keys(vrijeDagen).some(datum => vrijeDagen[datum] && getWeekNr(datum) === w && new Date(datum).getFullYear() === jaar);
     const openKlap = isHuidig || heeftDagen;
     const count = countVrijeDagen(vrijeDagen, jaar, w);
 
