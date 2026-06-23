@@ -237,6 +237,7 @@
   </div>
   <div class="tabs">
     <button class="tab active" onclick="switchTab('admin','weekoverzicht',this)">Weekoverzicht</button>
+    <button class="tab" onclick="switchTab('admin','lossekrachten',this)">Losse krachten</button>
     <button class="tab" onclick="switchTab('admin','jaaroverzicht',this)">Jaaroverzicht</button>
     <button class="tab" onclick="switchTab('admin','teelten',this)">Teelten</button>
     <button class="tab" onclick="switchTab('admin','details',this)">Details</button>
@@ -275,6 +276,13 @@
       <select id="f-teelt-week" onchange="renderTeelten()"><option value="">Alle weken</option></select>
     </div>
     <div id="teelten-list"><div class="loading">Laden...</div></div>
+  </div>
+  <div id="admin-lossekrachten" class="tabpanel">
+    <div class="filter-row">
+      <label>Week</label>
+      <select id="f-lk-week" onchange="renderLosseKrachten()"><option value="">Alle weken</option></select>
+    </div>
+    <div id="lk-week-list"><div class="loading">Laden...</div></div>
   </div>
   <div id="admin-jaaroverzicht" class="tabpanel">
     <div class="filter-row">
@@ -1674,6 +1682,58 @@ window.renderVakantie = async function() {
   }
 };
 
+// --- Losse krachten weekoverzicht ---
+window.renderLosseKrachten = function() {
+  const losseKrachten = allUsers.filter(u => u.role !== 'admin' && u.losseKracht).map(u => u.name).sort();
+  const sel = document.getElementById('f-lk-week');
+  const el = document.getElementById('lk-week-list');
+
+  // Vul weekfilter
+  const weeks = [...new Set(allEntries.filter(e => losseKrachten.includes(e.naam)).map(e => weekKey(e.datum)))].sort().reverse();
+  const curWeek = sel.value;
+  sel.innerHTML = '<option value="">Alle weken</option>' + weeks.map(w => {
+    const e = allEntries.find(x => weekKey(x.datum) === w && losseKrachten.includes(x.naam));
+    return `<option ${w===curWeek?'selected':''} value="${w}">${e ? weekLabel(e.datum) : w}</option>`;
+  }).join('');
+
+  if (!losseKrachten.length) { el.innerHTML = '<div class="empty">Geen losse krachten</div>'; return; }
+
+  const lkEntries = allEntries.filter(e => losseKrachten.includes(e.naam) && (!curWeek || weekKey(e.datum) === curWeek));
+  if (!lkEntries.length) { el.innerHTML = '<div class="empty">Geen registraties gevonden</div>'; return; }
+
+  const weeksToShow = curWeek ? [curWeek] : [...new Set(lkEntries.map(e => weekKey(e.datum)))].sort().reverse();
+  let html = '';
+
+  weeksToShow.forEach(wk => {
+    const wkEntries = lkEntries.filter(e => weekKey(e.datum) === wk);
+    if (!wkEntries.length) return;
+    let personHtml = '';
+    losseKrachten.forEach(n => {
+      const pe = wkEntries.filter(e => e.naam === n);
+      if (!pe.length) return;
+      const tot = totals(pe);
+      personHtml += `<div class="person-block" style="margin:8px 0">
+        <div class="person-header" onclick="togglePerson(this)">
+          <span class="person-name">${n}</span>
+          <span class="person-toggle">${tot.g}u ▾</span>
+        </div>
+        <div class="person-body" style="display:none">${weekTable(pe)}</div>
+      </div>`;
+    });
+    if (personHtml) {
+      html += `<div class="week-block">
+        <div class="week-header" onclick="toggleWeek(this)">
+          <span class="week-title">${weekLabel(wkEntries[0].datum)}</span>
+          <span class="week-totals">${wkEntries.length} registratie${wkEntries.length!==1?'s':''}</span>
+        </div>
+        <div class="week-body">${personHtml}</div>
+      </div>`;
+    }
+  });
+
+  el.innerHTML = html || '<div class="empty">Geen registraties gevonden</div>';
+};
+
 window.renderTeelten = function() {
   const teelten = ['Jonge planten','Hortensia','Micro','Mini','Cyclamen','Algemeen'];
   // Vul week-filter
@@ -1739,9 +1799,9 @@ window.switchTab = function(scope, tab, btn) {
   if (scope === 'admin' && tab === 'weekcheck') renderWeekcheck();
   if (scope === 'admin' && tab === 'opmerkingen') renderOpmerkingen();
   if (scope === 'admin' && tab === 'vakantie') renderVakantie();
-  if (scope === 'admin' && tab === 'vakantie') renderVakantie();
   if (scope === 'admin' && tab === 'teelten') renderTeelten();
-  if (scope === 'admin' && !['jaaroverzicht','weekcheck','wachtwoord','opmerkingen','teelten','vakantie'].includes(tab)) renderAdmin();
+  if (scope === 'admin' && tab === 'lossekrachten') renderLosseKrachten();
+  if (scope === 'admin' && !['jaaroverzicht','weekcheck','wachtwoord','opmerkingen','teelten','vakantie','lossekrachten'].includes(tab)) renderAdmin();
 };
 window.onDatumChange = function() {
   const datum = val('u-datum');
