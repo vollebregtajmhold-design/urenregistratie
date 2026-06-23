@@ -664,10 +664,11 @@ window.saveContract = async function(name) {
   const svrij = parseFloat(document.getElementById('saldo-vrij-'+ name).value) || 0;
   const notitie = (document.getElementById('notitie-' + name)?.value) || '';
   const taal    = document.getElementById('taal-' + name)?.value || 'nl';
+  const losseKracht = document.getElementById('losse-kracht-' + name)?.checked || false;
   const key   = name.toLowerCase().replace(/\s+/g,'-');
   const u     = allUsers.find(x => x.name === name);
   if (!u) return;
-  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, notitie, taal };
+  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, notitie, taal, losseKracht };
   newU.jaarsnippers = calcJaarsnippers(newU);
   await setDoc(doc(db, 'users', key), newU);
   await loadUsers();
@@ -1109,7 +1110,10 @@ window.renderJaaroverzicht = function() {
   const filtered = allEntries.filter(e => e.datum.startsWith(curJaar) && (!curNaam || e.naam === curNaam));
   const el = document.getElementById('jaar-list');
   if (!filtered.length) { el.innerHTML = '<div class="empty">Geen registraties gevonden</div>'; return; }
-  const namen2 = curNaam ? [curNaam] : [...new Set(filtered.map(e => e.naam))].sort();
+  const namen2 = curNaam ? [curNaam] : [...new Set(filtered.map(e => e.naam))].filter(n => {
+    const u = allUsers.find(x => x.name === n);
+    return !u || !u.losseKracht;
+  }).sort();
   el.innerHTML = namen2.map(naam => {
     const pEntries = filtered.filter(e => e.naam === naam);
     const weken = groupByWeek(pEntries);
@@ -1211,7 +1215,10 @@ window.renderAdmin = function() {
   const naam  = document.getElementById('f-naam')  ? document.getElementById('f-naam').value  : '';
   const week2 = document.getElementById('f-week2') ? document.getElementById('f-week2').value : '';
   // Weekoverzicht
-  const nonAdminNames = weekNaam ? [weekNaam] : [...new Set(allEntries.map(e => e.naam))].sort();
+  const nonAdminNames = weekNaam ? [weekNaam] : [...new Set(allEntries.map(e => e.naam))].filter(n => {
+    const u = allUsers.find(x => x.name === n);
+    return !u || !u.losseKracht;
+  }).sort();
   const allWeeks = [...new Set(allEntries.map(e => weekKey(e.datum)))].sort().reverse();
   const weeksToShow = week ? [week] : allWeeks;
   let weekHtml = '';
@@ -1330,6 +1337,9 @@ window.renderAdmin = function() {
           <option value="en" ${u.taal==='en'?'selected':''}>🇬🇧 English</option>
           <option value="pl" ${u.taal==='pl'?'selected':''}>🇵🇱 Polski</option>
         </select>
+        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-size:13px;font-weight:500;color:var(--text);margin:6px 0 2px">
+          <input type="checkbox" id="losse-kracht-${u.name}" ${u.losseKracht?'checked':''} style="width:auto;margin:0"> Losse kracht (niet in week- en jaaroverzicht)
+        </label>
         <button class="btn btn-primary btn-sm" style="width:100%;margin-top:2px" onclick="saveContract('${u.name}')">✓ Opslaan</button>
       </div>`).join('')
     : '<p style="color:var(--muted);font-size:14px">Nog geen medewerkers</p>';
