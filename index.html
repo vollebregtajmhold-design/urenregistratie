@@ -149,6 +149,7 @@
   <div class="tabs">
     <button class="tab active" onclick="switchTab('user','invullen',this)" data-i18n="tab_invullen">Invullen</button>
     <button class="tab" onclick="switchTab('user','weekoverzicht',this)" data-i18n="tab_weekoverzicht">Weekoverzicht</button>
+    <button class="tab" onclick="switchTab('user','vrijevdagen',this)">Vrije dagen</button>
     <button class="tab" onclick="switchTab('user','wachtwoord',this)" data-i18n="tab_wachtwoord">Wachtwoord</button>
     <button class="tab" onclick="switchTab('user','herinnering',this)" data-i18n="tab_herinnering">Herinnering</button>
   </div>
@@ -191,6 +192,9 @@
   <div id="user-weekoverzicht" class="tabpanel">
     <div id="user-snipper-summary"></div>
     <div id="user-week-list"><div class="loading" data-i18n="loading">Laden...</div></div>
+  </div>
+  <div id="user-vrijevdagen" class="tabpanel">
+    <div id="vrije-dagen-list"><div class="loading">Laden...</div></div>
   </div>
   <div id="user-wachtwoord" class="tabpanel">
     <div class="card">
@@ -1005,7 +1009,104 @@ window.renderUserWeek = function() {
     </tbody>
   </table></div>`;
 };
-window.toggleWeekDetail = function(key) {
+window.renderVrijeDagen = async function() {
+  const el = document.getElementById('vrije-dagen-list');
+  const jaar = new Date().getFullYear();
+  const dagen = ['Ma','Di','Wo','Do','Vr'];
+
+  // Laad opgeslagen vrije dagen uit Firestore
+  const key = me.name.toLowerCase().replace(/\s+/g,'-');
+  let vrijeDagen = {};
+  try {
+    const snap = await getDoc(doc(db, 'vrije_dagen', key));
+    if (snap.exists()) vrijeDagen = snap.data().dagen || {};
+  } catch(e) {}
+
+  // Bouw alle weken van het jaar
+  const huidigWeek = getWeekNr(todayStr());
+  let html = '';
+  for (let w = 1; w <= 52; w++) {
+    const maandag = getMaandagVanWeek(jaar, w);
+    const isHuidig = w === huidigWeek;
+    html += `<div class="week-block" id="vd-week-${w}" style="margin-bottom:.5rem">
+      <div class="week-header" style="cursor:pointer;padding:8px 14px" onclick="toggleVrijeDagenWeek(${w})">
+        <span class="week-title">Week ${w}</span>
+        <span class="week-totals" id="vd-count-${w}">${countVrijeDagen(vrijeDagen, jaar, w)} dag(en) vrij</span>
+      </div>
+      <div id="vd-body-${w}" style="display:${isHuidig?'block':'none'};padding:10px 14px;background:var(--surface)">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px">
+          ${dagen.map((dag, i) => {
+            const datum = datumVanWeekdag(jaar, w, i);
+            const checked = vrijeDagen[datum] ? 'checked' : '';
+            return `<label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;text-transform:none;font-weight:500;color:var(--text);margin:0;cursor:pointer">
+              <input type="checkbox" ${checked} data-datum="${datum}" onchange="saveDag('${key}','${datum}',this.checked)" style="width:auto;margin:0;width:18px;height:18px">
+              <span>${dag}</span>
+              <span style="font-size:10px;color:var(--muted)">${fmtDateShort(datum)}</span>
+            </label>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>`;
+  }
+  el.innerHTML = html;
+
+  // Scroll naar huidige week
+  setTimeout(() => {
+    const el = document.getElementById('vd-week-' + huidigWeek);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+};
+
+function countVrijeDagen(vrijeDagen, jaar, week) {
+  let count = 0;
+  for (let i = 0; i < 5; i++) {
+    const datum = datumVanWeekdag(jaar, week, i);
+    if (vrijeDagen[datum]) count++;
+  }
+  return count;
+}
+
+window.toggleVrijeDagenWeek = function(w) {
+  const body = document.getElementById('vd-body-' + w);
+  if (body) body.style.display = body.style.display === 'none' ? 'block' : 'none';
+};
+
+window.saveDag = async function(key, datum, checked) {
+  // Haal huidige data op
+  let vrijeDagen = {};
+  try {
+    const snap = await getDoc(doc(db, 'vrije_dagen', key));
+    if (snap.exists()) vrijeDagen = snap.data().dagen || {};
+  } catch(e) {}
+  if (checked) vrijeDagen[datum] = true;
+  else delete vrijeDagen[datum];
+  await setDoc(doc(db, 'vrije_dagen', key), { naam: me.name, dagen: vrijeDagen });
+
+  // Update teller in header
+  const jaar = new Date().getFullYear();
+  const week = getWeekNr(datum);
+  const countEl = document.getElementById('vd-count-' + week);
+  if (countEl) countEl.textContent = countVrijeDagen(vrijeDagen, jaar, week) + ' dag(en) vrij';
+};
+
+function getMaandagVanWeek(jaar, week) {
+  const jan4 = new Date(jaar, 0, 4);
+  const maandag = new Date(jan4);
+  maandag.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7) + (week - 1) * 7);
+  return maandag;
+}
+
+function datumVanWeekdag(jaar, week, dagIndex) {
+  const ma = getMaandagVanWeek(jaar, week);
+  const d = new Date(ma);
+  d.setDate(ma.getDate() + dagIndex);
+  return d.toISOString().split('T')[0];
+}
+
+function fmtDateShort(d) {
+  const [,m,day] = d.split('-');
+  return `${day}-${m}`;
+}
   const el = document.getElementById('detail-' + key);
   if (el) el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
 };
@@ -1433,6 +1534,7 @@ window.switchTab = function(scope, tab, btn) {
   document.getElementById(`${scope}-${tab}`).classList.add('active');
   btn.classList.add('active');
   if (scope === 'user' && tab === 'weekoverzicht') renderUserWeek();
+  if (scope === 'user' && tab === 'vrijevdagen') renderVrijeDagen();
   if (scope === 'admin' && tab === 'jaaroverzicht') renderJaaroverzicht();
   if (scope === 'admin' && tab === 'weekcheck') renderWeekcheck();
   if (scope === 'admin' && tab === 'opmerkingen') renderOpmerkingen();
