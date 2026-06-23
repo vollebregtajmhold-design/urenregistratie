@@ -1053,7 +1053,9 @@ window.renderVrijeDagen = async function() {
     const header = document.createElement('div');
     header.className = 'week-header';
     header.style.cssText = 'cursor:pointer;padding:8px 14px';
-    header.innerHTML = `<span class="week-title">Week ${w}</span><span class="week-totals" id="vd-count-${w}">${count} dag(en) vrij</span>`;
+    const maandag = datumVanWeekdag(jaar, w, 0);
+    const vrijdag = datumVanWeekdag(jaar, w, 4);
+    header.innerHTML = `<span class="week-title">Week ${w} <span style="font-weight:400;font-size:12px">${fmtDateShort(maandag)} – ${fmtDateShort(vrijdag)}</span></span><span class="week-totals" id="vd-count-${w}">${count} dag(en) vrij</span>`;
     header.onclick = () => toggleVrijeDagenWeek(w);
 
     const body = document.createElement('div');
@@ -1105,7 +1107,9 @@ function countVrijeDagen(vrijeDagen, jaar, week) {
 
 window.toggleVrijeDagenWeek = function(w) {
   const body = document.getElementById('vd-body-' + w);
-  if (body) body.style.display = body.style.display === 'none' ? 'block' : 'none';
+  if (!body) return;
+  const isOpen = body.style.display !== 'none' && body.style.display !== '';
+  body.style.display = isOpen ? 'none' : 'block';
 };
 
 window.saveDag = async function(key, datum, checked) {
