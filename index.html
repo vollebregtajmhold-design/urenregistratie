@@ -242,7 +242,6 @@
     <button class="tab" onclick="switchTab('admin','details',this)">Details</button>
     <button class="tab" onclick="switchTab('admin','mensen',this)">Medewerkers</button>
     <button class="tab" onclick="switchTab('admin','weekcheck',this)">Weekcheck</button>
-    <button class="tab" onclick="switchTab('admin','vakantie',this)">Vakantie</button>
     <button class="tab" onclick="switchTab('admin','wachtwoord',this)">Wachtwoord</button>
     <button class="tab" onclick="switchTab('admin','opmerkingen',this)">Opmerkingen</button>
   </div>
@@ -254,13 +253,6 @@
       <select id="f-week-naam" onchange="renderAdmin()"><option value="">Alle medewerkers</option></select>
     </div>
     <div id="admin-week-list"><div class="loading">Laden...</div></div>
-  </div>
-  <div id="admin-vakantie" class="tabpanel">
-    <div class="filter-row">
-      <label>Jaar</label>
-      <select id="f-vak-jaar" onchange="renderVakantie()"><option value="">Huidig jaar</option></select>
-    </div>
-    <div id="vakantie-list"><div class="loading">Laden...</div></div>
   </div>
   <div id="admin-weekcheck" class="tabpanel">
     <div class="filter-row">
@@ -454,7 +446,17 @@ let allUsers = [];
 let allNotes = [];
 // --- Init ---
 async function init() {
-  await loadUsers();
+  try {
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000));
+    await Promise.race([loadUsers(), timeout]);
+  } catch(e) {
+    document.getElementById('screen-loading').innerHTML = `<div style="padding-top:4rem;text-align:center">
+      <div class="logo" style="justify-content:center;display:block">Urenregistratie</div>
+      <p style="margin-top:1rem;color:var(--danger)">⚠️ Kan geen verbinding maken.<br>Controleer je internet en probeer opnieuw.</p>
+      <button onclick="location.reload()" style="margin-top:1.5rem;padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer">Opnieuw proberen</button>
+    </div>`;
+    return;
+  }
   // Zorg voor admin account
   if (!allUsers.find(u => u.name === 'admin')) {
     await setDoc(doc(db, 'users', 'admin'), { name: 'admin', pass: 'admin123', role: 'admin' });
@@ -1631,7 +1633,7 @@ window.switchTab = function(scope, tab, btn) {
   if (scope === 'admin' && tab === 'opmerkingen') renderOpmerkingen();
   if (scope === 'admin' && tab === 'vakantie') renderVakantie();
   if (scope === 'admin' && tab === 'teelten') renderTeelten();
-  if (scope === 'admin' && !['jaaroverzicht','weekcheck','wachtwoord','opmerkingen','teelten','vakantie'].includes(tab)) renderAdmin();
+  if (scope === 'admin' && !['jaaroverzicht','weekcheck','wachtwoord','opmerkingen','teelten'].includes(tab)) renderAdmin();
 };
 window.onDatumChange = function() {
   const datum = val('u-datum');
