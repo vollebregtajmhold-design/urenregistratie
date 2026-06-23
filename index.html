@@ -256,6 +256,10 @@
     <div id="admin-week-list"><div class="loading">Laden...</div></div>
   </div>
   <div id="admin-vakantie" class="tabpanel">
+    <div class="filter-row">
+      <label>Week</label>
+      <select id="f-vak-week" onchange="renderVakantie()"><option value="">Alle weken</option></select>
+    </div>
     <div id="vakantie-list"><div class="loading">Laden...</div></div>
   </div>
   <div id="admin-weekcheck" class="tabpanel">
@@ -1586,23 +1590,58 @@ window.renderVakantie = async function() {
   snap.docs.forEach(d => { allVrij[d.data().naam] = d.data().dagen || {}; });
 
   const namen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
-  if (!namen.length) { el.innerHTML = '<div class="empty">Geen medewerkers</div>'; return; }
+
+  // Verzamel alle weken met vrije dagen
+  const alleWeken = new Set();
+  namen.forEach(naam => {
+    Object.keys(allVrij[naam] || {}).forEach(datum => {
+      if (allVrij[naam][datum]) alleWeken.add(weekKey(datum));
+    });
+  });
+  const wekenSorted = [...alleWeken].sort();
+
+  // Vul week-filter
+  const sel = document.getElementById('f-vak-week');
+  const huidigWeekKey = weekKey(todayStr());
+  const curWeek = sel.value || huidigWeekKey;
+  sel.innerHTML = '<option value="">Alle weken</option>' + wekenSorted.map(w => {
+    const weekNr = parseInt(w.split('-W')[1]);
+    const jaar = parseInt(w.split('-W')[0]);
+    const ma = datumVanWeekdag(jaar, weekNr, 0);
+    const vr = datumVanWeekdag(jaar, weekNr, 4);
+    return `<option ${w===curWeek?'selected':''} value="${w}">Week ${weekNr} (${fmtDateShort(ma)}–${fmtDateShort(vr)})</option>`;
+  }).join('');
 
   el.innerHTML = '';
   const dagNamen = ['Ma','Di','Wo','Do','Vr'];
 
-  namen.forEach(naam => {
-    const vrijDagen = allVrij[naam] || {};
-    const aangevinkt = Object.keys(vrijDagen).filter(d => vrijDagen[d]).sort();
-    if (!aangevinkt.length) return;
+  // Filter op geselecteerde week of toon allemaal
+  const teTonenWeken = curWeek ? [curWeek] : wekenSorted;
 
-    // Groepeer per week
-    const perWeek = {};
-    aangevinkt.forEach(datum => {
-      const wk = weekKey(datum);
-      if (!perWeek[wk]) perWeek[wk] = [];
-      perWeek[wk].push(datum);
+  if (!teTonenWeken.length) {
+    el.innerHTML = '<div class="empty">Geen vakantiedagen aangevraagd</div>';
+    return;
+  }
+
+  teTonenWeken.forEach(wk => {
+    const weekNr = parseInt(wk.split('-W')[1]);
+    const jaar = parseInt(wk.split('-W')[0]);
+    const ma = datumVanWeekdag(jaar, weekNr, 0);
+    const vr = datumVanWeekdag(jaar, weekNr, 4);
+
+    // Wie is vrij deze week?
+    const vrijDezeWeek = [];
+    namen.forEach(naam => {
+      const vrijDagen = allVrij[naam] || {};
+      const dagenDezeWeek = [];
+      for (let i = 0; i < 5; i++) {
+        const datum = datumVanWeekdag(jaar, weekNr, i);
+        if (vrijDagen[datum]) dagenDezeWeek.push({ dag: dagNamen[i], datum });
+      }
+      if (dagenDezeWeek.length) vrijDezeWeek.push({ naam, dagen: dagenDezeWeek });
     });
+
+    if (!vrijDezeWeek.length) return;
 
     const blok = document.createElement('div');
     blok.className = 'week-block';
@@ -1610,22 +1649,18 @@ window.renderVakantie = async function() {
 
     const header = document.createElement('div');
     header.className = 'week-header';
-    header.innerHTML = `<span class="week-title">${naam}</span><span class="week-totals">${aangevinkt.length} dag(en)</span>`;
+    header.innerHTML = `<span class="week-title">Week ${weekNr}</span><span class="week-totals">${fmtDateShort(ma)} – ${fmtDateShort(vr)}</span>`;
 
     const body = document.createElement('div');
     body.style.cssText = 'padding:8px 14px;background:var(--surface)';
 
-    Object.keys(perWeek).sort().forEach(wk => {
-      const datums = perWeek[wk];
-      const weekNr = parseInt(wk.split('-W')[1]);
+    vrijDezeWeek.forEach(({naam, dagen}) => {
       const rij = document.createElement('div');
-      rij.style.cssText = 'display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px';
-      const tags = datums.map(d => {
-        const di = new Date(d).getDay();
-        const dn = dagNamen[[1,2,3,4,5].indexOf(di)] || '?';
-        return `<span style="background:var(--accent-light);color:var(--accent);border-radius:4px;padding:2px 6px;font-size:12px;margin-right:3px">${dn} ${fmtDateShort(d)}</span>`;
-      }).join('');
-      rij.innerHTML = `<span style="font-weight:600;min-width:58px;color:var(--muted);font-size:12px">Week ${weekNr}</span>${tags}`;
+      rij.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px';
+      const tags = dagen.map(({dag, datum}) =>
+        `<span style="background:var(--accent-light);color:var(--accent);border-radius:4px;padding:2px 6px;font-size:12px;margin-right:3px">${dag} ${fmtDateShort(datum)}</span>`
+      ).join('');
+      rij.innerHTML = `<span style="font-weight:600;min-width:90px">${naam}</span>${tags}`;
       body.appendChild(rij);
     });
 
@@ -1635,7 +1670,7 @@ window.renderVakantie = async function() {
   });
 
   if (!el.children.length) {
-    el.innerHTML = '<div class="empty">Geen vakantiedagen aangevraagd</div>';
+    el.innerHTML = '<div class="empty">Geen vakantiedagen voor deze week</div>';
   }
 };
 
