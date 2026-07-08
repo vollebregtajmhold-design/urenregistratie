@@ -2,13 +2,8 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie</title>
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Urenregistratie">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urenregistratie — Beheer (desktop)</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -17,365 +12,370 @@
     --danger:#A6362A;--success:#155C36;--warn:#7A4F00;--warn-bg:#FBF0D6;
     --radius:10px;--font:'Inter',system-ui,sans-serif;
   }
-  body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.5;min-height:100vh}
-  .screen{display:none;max-width:480px;margin:0 auto;padding:1.5rem 1rem 4rem}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.5;min-height:100vh}
+  .screen{display:none}
   .screen.active{display:block}
-  .logo{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.25rem}
-  .page-title{font-size:24px;font-weight:600;margin-bottom:2rem}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
-  .card-compact{padding:.85rem 1rem}
-  .card-compact label{font-size:12px;margin-bottom:.2rem;margin-top:.55rem}
-  .card-compact label:first-child{margin-top:0}
-  .card-compact input{padding:7px 10px;font-size:15px}
-  .card-compact .btn{margin-top:.7rem;padding:10px}
-  .card-compact .row2{gap:8px}
-  label{display:block;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem;margin-top:1rem}
+
+  /* ---------- Login ---------- */
+  #screen-login{min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .login-box{width:380px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem}
+  .login-logo{text-align:center;margin-bottom:1.5rem}
+  .login-logo img{max-width:180px;border-radius:8px}
+  .login-title{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:.25rem}
+  .login-sub{font-size:22px;font-weight:600;text-align:center;margin-bottom:1.5rem}
+  label{display:block;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem;margin-top:1rem}
   label:first-child{margin-top:0}
-  input,select{display:block;width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:16px;font-family:var(--font);outline:none;transition:border-color .15s}
+  input,select{display:block;width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:15px;font-family:var(--font);outline:none;transition:border-color .15s}
   input:focus,select:focus{border-color:var(--accent)}
-  input:disabled{opacity:.5;cursor:not-allowed}
-  .btn{display:block;width:100%;padding:12px;border-radius:8px;font-size:16px;font-weight:600;font-family:var(--font);cursor:pointer;text-align:center;transition:opacity .15s,transform .1s;border:none;margin-top:1rem}
+  .btn{display:inline-block;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600;font-family:var(--font);cursor:pointer;text-align:center;transition:opacity .15s,transform .1s;border:none}
   .btn:active{transform:scale(.98);opacity:.85}
-  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .btn-block{display:block;width:100%;margin-top:1.25rem}
   .btn-primary{background:var(--accent);color:#fff}
   .btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
-  .btn-sm{padding:7px 12px;font-size:14px;width:auto;display:inline-block;margin-top:0}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .error{font-size:13px;color:var(--danger);margin-top:.5rem}
-  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
-  .logout{background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);font-family:var(--font);padding:4px 0}
+  .btn-sm{padding:6px 11px;font-size:13px}
+  .btn-danger{color:var(--danger)}
+  .error{font-size:13px;color:var(--danger);margin-top:.6rem}
+  .success-msg{font-size:13px;color:var(--success);margin-top:.6rem;font-weight:600}
+
+  /* ---------- App layout ---------- */
+  #app{display:flex;min-height:100vh}
+  .sidebar{width:250px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:fixed;top:0;bottom:0;left:0;overflow-y:auto;display:flex;flex-direction:column}
+  .sidebar-head{padding:1.4rem 1.5rem 1.1rem;border-bottom:1px solid var(--border)}
+  .sidebar-eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .sidebar-title{font-size:19px;font-weight:700;color:var(--accent);margin-top:2px}
+  .nav{padding:.75rem 0;flex:1}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:10px 1.5rem;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;border-left:3px solid transparent;white-space:nowrap}
+  .nav-item:hover{background:var(--bg);color:var(--text)}
+  .nav-item.active{color:var(--accent);background:var(--accent-light);border-left-color:var(--accent);font-weight:700}
+  .nav-icon{font-size:16px;width:20px;text-align:center}
+  .sidebar-foot{padding:1rem 1.5rem;border-top:1px solid var(--border)}
+  .sidebar-user{font-size:13px;color:var(--muted);margin-bottom:.6rem}
+  .logout{background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);font-family:var(--font);padding:0;text-decoration:underline}
   .logout:hover{color:var(--text)}
-  .tabs{display:flex;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.25rem;overflow-x:auto;background:var(--surface);padding:4px;gap:4px;flex-wrap:wrap}
-  .tab{padding:7px 12px;font-size:14px;font-weight:500;color:var(--muted);background:none;border:none;cursor:pointer;border-radius:7px;font-family:var(--font);transition:background .15s,color .15s;white-space:nowrap}
-  .tab.active{color:var(--accent);background:var(--accent-light);font-weight:600}
+
+  .main{margin-left:250px;flex:1;padding:2.2rem 2.75rem 4rem;max-width:1700px}
+  .page{display:none}
+  .page.active{display:block}
+  .page-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.5rem;gap:1rem;flex-wrap:wrap}
+  .page-title{font-size:26px;font-weight:700}
+  .page-hint{font-size:13px;color:var(--muted);margin-top:4px}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem}
+  .filter-row{display:flex;gap:14px;margin-bottom:1.25rem;align-items:flex-end;flex-wrap:wrap}
+  .filter-row .field{min-width:220px}
+  .filter-row label{margin:0 0 .3rem}
+  .filter-row select,.filter-row input{margin:0}
+  .actions-row{display:flex;gap:10px}
+
+  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:1rem}
   .week-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1rem;overflow:hidden}
-  .week-header{padding:10px 14px;background:var(--accent-light);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-  .week-title{font-weight:600;font-size:15px;color:var(--accent)}
+  .week-header{padding:12px 18px;background:var(--accent-light);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+  .week-title{font-weight:700;font-size:15px;color:var(--accent)}
   .week-totals{font-size:13px;color:var(--muted)}
-  .week-body{padding:0}
-  .entry{border-bottom:1px solid var(--border);padding:10px 0}
-  .entry:last-child{border-bottom:none}
-  .empty{text-align:center;padding:3rem 0;color:var(--muted);font-size:15px}
-  .filter-row{display:flex;gap:8px;margin-bottom:1rem;align-items:center}
-  .filter-row select{margin:0;flex:1}
-  .filter-row label{margin:0;white-space:nowrap;font-size:12px}
-  .user-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
-  .user-row:last-child{border-bottom:none}
-  .hint{font-size:13px;color:var(--muted);margin-top:.4rem}
-  .success-msg{font-size:13px;color:var(--success);margin-top:.5rem;font-weight:500}
-  .lock-notice{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn);border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:1rem}
-  .person-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.75rem}
-  .person-header{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-bottom:1px solid var(--border)}
-  .person-name{font-weight:600;font-size:15px}
-  .person-toggle{font-size:13px;color:var(--muted)}
+  .week-body{padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(460px,1fr));gap:14px}
+  .person-block{background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .person-header{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:var(--surface);border-bottom:1px solid var(--border)}
+  .person-name{font-weight:700;font-size:14px}
+  .person-toggle{font-size:12px;color:var(--muted)}
   .person-body{padding:0}
-  .tabpanel{display:none}
-  .tabpanel.active{display:block}
+  .empty{text-align:center;padding:3rem 0;color:var(--muted);font-size:15px}
   .loading{text-align:center;padding:2rem;color:var(--muted);font-size:14px}
-  .stat{background:var(--accent-light);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem;text-align:center}
-  .stat-val{font-size:21px;font-weight:600;color:var(--accent)}
+  .stat{background:var(--accent-light);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center}
+  .stat-val{font-size:24px;font-weight:700;color:var(--accent)}
   .stat-lbl{font-size:12px;color:var(--muted);margin-top:2px}
-  /* Tabel */
-  .uren-table-wrap{width:100%;overflow:hidden}
-  .uren-table{width:100%;border-collapse:collapse;table-layout:fixed}
-  .uren-table col.c-datum{width:22%}
-  .uren-table col.c-tijd{width:19%}
-  .uren-table col.c-num{width:11.8%}
-  .uren-table th{background:var(--accent-light);color:var(--accent);font-weight:600;font-size:10px;padding:6px 3px;text-align:right;white-space:nowrap;border-bottom:2px solid var(--border);overflow:hidden}
-  .uren-table th.left{text-align:left;padding-left:6px}
-  .uren-table td{font-size:11px;padding:6px 3px;border-bottom:1px solid var(--border);text-align:right;overflow:hidden;white-space:nowrap}
-  .uren-table td.left{text-align:left;padding-left:6px}
+
+  .uren-table-wrap{width:100%;overflow-x:auto}
+  .uren-table{width:100%;border-collapse:collapse}
+  .uren-table th{background:var(--accent-light);color:var(--accent);font-weight:700;font-size:12px;padding:9px 8px;text-align:right;white-space:nowrap;border-bottom:2px solid var(--border)}
+  .uren-table th.left{text-align:left}
+  .uren-table td{font-size:13px;padding:8px 8px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+  .uren-table td.left{text-align:left;white-space:normal}
   .uren-table tr:last-child td{border-bottom:none}
-  .uren-table tr.totaalrij td{font-weight:700;font-size:11px;background:var(--accent-light);color:var(--accent);border-top:2px solid var(--border);border-bottom:none;padding:6px 3px}
-  .uren-table tr.totaalrij td.left{padding-left:6px}
+  .uren-table tr.totaalrij td{font-weight:700;font-size:13px;background:var(--accent-light);color:var(--accent);border-top:2px solid var(--border);border-bottom:none}
   .uren-table td.zero{color:var(--muted)}
-  @media(prefers-color-scheme:dark){
-    .tag.ziek{background:#3A1A18;color:#E57373}
-    .tag.vrij{background:#0E2A1A;color:#66BB8A}
-  }
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+  .row5{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px}
+  .chk-row{display:flex;align-items:center;gap:8px;text-transform:none;font-weight:400;font-size:14px;color:var(--text);margin-top:0}
+  .chk-row input{width:auto;margin:0}
+  .tag-day{display:inline-block;background:var(--accent-light);color:var(--accent);border-radius:4px;padding:3px 8px;font-size:12px;margin-right:4px}
+  .entry-row{padding:12px 0;border-bottom:1px solid var(--border)}
+  .entry-row:last-child{border-bottom:none}
+  .mini-lbl{margin:0 0 3px;font-size:11px}
+  .mini-input{margin:0;padding:6px 8px;font-size:13px}
+
+  /* Weekoverzicht spreadsheet stijl */
+  .wk-table thead th{background:var(--accent-light);color:var(--accent)}
+  .vak-table-scroll{max-height:68vh;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
+  .vak-table-scroll table{border-collapse:separate;border-spacing:0}
+  .vak-table-scroll thead th{position:sticky;top:0;z-index:3;box-shadow:0 1px 0 var(--border);background:var(--accent-light)}
+
+  /* Compacte weekoverzicht-header */
+  .wk-header{display:flex;align-items:center;gap:1.75rem;flex-wrap:wrap;padding:1rem 1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.25rem}
+  .wk-header-left{display:flex;flex-direction:column;gap:.55rem}
+  .wk-selects{display:flex;gap:8px}
+  .wk-selects select{width:auto;min-width:150px;margin:0}
+  .wk-lines{font-size:12px;color:var(--muted);line-height:1.5}
+  .wk-lines b{color:var(--text)}
+  .wk-vrije-dagen{font-size:12px;color:var(--accent);background:var(--accent-light);border-radius:6px;padding:5px 10px;display:inline-block}
+  .wk-stats{display:flex;gap:10px}
+  .wk-stats-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:auto}
+  .wk-stats-title{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  .wk-stats-sub{font-size:12px;color:var(--muted)}
+  .wk-stats-sub b{color:var(--text)}
+  .wk-stat{background:var(--accent-light);border-radius:8px;padding:6px 14px;text-align:center;min-width:92px}
+  .wk-stat .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+  .wk-stat .val{font-size:17px;font-weight:700;color:var(--accent);margin-top:2px}
+  .wk-table-scroll{max-height:68vh;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
+  .wk-table-scroll table{border-collapse:separate;border-spacing:0}
+  .wk-table thead tr.headrow th{position:sticky;top:0;z-index:3;box-shadow:0 1px 0 var(--border)}
+  .wk-table thead tr.totalenrow td{position:sticky;top:37px;z-index:2;box-shadow:0 1px 0 var(--border)}
+  .wk-table .totalenrow td{font-weight:700;background:#EFF6FC}
+  .wk-table td.weeknr{font-weight:700;color:var(--accent);text-align:left}
+  .wk-table td.opm-cell{text-align:left;color:var(--muted);font-style:italic;white-space:normal}
 </style>
 </head>
 <body>
-<!-- LADEN -->
+
+<!-- LOADING -->
 <div id="screen-loading" class="screen active">
-  <div style="padding-top:4rem;text-align:center">
-    <div class="logo" style="justify-content:center;display:block">Urenregistratie</div>
+  <div style="padding-top:6rem;text-align:center">
+    <div class="login-title">Urenregistratie</div>
     <p style="margin-top:1rem;color:var(--muted)">Verbinden...</p>
   </div>
 </div>
+
 <!-- LOGIN -->
 <div id="screen-login" class="screen">
-  <div style="padding-top:1.5rem">
-    <div style="text-align:center;margin-bottom:1.5rem">
-      <img src="logo.png" alt="Vollebregt Cyclamen" style="max-width:220px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.10)">
-    </div>
-    <div class="logo">Urenregistratie</div>
-    <div class="page-title">Inloggen</div>
-    <div class="card">
-      <label>Naam</label>
-      <input type="text" id="login-name" placeholder="Uw naam" autocomplete="username">
-      <label>Wachtwoord</label>
-      <input type="password" id="login-pass" placeholder="Wachtwoord" autocomplete="current-password">
-      <div id="login-err" class="error" style="display:none"></div>
-      <button class="btn btn-primary" onclick="doLogin()">Inloggen</button>
-    </div>
-  </div>
-</div>
-<!-- REGISTER -->
-<div id="screen-register" class="screen">
-  <div class="topbar">
-    <div class="logo">Urenregistratie</div>
-    <button class="logout" onclick="show('screen-login')">← Terug</button>
-  </div>
-  <div class="page-title">Account aanmaken</div>
-  <div class="card">
-    <label>Uw naam</label>
-    <input type="text" id="reg-name" placeholder="Volledige naam" autocomplete="name">
+  <div class="login-box">
+    <div class="login-logo"><img src="logo.png" alt="Vollebregt Cyclamen"></div>
+    <div class="login-title">Urenregistratie</div>
+    <div class="login-sub">Beheer — desktop</div>
+    <label>Naam</label>
+    <input type="text" id="login-name" placeholder="admin" autocomplete="username">
     <label>Wachtwoord</label>
-    <input type="password" id="reg-pass" placeholder="Kies een wachtwoord" autocomplete="new-password">
-    <div id="reg-err" class="error" style="display:none"></div>
-    <button class="btn btn-primary" onclick="doRegister()">Account aanmaken</button>
+    <input type="password" id="login-pass" placeholder="Wachtwoord" autocomplete="current-password">
+    <div id="login-err" class="error" style="display:none"></div>
+    <button class="btn btn-primary btn-block" onclick="doLogin()">Inloggen</button>
+    <p style="font-size:12px;color:var(--muted);margin-top:1rem;text-align:center">Alleen voor beheerders. Medewerkers vullen hun uren in via de mobiele app.</p>
   </div>
 </div>
-<!-- MEDEWERKER -->
-<div id="screen-user" class="screen">
-  <div class="topbar">
-    <div>
-      <div class="logo">Urenregistratie</div>
-      <span id="user-name-label" style="font-weight:600;font-size:16px"></span>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-eyebrow">Urenregistratie</div>
+      <div class="sidebar-title">Beheer</div>
     </div>
-    <button class="logout" onclick="doLogout()" data-i18n="btn_uitloggen">Uitloggen</button>
+    <div class="nav" id="nav">
+      <div class="nav-item active" data-page="weekoverzicht"><span class="nav-icon">📅</span>Weekoverzicht</div>
+      <div class="nav-item" data-page="lossekrachten"><span class="nav-icon">🧑‍🌾</span>Losse krachten</div>
+      <div class="nav-item" data-page="jaaroverzicht"><span class="nav-icon">📈</span>Jaaroverzicht</div>
+      <div class="nav-item" data-page="teelten"><span class="nav-icon">🌱</span>Teelten</div>
+      <div class="nav-item" data-page="details"><span class="nav-icon">🔍</span>Details</div>
+      <div class="nav-item" data-page="mensen"><span class="nav-icon">👥</span>Medewerkers</div>
+      <div class="nav-item" data-page="weekcheck"><span class="nav-icon">✅</span>Weekcheck</div>
+      <div class="nav-item" data-page="vakantie"><span class="nav-icon">🏖️</span>Vakantie</div>
+      <div class="nav-item" data-page="opmerkingen"><span class="nav-icon">💬</span>Opmerkingen</div>
+      <div class="nav-item" data-page="wachtwoord"><span class="nav-icon">🔒</span>Wachtwoord</div>
+    </div>
+    <div class="sidebar-foot">
+      <div class="sidebar-user" id="sidebar-user">Beheerder</div>
+      <button class="logout" onclick="doLogout()">Uitloggen</button>
+    </div>
   </div>
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('user','invullen',this)" data-i18n="tab_invullen">Invullen</button>
-    <button class="tab" onclick="switchTab('user','weekoverzicht',this)" data-i18n="tab_weekoverzicht">Weekoverzicht</button>
-    <button class="tab" onclick="switchTab('user','vrijevdagen',this)">Vrije dagen</button>
-    <button class="tab" onclick="switchTab('user','wachtwoord',this)" data-i18n="tab_wachtwoord">Wachtwoord</button>
-    <button class="tab" onclick="switchTab('user','herinnering',this)" data-i18n="tab_herinnering">Herinnering</button>
-  </div>
-  <div id="user-invullen" class="tabpanel active">
-    <div id="notitie-banner" style="display:none"></div>
-    <div id="snipper-banner" style="display:none"></div>
-    <div id="vergeten-banner" style="display:none"></div>
-    <div id="lock-notice" class="lock-notice" style="display:none" data-i18n="lock_msg">🔒 Deze dag is definitief en kan niet meer worden aangepast.</div>
-    <div class="card card-compact">
-      <label><span data-i18n="lbl_datum">Datum</span> <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:11px" data-i18n="datum_max">(max. 6 dagen terug)</span></label>
-      <input type="date" id="u-datum" onchange="onDatumChange()">
-      <div class="row2">
-        <div><label data-i18n="lbl_aanvang">Aanvang</label><input type="time" id="u-aanvang"></div>
-        <div><label data-i18n="lbl_einde">Einde</label><input type="time" id="u-einde"></div>
+
+  <div class="main">
+
+    <!-- WEEKOVERZICHT -->
+    <div class="page active" id="page-weekoverzicht">
+      <div class="wk-header">
+        <div class="wk-header-left">
+          <div class="wk-vrije-dagen" id="wk-vrije-dagen"></div>
+          <div class="wk-selects">
+            <select id="wk-naam" onchange="renderWeekoverzicht()"></select>
+            <select id="wk-jaar" onchange="renderWeekoverzicht()"></select>
+          </div>
+          <div class="wk-lines" id="wk-lines"></div>
+        </div>
+        <div class="wk-stats-wrap">
+          <div class="wk-stats-title">Snipperuren</div>
+          <div class="wk-stats" id="wk-stats"></div>
+          <div class="wk-stats-sub" id="wk-dagen"></div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="printWeekoverzicht()">🖨️ Afdrukken (1 A4)</button>
       </div>
-      <label data-i18n="lbl_gewerkt">Gewerkte uren</label>
-      <input type="number" id="u-gewerkt" min="0" max="24" step="0.5" placeholder="0">
-      <label data-i18n="lbl_ziek">Uren ziek</label>
-      <input type="number" id="u-ziek" min="0" max="24" step="0.5" placeholder="0">
-      <label data-i18n="lbl_dokter">Uren dokter</label>
-      <input type="number" id="u-dokter" min="0" max="24" step="0.5" placeholder="0">
-      <label data-i18n="lbl_vrij">Betaald vrij / feestdag</label>
-      <input type="number" id="u-vrij" min="0" max="24" step="0.5" placeholder="0">
-      <label data-i18n="lbl_opmerking">Opmerking (optioneel)</label>
-      <input type="text" id="u-opmerking">
-      <label data-i18n="lbl_teelt">Vink de teelt aan waarin je het meest gewerkt hebt</label>
-      <div class="row2" style="grid-template-columns:1fr 1fr;gap:6px 12px">
-        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Jonge planten" style="width:auto;margin:0"> Jonge planten</label>
-        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Hortensia" style="width:auto;margin:0"> Hortensia</label>
-        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Micro" style="width:auto;margin:0"> Micro</label>
-        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Mini" style="width:auto;margin:0"> Mini</label>
-        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Cyclamen" style="width:auto;margin:0"> Cyclamen</label>
-        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Algemeen" style="width:auto;margin:0"> Algemeen</label>
+      <div class="card" id="wk-table-wrap"><div class="loading">Laden...</div></div>
+    </div>
+
+    <!-- LOSSE KRACHTEN -->
+    <div class="page" id="page-lossekrachten">
+      <div class="page-head">
+        <div><div class="page-title">Losse krachten</div><div class="page-hint">Medewerkers gemarkeerd als losse kracht, apart van het reguliere overzicht.</div></div>
       </div>
-      <div id="u-err" class="error" style="display:none"></div>
-      <div id="u-ok" class="success-msg" style="display:none"></div>
-      <button class="btn btn-primary" id="btn-opslaan" onclick="saveEntry()" data-i18n="btn_opslaan">Opslaan</button>
+      <div class="filter-row">
+        <div class="field"><label>Week</label><select id="f-lk-week" onchange="renderLosseKrachten()"><option value="">Alle weken</option></select></div>
+      </div>
+      <div id="lk-week-list"><div class="loading">Laden...</div></div>
     </div>
-  </div>
-  <div id="user-weekoverzicht" class="tabpanel">
-    <div id="user-snipper-summary"></div>
-    <div id="user-week-list"><div class="loading" data-i18n="loading">Laden...</div></div>
-  </div>
-  <div id="user-vrijevdagen" class="tabpanel">
-    <div style="background:var(--accent-light);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:1rem;font-size:14px;font-weight:600;color:var(--accent)">📅 Aangevraagde en goedgekeurde vakantiedagen</div>
-    <div id="vrije-dagen-list"><div class="loading">Laden...</div></div>
-  </div>
-  <div id="user-wachtwoord" class="tabpanel">
-    <div class="card">
-      <div style="font-weight:600;margin-bottom:.75rem" data-i18n="pw_title">Wachtwoord wijzigen</div>
-      <label data-i18n="pw_lbl_oud">Huidig wachtwoord</label>
-      <input type="password" id="pw-oud" placeholder="Huidig wachtwoord">
-      <label data-i18n="pw_lbl_nieuw">Nieuw wachtwoord</label>
-      <input type="password" id="pw-nieuw" placeholder="Nieuw wachtwoord">
-      <label data-i18n="pw_lbl_herhaal">Nieuw wachtwoord herhalen</label>
-      <input type="password" id="pw-herhaal" placeholder="Herhaal nieuw wachtwoord">
-      <div id="pw-err" class="error" style="display:none"></div>
-      <div id="pw-ok" class="success-msg" style="display:none"></div>
-      <button class="btn btn-primary" onclick="changePassword()" data-i18n="pw_btn">Wachtwoord wijzigen</button>
+
+    <!-- JAAROVERZICHT -->
+    <div class="page" id="page-jaaroverzicht">
+      <div class="page-head">
+        <div><div class="page-title">Jaaroverzicht</div><div class="page-hint">Totalen per medewerker per jaar, inclusief snipperuren.</div></div>
+        <div class="actions-row">
+          <button class="btn btn-secondary btn-sm" onclick="exportExcel()">📊 Export Excel</button>
+          <button class="btn btn-secondary btn-sm" onclick="printOverzicht()">🖨️ Afdrukken</button>
+        </div>
+      </div>
+      <div class="filter-row">
+        <div class="field"><label>Jaar</label><select id="f-jaar" onchange="renderJaaroverzicht()"><option value="">Huidig jaar</option></select></div>
+        <div class="field"><label>Medewerker</label><select id="f-jaar-naam" onchange="renderJaaroverzicht()"><option value="">Alle</option></select></div>
+      </div>
+      <div class="cards-grid" id="jaar-list"></div>
     </div>
-  </div>
-  <div id="user-herinnering" class="tabpanel">
-    <div class="card">
-      <div style="font-weight:600;margin-bottom:.5rem" data-i18n="rem_title">Dagelijkse herinnering</div>
-      <p class="hint" style="margin-bottom:.75rem" data-i18n="rem_hint">Krijg een melding op dit toestel als je vandaag nog geen uren hebt ingevuld. Werkt alleen zolang deze app open of op de achtergrond actief is op dit toestel.</p>
-      <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;font-weight:500;color:var(--text)">
-        <input type="checkbox" id="rem-aan" style="width:auto;margin:0" onchange="toggleReminder()"> <span data-i18n="rem_aan">Herinnering inschakelen</span>
-      </label>
-      <label data-i18n="rem_tijd_lbl">Tijdstip</label>
-      <input type="time" id="rem-tijd" value="17:00">
-      <div id="rem-err" class="error" style="display:none"></div>
-      <div id="rem-ok" class="success-msg" style="display:none"></div>
-      <button class="btn btn-primary" onclick="saveReminder()" data-i18n="btn_opslaan">Opslaan</button>
+
+    <!-- TEELTEN -->
+    <div class="page" id="page-teelten">
+      <div class="page-head">
+        <div><div class="page-title">Teelten</div><div class="page-hint">Verdeling van gewerkte uren over de teelten.</div></div>
+      </div>
+      <div class="filter-row">
+        <div class="field"><label>Week</label><select id="f-teelt-week" onchange="renderTeelten()"><option value="">Alle weken</option></select></div>
+      </div>
+      <div class="card" id="teelten-list"><div class="loading">Laden...</div></div>
     </div>
+
+    <!-- DETAILS -->
+    <div class="page" id="page-details">
+      <div class="page-head">
+        <div><div class="page-title">Details</div><div class="page-hint">Elke registratie los inzien, aanpassen of verwijderen.</div></div>
+      </div>
+      <div class="filter-row">
+        <div class="field"><label>Naam</label><select id="f-naam" onchange="renderDetails()"><option value="">Alle medewerkers</option></select></div>
+        <div class="field"><label>Week</label><select id="f-week2" onchange="renderDetails()"><option value="">Alle weken</option></select></div>
+      </div>
+      <div id="admin-list"></div>
+    </div>
+
+    <!-- MEDEWERKERS -->
+    <div class="page" id="page-mensen">
+      <div class="page-head">
+        <div><div class="page-title">Medewerkers</div><div class="page-hint">Contracturen, snipperuren en accounts beheren.</div></div>
+        <button class="btn btn-secondary btn-sm" onclick="downloadBackup()">💾 Backup downloaden (alle data)</button>
+      </div>
+      <div class="cards-grid" id="admin-users-list"></div>
+
+      <div class="card" style="margin-top:1.5rem;max-width:640px">
+        <div style="font-weight:700;margin-bottom:1rem;font-size:16px">Medewerker toevoegen</div>
+        <label>Naam</label>
+        <input type="text" id="new-naam" placeholder="Naam">
+        <label>Wachtwoord</label>
+        <input type="password" id="new-pass" placeholder="Wachtwoord">
+        <div class="row4">
+          <div><label class="mini-lbl">Contracturen/week</label><input type="number" id="new-contract" min="0" max="60" step="0.5" placeholder="40" oninput="updateNewSnipPreview()"></div>
+          <div><label class="mini-lbl">Werkdagen/week</label><input type="number" id="new-werkdagen" min="1" max="7" step="0.5" placeholder="5" oninput="updateNewSnipPreview()"></div>
+          <div><label class="mini-lbl">Weken/jaar</label><input type="number" id="new-weken" min="1" max="53" step="0.5" placeholder="52" oninput="updateNewSnipPreview()"></div>
+          <div><label class="mini-lbl">Snipperdagen/jaar</label><input type="number" id="new-snipperdagen" min="0" step="0.5" placeholder="25" oninput="updateNewSnipPreview()"></div>
+        </div>
+        <div style="background:var(--accent-light);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--accent);margin:.75rem 0" id="new-snip-preview">Vul de velden in voor berekening</div>
+        <div style="font-weight:700;margin-top:.5rem;margin-bottom:.5rem;font-size:13px">Beginsaldo (optioneel)</div>
+        <div class="row4">
+          <div><label class="mini-lbl">Gewerkt</label><input type="number" id="new-s-gew" step="0.5" placeholder="0"></div>
+          <div><label class="mini-lbl">Ziek</label><input type="number" id="new-s-ziek" step="0.5" placeholder="0"></div>
+          <div><label class="mini-lbl">Dokter</label><input type="number" id="new-s-dok" step="0.5" placeholder="0"></div>
+          <div><label class="mini-lbl">Vrij/feestdag</label><input type="number" id="new-s-vrij" step="0.5" placeholder="0"></div>
+        </div>
+        <label>Snipperuren saldo</label>
+        <input type="number" id="new-startsaldo" step="0.5" placeholder="bijv. 10 of -5">
+        <div id="new-err" class="error" style="display:none"></div>
+        <button class="btn btn-primary btn-block" onclick="addUser()">Toevoegen</button>
+      </div>
+
+      <div class="card" style="margin-top:1rem;max-width:640px">
+        <div style="font-weight:700;margin-bottom:.75rem;font-size:16px">Naam corrigeren in registraties</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Heb je een medewerker verwijderd en opnieuw aangemaakt met een andere spelling? Hiermee verplaats je alle oude registraties naar de juiste medewerker.</p>
+        <label>Oude naam (in registraties)</label>
+        <select id="fix-oud"><option value="">Kies naam...</option></select>
+        <label>Nieuwe naam (medewerker)</label>
+        <select id="fix-nieuw"><option value="">Kies medewerker...</option></select>
+        <div id="fix-err" class="error" style="display:none"></div>
+        <div id="fix-ok" class="success-msg" style="display:none"></div>
+        <button class="btn btn-primary btn-block" onclick="fixNaam()">Corrigeren</button>
+      </div>
+    </div>
+
+    <!-- WEEKCHECK -->
+    <div class="page" id="page-weekcheck">
+      <div class="page-head">
+        <div><div class="page-title">Weekcheck</div><div class="page-hint">Wie heeft per week wel of niets ingevuld.</div></div>
+      </div>
+      <div class="filter-row">
+        <div class="field"><label>Jaar</label><select id="f-wc-jaar" onchange="renderWeekcheck()"><option value="">Huidig jaar</option></select></div>
+      </div>
+      <div class="card" id="weekcheck-list"></div>
+    </div>
+
+    <!-- VAKANTIE -->
+    <div class="page" id="page-vakantie">
+      <div class="page-head">
+        <div><div class="page-title">Vakantie</div><div class="page-hint">Heel jaar in één oogopslag, plus details per week.</div></div>
+      </div>
+      <div class="filter-row">
+        <div class="field"><label>Jaar</label><select id="f-vak-jaar" onchange="renderVakantie()"></select></div>
+      </div>
+      <div class="card" style="margin-bottom:1.5rem;overflow-x:auto">
+        <div id="vakantie-matrix"><div class="loading">Laden...</div></div>
+      </div>
+      <div class="filter-row">
+        <div class="field"><label>Week (details)</label><select id="f-vak-week" onchange="renderVakantieDetail()"><option value="">Alle weken</option></select></div>
+      </div>
+      <div id="vakantie-list"></div>
+    </div>
+
+    <!-- OPMERKINGEN -->
+    <div class="page" id="page-opmerkingen">
+      <div class="page-head">
+        <div><div class="page-title">Opmerkingen</div><div class="page-hint">Losse notities en opmerkingen bij registraties.</div></div>
+      </div>
+      <div class="card" style="max-width:640px;margin-bottom:1.25rem">
+        <label>Datum</label>
+        <input type="date" id="opm-datum">
+        <label>Opmerking</label>
+        <input type="text" id="opm-tekst">
+        <div id="opm-err" class="error" style="display:none"></div>
+        <button class="btn btn-primary btn-block" onclick="addOpmerking()">Opslaan</button>
+      </div>
+      <div id="opmerkingen-list"></div>
+    </div>
+
+    <!-- WACHTWOORD -->
+    <div class="page" id="page-wachtwoord">
+      <div class="page-head">
+        <div><div class="page-title">Wachtwoord</div><div class="page-hint">Je eigen beheerder-wachtwoord wijzigen.</div></div>
+      </div>
+      <div class="card" style="max-width:480px">
+        <label>Huidig wachtwoord</label>
+        <input type="password" id="apw-oud" placeholder="Huidig wachtwoord">
+        <label>Nieuw wachtwoord</label>
+        <input type="password" id="apw-nieuw" placeholder="Nieuw wachtwoord">
+        <label>Nieuw wachtwoord herhalen</label>
+        <input type="password" id="apw-herhaal" placeholder="Herhaal nieuw wachtwoord">
+        <div id="apw-err" class="error" style="display:none"></div>
+        <div id="apw-ok" class="success-msg" style="display:none"></div>
+        <button class="btn btn-primary btn-block" onclick="changeAdminPassword()">Wachtwoord wijzigen</button>
+      </div>
+    </div>
+
   </div>
 </div>
-<!-- ADMIN -->
-<div id="screen-admin" class="screen">
-  <div class="topbar">
-    <div>
-      <div class="logo">Urenregistratie</div>
-      <span style="font-weight:600;font-size:16px">Beheerder</span>
-    </div>
-    <button class="logout" onclick="doLogout()">Uitloggen</button>
-  </div>
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('admin','weekoverzicht',this)">Weekoverzicht</button>
-    <button class="tab" onclick="switchTab('admin','lossekrachten',this)">Losse krachten</button>
-    <button class="tab" onclick="switchTab('admin','jaaroverzicht',this)">Jaaroverzicht</button>
-    <button class="tab" onclick="switchTab('admin','teelten',this)">Teelten</button>
-    <button class="tab" onclick="switchTab('admin','details',this)">Details</button>
-    <button class="tab" onclick="switchTab('admin','mensen',this)">Medewerkers</button>
-    <button class="tab" onclick="switchTab('admin','weekcheck',this)">Weekcheck</button>
-    <button class="tab" onclick="switchTab('admin','vakantie',this)">Vakantie</button>
-    <button class="tab" onclick="switchTab('admin','wachtwoord',this)">Wachtwoord</button>
-    <button class="tab" onclick="switchTab('admin','opmerkingen',this)">Opmerkingen</button>
-  </div>
-  <div id="admin-weekoverzicht" class="tabpanel active">
-    <div class="filter-row">
-      <label>Week</label>
-      <select id="f-week" onchange="renderAdmin()"><option value="">Alle weken</option></select>
-      <label>Naam</label>
-      <select id="f-week-naam" onchange="renderAdmin()"><option value="">Alle medewerkers</option></select>
-    </div>
-    <div id="admin-week-list"><div class="loading">Laden...</div></div>
-  </div>
-  <div id="admin-vakantie" class="tabpanel">
-    <div class="filter-row">
-      <label>Week</label>
-      <select id="f-vak-week" onchange="renderVakantie()"><option value="">Alle weken</option></select>
-    </div>
-    <div id="vakantie-list"><div class="loading">Laden...</div></div>
-  </div>
-  <div id="admin-weekcheck" class="tabpanel">
-    <div class="filter-row">
-      <label>Jaar</label>
-      <select id="f-wc-jaar" onchange="renderWeekcheck()"><option value="">Huidig jaar</option></select>
-    </div>
-    <div id="weekcheck-list"></div>
-  </div>
-  <div id="admin-teelten" class="tabpanel">
-    <div class="filter-row">
-      <label>Week</label>
-      <select id="f-teelt-week" onchange="renderTeelten()"><option value="">Alle weken</option></select>
-    </div>
-    <div id="teelten-list"><div class="loading">Laden...</div></div>
-  </div>
-  <div id="admin-lossekrachten" class="tabpanel">
-    <div class="filter-row">
-      <label>Week</label>
-      <select id="f-lk-week" onchange="renderLosseKrachten()"><option value="">Alle weken</option></select>
-    </div>
-    <div id="lk-week-list"><div class="loading">Laden...</div></div>
-  </div>
-  <div id="admin-jaaroverzicht" class="tabpanel">
-    <div class="filter-row">
-      <label>Jaar</label>
-      <select id="f-jaar" onchange="renderJaaroverzicht()"><option value="">Huidig jaar</option></select>
-      <label>Medewerker</label>
-      <select id="f-jaar-naam" onchange="renderJaaroverzicht()"><option value="">Alle</option></select>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:1rem">
-      <button class="btn btn-secondary btn-sm" style="flex:1" onclick="exportExcel()">📊 Export Excel</button>
-      <button class="btn btn-secondary btn-sm" style="flex:1" onclick="printOverzicht()">🖨️ Afdrukken</button>
-    </div>
-    <div id="jaar-list"></div>
-  </div>
-  <div id="admin-details" class="tabpanel">
-    <div class="filter-row">
-      <label>Naam</label>
-      <select id="f-naam" onchange="renderAdmin()"><option value="">Alle medewerkers</option></select>
-      <label>Week</label>
-      <select id="f-week2" onchange="renderAdmin()"><option value="">Alle weken</option></select>
-    </div>
-    <div id="admin-list"></div>
-  </div>
-  <div id="admin-mensen" class="tabpanel">
-    <button class="btn btn-secondary btn-sm" style="width:100%;margin-bottom:1rem;margin-top:0" onclick="downloadBackup()">💾 Backup downloaden (alle data)</button>
-    <div id="admin-users-list" class="card" style="padding:.75rem 1rem"></div>
-    <div class="card" style="margin-top:1rem">
-      <div style="font-weight:600;margin-bottom:.75rem">Medewerker toevoegen</div>
-      <label>Naam</label>
-      <input type="text" id="new-naam" placeholder="Naam">
-      <label>Wachtwoord</label>
-      <input type="password" id="new-pass" placeholder="Wachtwoord">
-      <div class="row2">
-        <div><label>Contracturen/week</label><input type="number" id="new-contract" min="0" max="60" step="0.5" placeholder="40" oninput="updateNewSnipPreview()"></div>
-        <div><label>Werkdagen/week</label><input type="number" id="new-werkdagen" min="1" max="7" step="0.5" placeholder="5" oninput="updateNewSnipPreview()"></div>
-        <div><label>Weken/jaar</label><input type="number" id="new-weken" min="1" max="53" step="0.5" placeholder="52" oninput="updateNewSnipPreview()"></div>
-        <div><label>Snipperdagen/jaar</label><input type="number" id="new-snipperdagen" min="0" step="0.5" placeholder="25" oninput="updateNewSnipPreview()"></div>
-      </div>
-      <div style="background:var(--accent-light);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--accent);margin-bottom:.5rem" id="new-snip-preview">Vul de velden in voor berekening</div>
-      <div style="font-weight:600;margin-top:.5rem;margin-bottom:.5rem;font-size:13px">Beginsaldo (optioneel)</div>
-      <div class="row2">
-        <div><label>Gewerkt</label><input type="number" id="new-s-gew" step="0.5" placeholder="0"></div>
-        <div><label>Ziek</label><input type="number" id="new-s-ziek" step="0.5" placeholder="0"></div>
-        <div><label>Dokter</label><input type="number" id="new-s-dok" step="0.5" placeholder="0"></div>
-        <div><label>Vrij/feestdag</label><input type="number" id="new-s-vrij" step="0.5" placeholder="0"></div>
-      </div>
-      <label>Snipperuren saldo</label>
-      <input type="number" id="new-startsaldo" step="0.5" placeholder="bijv. 10 of -5">
-      <div id="new-err" class="error" style="display:none"></div>
-      <button class="btn btn-primary" onclick="addUser()">Toevoegen</button>
-    </div>
-    <div class="card" style="margin-top:1rem">
-      <div style="font-weight:600;margin-bottom:.75rem">Naam corrigeren in registraties</div>
-      <p class="hint" style="margin-bottom:.75rem">Heb je een medewerker verwijderd en opnieuw aangemaakt met een andere spelling? Hiermee verplaats je alle oude registraties naar de juiste medewerker.</p>
-      <label>Oude naam (in registraties)</label>
-      <select id="fix-oud"><option value="">Kies naam...</option></select>
-      <label>Nieuwe naam (medewerker)</label>
-      <select id="fix-nieuw"><option value="">Kies medewerker...</option></select>
-      <div id="fix-err" class="error" style="display:none"></div>
-      <div id="fix-ok" class="success-msg" style="display:none"></div>
-      <button class="btn btn-primary" onclick="fixNaam()">Corrigeren</button>
-    </div>
-  </div>
-  <div id="admin-wachtwoord" class="tabpanel">
-    <div class="card">
-      <div style="font-weight:600;margin-bottom:.75rem">Wachtwoord wijzigen (beheerder)</div>
-      <label>Huidig wachtwoord</label>
-      <input type="password" id="apw-oud" placeholder="Huidig wachtwoord">
-      <label>Nieuw wachtwoord</label>
-      <input type="password" id="apw-nieuw" placeholder="Nieuw wachtwoord">
-      <label>Nieuw wachtwoord herhalen</label>
-      <input type="password" id="apw-herhaal" placeholder="Herhaal nieuw wachtwoord">
-      <div id="apw-err" class="error" style="display:none"></div>
-      <div id="apw-ok" class="success-msg" style="display:none"></div>
-      <button class="btn btn-primary" onclick="changeAdminPassword()">Wachtwoord wijzigen</button>
-    </div>
-  </div>
-  <div id="admin-opmerkingen" class="tabpanel">
-    <div class="card card-compact">
-      <label>Datum</label>
-      <input type="date" id="opm-datum">
-      <label>Opmerking</label>
-      <input type="text" id="opm-tekst">
-      <div id="opm-err" class="error" style="display:none"></div>
-      <button class="btn btn-primary" onclick="addOpmerking()">Opslaan</button>
-    </div>
-    <div id="opmerkingen-list"></div>
-  </div>
-</div>
+
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyDha05hLJuL1O-4cjcCOdutdQmbUPXGN4Q",
   authDomain: "urenregistratie-416e5.firebaseapp.com",
@@ -386,194 +386,667 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
 let me = null;
-// --- Vertalingen ---
-let curLang = 'nl';
-const LANG = {
-  nl: {
-    tab_invullen:'Invullen', tab_weekoverzicht:'Weekoverzicht', tab_wachtwoord:'Wachtwoord', tab_herinnering:'Herinnering',
-    btn_uitloggen:'Uitloggen', btn_opslaan:'Opslaan', loading:'Laden...',
-    lbl_datum:'Datum', datum_max:'(max. 6 dagen terug)', lbl_aanvang:'Aanvang', lbl_einde:'Einde',
-    lbl_gewerkt:'Gewerkte uren', lbl_ziek:'Uren ziek', lbl_dokter:'Uren dokter', lbl_vrij:'Betaald vrij / feestdag',
-    lbl_opmerking:'Opmerking (optioneel)', lbl_teelt:'Vink de teelt aan waarin je het meest gewerkt hebt',
-    lock_msg:'🔒 Deze dag is definitief en kan niet meer worden aangepast.',
-    pw_title:'Wachtwoord wijzigen', pw_lbl_oud:'Huidig wachtwoord', pw_lbl_nieuw:'Nieuw wachtwoord', pw_lbl_herhaal:'Nieuw wachtwoord herhalen', pw_btn:'Wachtwoord wijzigen',
-    rem_title:'Dagelijkse herinnering', rem_hint:'Krijg een melding op dit toestel als je vandaag nog geen uren hebt ingevuld. Werkt alleen zolang deze app open of op de achtergrond actief is op dit toestel.',
-    rem_aan:'Herinnering inschakelen', rem_tijd_lbl:'Tijdstip',
-    snip_saldo:'Snipperuren saldo', snip_contract:'Contract/week', snip_jaar:'Snip./jaar', snip_saldo_over:'Saldo over:', snip_dagen:'dagen',
-    week_empty:'Nog geen uren geregistreerd', week_totaal:'Totaal',
-    col_week:'Week', col_gew:'Gew.', col_ziek:'Ziek', col_dok:'Dok.', col_vrij:'Vrij', col_tot:'Tot.', col_snip:'Snip.',
-    col_datum:'Datum', col_tijd:'Tijd',
-    saved_for:'✓ Opgeslagen voor', err_datum:'Selecteer een datum', err_definitief:'Deze dag is definitief',
-    pw_err_vul:'Vul alle velden in', pw_err_oud:'Huidig wachtwoord is onjuist', pw_err_match:'Nieuwe wachtwoorden komen niet overeen', pw_err_kort:'Wachtwoord moet minimaal 4 tekens zijn', pw_ok:'✓ Wachtwoord gewijzigd!',
-    rem_not_supported:'Meldingen worden niet ondersteund op dit toestel/browser', rem_blocked:'Meldingen zijn geblokkeerd in je browserinstellingen', rem_denied:'Toestemming voor meldingen is nodig', rem_ok:'✓ Opgeslagen',
-    notif_title:'Urenregistratie', notif_body:'Je hebt vandaag nog geen uren ingevuld!',
-    verg_prefix:'⚠️ Je hebt gisteren (', verg_suffix:') nog geen uren ingevuld!', verg_btn:'Alsnog invullen',
-  },
-  en: {
-    tab_invullen:'Enter hours', tab_weekoverzicht:'Week overview', tab_wachtwoord:'Password', tab_herinnering:'Reminder',
-    btn_uitloggen:'Log out', btn_opslaan:'Save', loading:'Loading...',
-    lbl_datum:'Date', datum_max:'(max. 6 days back)', lbl_aanvang:'Start time', lbl_einde:'End time',
-    lbl_gewerkt:'Hours worked', lbl_ziek:'Sick hours', lbl_dokter:'Doctor hours', lbl_vrij:'Paid leave / public holiday',
-    lbl_opmerking:'Remark (optional)', lbl_teelt:'Check the crop you worked in most',
-    lock_msg:'🔒 This day is final and can no longer be changed.',
-    pw_title:'Change password', pw_lbl_oud:'Current password', pw_lbl_nieuw:'New password', pw_lbl_herhaal:'Repeat new password', pw_btn:'Change password',
-    rem_title:'Daily reminder', rem_hint:'Receive a notification on this device if you have not entered your hours today. Only works while this app is open or active in the background.',
-    rem_aan:'Enable reminder', rem_tijd_lbl:'Time',
-    snip_saldo:'Vacation hours balance', snip_contract:'Contract/week', snip_jaar:'Vac./year', snip_saldo_over:'Balance left:', snip_dagen:'days',
-    week_empty:'No hours registered yet', week_totaal:'Total',
-    col_week:'Week', col_gew:'Work.', col_ziek:'Sick', col_dok:'Doc.', col_vrij:'Leave', col_tot:'Total', col_snip:'Vac.',
-    col_datum:'Date', col_tijd:'Time',
-    saved_for:'✓ Saved for', err_datum:'Select a date', err_definitief:'This day is final',
-    pw_err_vul:'Fill in all fields', pw_err_oud:'Current password is incorrect', pw_err_match:'New passwords do not match', pw_err_kort:'Password must be at least 4 characters', pw_ok:'✓ Password changed!',
-    rem_not_supported:'Notifications are not supported on this device/browser', rem_blocked:'Notifications are blocked in your browser settings', rem_denied:'Permission for notifications is required', rem_ok:'✓ Saved',
-    notif_title:'Time registration', notif_body:'You have not entered your hours today!',
-    verg_prefix:'⚠️ You did not enter hours for yesterday (', verg_suffix:') yet!', verg_btn:'Enter now',
-  },
-  pl: {
-    tab_invullen:'Wpisz godziny', tab_weekoverzicht:'Przegląd tygodnia', tab_wachtwoord:'Hasło', tab_herinnering:'Przypomnienie',
-    btn_uitloggen:'Wyloguj', btn_opslaan:'Zapisz', loading:'Ładowanie...',
-    lbl_datum:'Data', datum_max:'(maks. 6 dni wstecz)', lbl_aanvang:'Godzina rozpoczęcia', lbl_einde:'Godzina zakończenia',
-    lbl_gewerkt:'Przepracowane godziny', lbl_ziek:'Godziny chorobowe', lbl_dokter:'Godziny u lekarza', lbl_vrij:'Płatny urlop / święto',
-    lbl_opmerking:'Uwaga (opcjonalnie)', lbl_teelt:'Zaznacz uprawę, przy której pracowałeś/aś najwięcej',
-    lock_msg:'🔒 Ten dzień jest ostateczny i nie można go już zmieniać.',
-    pw_title:'Zmień hasło', pw_lbl_oud:'Aktualne hasło', pw_lbl_nieuw:'Nowe hasło', pw_lbl_herhaal:'Powtórz nowe hasło', pw_btn:'Zmień hasło',
-    rem_title:'Codzienne przypomnienie', rem_hint:'Otrzymaj powiadomienie na tym urządzeniu, jeśli nie wpisałeś/aś jeszcze godzin dzisiaj. Działa tylko gdy aplikacja jest otwarta lub aktywna w tle.',
-    rem_aan:'Włącz przypomnienie', rem_tijd_lbl:'Godzina',
-    snip_saldo:'Saldo godzin urlopowych', snip_contract:'Kontrakt/tydz.', snip_jaar:'Urlop/rok', snip_saldo_over:'Pozostało:', snip_dagen:'dni',
-    week_empty:'Brak zarejestrowanych godzin', week_totaal:'Razem',
-    col_week:'Tydz.', col_gew:'Praca', col_ziek:'Choroba', col_dok:'Lekarz', col_vrij:'Urlop', col_tot:'Razem', col_snip:'Wak.',
-    col_datum:'Data', col_tijd:'Czas',
-    saved_for:'✓ Zapisano dla', err_datum:'Wybierz datę', err_definitief:'Ten dzień jest ostateczny',
-    pw_err_vul:'Wypełnij wszystkie pola', pw_err_oud:'Aktualne hasło jest nieprawidłowe', pw_err_match:'Nowe hasła nie są zgodne', pw_err_kort:'Hasło musi mieć co najmniej 4 znaki', pw_ok:'✓ Hasło zmienione!',
-    rem_not_supported:'Powiadomienia nie są obsługiwane na tym urządzeniu/przeglądarce', rem_blocked:'Powiadomienia są zablokowane w ustawieniach przeglądarki', rem_denied:'Wymagane jest zezwolenie na powiadomienia', rem_ok:'✓ Zapisano',
-    notif_title:'Rejestracja czasu pracy', notif_body:'Nie wpisałeś/aś jeszcze godzin dzisiaj!',
-    verg_prefix:'⚠️ Nie wpisałeś/aś godzin za wczoraj (', verg_suffix:')!', verg_btn:'Wpisz teraz',
-  }
-};
-function t(key) { return (LANG[curLang] && LANG[curLang][key]) || LANG.nl[key] || key; }
-function applyUserLang() {
-  document.querySelectorAll('#screen-user [data-i18n]').forEach(el => {
-    el.textContent = t(el.getAttribute('data-i18n'));
-  });
-}
 let allEntries = [];
 let allUsers = [];
 let allNotes = [];
-// --- Init ---
+const TEELTEN = ['Jonge planten','Hortensia','Micro','Mini','Cyclamen','Algemeen'];
+
+// ---------- Init ----------
 async function init() {
   try {
     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000));
     await Promise.race([loadUsers(), timeout]);
   } catch(e) {
-    document.getElementById('screen-loading').innerHTML = `<div style="padding-top:4rem;text-align:center">
-      <div class="logo" style="justify-content:center;display:block">Urenregistratie</div>
+    document.getElementById('screen-loading').innerHTML = `<div style="padding-top:6rem;text-align:center">
+      <div class="login-title">Urenregistratie</div>
       <p style="margin-top:1rem;color:var(--danger)">⚠️ Kan geen verbinding maken.<br>Controleer je internet en probeer opnieuw.</p>
       <button onclick="location.reload()" style="margin-top:1.5rem;padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer">Opnieuw proberen</button>
     </div>`;
     return;
   }
-  // Zorg voor admin account
   if (!allUsers.find(u => u.name === 'admin')) {
     await setDoc(doc(db, 'users', 'admin'), { name: 'admin', pass: 'admin123', role: 'admin' });
     await loadUsers();
   }
   show('screen-login');
 }
-async function loadUsers() {
-  const snap = await getDocs(collection(db, 'users'));
-  allUsers = snap.docs.map(d => d.data());
-}
-async function loadEntries() {
-  const snap = await getDocs(query(collection(db, 'entries'), orderBy('datum', 'desc')));
-  allEntries = snap.docs.map(d => d.data());
-}
-async function loadNotes() {
-  const snap = await getDocs(collection(db, 'notes'));
-  allNotes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-}
-// --- Auth ---
+async function loadUsers() { const snap = await getDocs(collection(db, 'users')); allUsers = snap.docs.map(d => d.data()); }
+async function loadEntries() { const snap = await getDocs(query(collection(db, 'entries'), orderBy('datum', 'desc'))); allEntries = snap.docs.map(d => d.data()); }
+async function loadNotes() { const snap = await getDocs(collection(db, 'notes')); allNotes = snap.docs.map(d => ({ id: d.id, ...d.data() })); }
+
+// ---------- Auth ----------
 window.doLogin = async function() {
   const n = val('login-name').trim().toLowerCase();
   const p = val('login-pass');
   const u = allUsers.find(x => x.name.toLowerCase() === n && x.pass === p);
   if (!u) { showErr('login-err', 'Naam of wachtwoord onjuist'); return; }
+  if (u.role !== 'admin') { showErr('login-err', 'Dit is de beheeromgeving. Log als medewerker in via de mobiele app.'); return; }
   hideEl('login-err');
   me = u;
   await loadEntries();
-  if (u.role === 'admin') {
-    await loadNotes();
-    show('screen-admin');
-    fillFilters(); renderAdmin();
-  } else {
-    curLang = u.taal || 'nl';
-    document.getElementById('user-name-label').textContent = u.name;
-    initEntryForm(todayStr());
-    show('screen-user');
-    applyUserLang();
-    resetUserTabs();
-    showSnipperBanner();
-    checkVergeten();
-    showNotitieBanner();
-    setupReminder();
-  }
-};
-window.doRegister = async function() {
-  const n = val('reg-name').trim();
-  const p = val('reg-pass');
-  if (!n || !p) { showErr('reg-err', 'Vul naam en wachtwoord in'); return; }
-  if (allUsers.find(u => u.name.toLowerCase() === n.toLowerCase())) { showErr('reg-err', 'Naam al in gebruik'); return; }
-  await setDoc(doc(db, 'users', n.toLowerCase()), { name: n, pass: p, role: 'user' });
-  await loadUsers();
-  hideEl('reg-err');
-  alert('Account aangemaakt! U kunt nu inloggen.');
-  show('screen-login');
+  await loadNotes();
+  checkWeeklyBackup();
+  document.getElementById('sidebar-user').textContent = me.name;
+  show('screen-app');
+  goToPage('weekoverzicht');
 };
 window.doLogout = function() {
   me = null; allEntries = [];
   setVal('login-name',''); setVal('login-pass','');
   show('screen-login');
 };
-// --- Entry opslaan ---
-window.saveEntry = async function() {
-  const datum = val('u-datum');
-  if (!datum) { showErr('u-err', t('err_datum')); return; }
-  if (isLocked(datum)) { showErr('u-err', t('err_definitief')); return; }
-  hideEl('u-err');
-  const btn = document.getElementById('btn-opslaan');
-  btn.textContent = 'Opslaan...'; btn.disabled = true;
-  const rec = {
-    naam: me.name, datum,
-    aanvang: val('u-aanvang'), einde: val('u-einde'),
-    gewerkt: parseFloat(val('u-gewerkt')) || 0,
-    ziek:    parseFloat(val('u-ziek'))    || 0,
-    dokter:  parseFloat(val('u-dokter'))  || 0,
-    vrij:    parseFloat(val('u-vrij'))    || 0,
-    opmerking: val('u-opmerking') || '',
-    teelten: Array.from(document.querySelectorAll('.u-teelt:checked')).map(c => c.value)
+
+// ---------- Navigatie ----------
+function goToPage(name) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.page === name));
+  document.querySelectorAll('.page').forEach(el => el.classList.toggle('active', el.id === 'page-' + name));
+  const renderers = {
+    weekoverzicht: renderWeekoverzicht,
+    lossekrachten: renderLosseKrachten,
+    jaaroverzicht: renderJaaroverzicht,
+    teelten: renderTeelten,
+    details: renderDetails,
+    mensen: renderMedewerkers,
+    weekcheck: renderWeekcheck,
+    vakantie: renderVakantie,
+    opmerkingen: renderOpmerkingen,
   };
-  const id = me.name.toLowerCase().replace(/\s+/g,'-') + '_' + datum;
+  if (renderers[name]) renderers[name]();
+}
+document.addEventListener('click', e => {
+  const item = e.target.closest('.nav-item');
+  if (item) goToPage(item.dataset.page);
+});
+
+// ---------- Helpers ----------
+function todayStr(){return new Date().toISOString().split('T')[0];}
+function getWeekNr(datum){const d=new Date(datum);const thu=new Date(d);thu.setDate(d.getDate()-((d.getDay()+6)%7)+3);const jan4=new Date(thu.getFullYear(),0,4);return Math.round((thu-jan4)/604800000)+1;}
+function weekKey(datum){return `${new Date(datum).getFullYear()}-W${String(getWeekNr(datum)).padStart(2,'0')}`;}
+function weekLabel(datum){return `Week ${getWeekNr(datum)} (${new Date(datum).getFullYear()})`;}
+function fmtDate(d){const[y,m,day]=d.split('-');return `${day}-${m}-${y}`;}
+function fmtDateShort(d){const[,m,day]=d.split('-');return `${day}-${m}`;}
+function totals(items){let g=0,z=0,d=0,v=0;items.forEach(e=>{g+=+(e.gewerkt||0);z+=+(e.ziek||0);d+=+(e.dokter||0);v+=+(e.vrij||0);});return {g:+g.toFixed(1),z:+z.toFixed(1),d:+d.toFixed(1),v:+v.toFixed(1)};}
+function groupByWeek(list){const map={};list.forEach(e=>{const k=weekKey(e.datum);if(!map[k])map[k]={key:k,label:weekLabel(e.datum),items:[]};map[k].items.push(e);});return Object.values(map).sort((a,b)=>b.key.localeCompare(a.key));}
+function minDate(){const d=new Date();d.setDate(d.getDate()-6);return d.toISOString().split('T')[0];}
+function isLocked(datum){return datum<minDate();}
+function snipFactor(u){const c=u.contracturen||0;const wd=u.werkdagen||5;return wd>0?c/wd:0;}
+function maandKort(m){return ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'][m];}
+function vrijeDagenSamenvatting(datums) {
+  if (!datums.length) return 'Geen aangevraagde vrije dagen';
+  const sorted = datums.slice().sort();
+  const dates = sorted.map(d => new Date(d + 'T00:00:00'));
+  const runs = [];
+  let curRun = [dates[0]];
+  for (let i = 1; i < dates.length; i++) {
+    const diff = Math.round((dates[i] - dates[i-1]) / 86400000);
+    if (diff <= 3) curRun.push(dates[i]); else { runs.push(curRun); curRun = [dates[i]]; }
+  }
+  runs.push(curRun);
+  const delen = runs.map(run => {
+    if (run.length <= 4) {
+      const maand = maandKort(run[run.length-1].getMonth());
+      return `${run.map(d => d.getDate()).join(',')} ${maand}`;
+    }
+    const eerste = run[0], laatste = run[run.length-1];
+    const mE = maandKort(eerste.getMonth()), mL = maandKort(laatste.getMonth());
+    return mE === mL ? `${eerste.getDate()} t/m ${laatste.getDate()} ${mL}` : `${eerste.getDate()} ${mE} t/m ${laatste.getDate()} ${mL}`;
+  });
+  return `${delen.join(', ')} — totaal ${datums.length} dagen`;
+}
+function calcJaarsnippers(u){const c=u.contracturen||0,wd=u.werkdagen||5,wj=u.wekenperjaar||52,sd=u.snipperdagen||0;if(!wd||!wj||!sd)return 0;const aandeel=sd/(wd*wj);return Math.round(wj*c*aandeel*10)/10;}
+function calcSnipPreview(u){const sd=u.snipperdagen||0,wd=u.werkdagen||5,wj=u.wekenperjaar||52,c=u.contracturen||0;if(!sd||!wd||!wj||!c)return 'Vul de velden in voor berekening';const aandeelRaw=sd/(wd*wj);const aandeelDisplay=Math.round(aandeelRaw*1000)/1000;const jaarsnip=Math.round(wj*c*aandeelRaw*10)/10;const uurPerDag=c/wd;return `Aandeel: ${aandeelDisplay} · Snipperuren/jaar: <b>${jaarsnip}u</b> · Uren/dag: ${uurPerDag.toFixed(1)}u`;}
+function getMaandagVanWeek(jaar, week){const jan4=new Date(Date.UTC(jaar,0,4));const startDow=jan4.getUTCDay()||7;return new Date(Date.UTC(jaar,0,4+(1-startDow)+(week-1)*7));}
+function datumVanWeekdag(jaar, week, dagIndex){const ma=getMaandagVanWeek(jaar,week);return new Date(ma.getTime()+dagIndex*86400000).toISOString().split('T')[0];}
+window.val = function(id){return document.getElementById(id).value;}
+window.setVal = function(id,v){document.getElementById(id).value=v;}
+window.showErr = function(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
+window.hideEl = function(id){document.getElementById(id).style.display='none';}
+window.show = function(id){
+  document.getElementById('screen-loading').style.display = id==='screen-loading' ? 'block' : 'none';
+  document.getElementById('screen-login').style.display = id==='screen-login' ? 'flex' : 'none';
+  document.getElementById('app').style.display = id==='screen-app' ? 'flex' : 'none';
+};
+window.toggleWeek = function(h){const b=h.nextElementSibling;b.style.display=b.style.display==='none'?'grid':'none';};
+window.togglePerson = function(h){const b=h.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none';};
+
+function weekTable(items) {
+  const tot = totals(items);
+  const fmt = v => (v && v > 0) ? v : '<span class="zero">–</span>';
+  const rows = items.slice().sort((a,b)=>a.datum.localeCompare(b.datum)).map(e => {
+    const locked = isLocked(e.datum);
+    const dag = +(e.gewerkt||0)+ +(e.ziek||0)+ +(e.dokter||0)+ +(e.vrij||0);
+    return `<tr>
+      <td class="left">${fmtDate(e.datum)}${locked?' 🔒':''}${e.teelten&&e.teelten.length?`<div style="font-size:11px;color:var(--muted);font-weight:400">${e.teelten.join(', ')}</div>`:''}</td>
+      <td class="left">${(e.aanvang||'–').substring(0,5)}/${(e.einde||'–').substring(0,5)}</td>
+      <td>${fmt(e.gewerkt)}</td><td>${fmt(e.ziek)}</td><td>${fmt(e.dokter)}</td><td>${fmt(e.vrij)}</td>
+      <td><b>${dag>0?dag.toFixed(1):'–'}</b></td>
+    </tr>`;
+  }).join('');
+  const totT = +(tot.g||0)+ +(tot.z||0)+ +(tot.d||0)+ +(tot.v||0);
+  return `<div class="uren-table-wrap"><table class="uren-table">
+    <thead><tr><th class="left">Datum</th><th class="left">Tijd</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr class="totaalrij"><td class="left" colspan="2">Totaal</td>
+      <td>${tot.g||'–'}</td><td>${tot.z>0?tot.z:'–'}</td><td>${tot.d>0?tot.d:'–'}</td><td>${tot.v>0?tot.v:'–'}</td>
+      <td><b>${totT>0?totT.toFixed(1):'–'}</b></td>
+    </tr></tfoot>
+  </table></div>`;
+}
+
+// ---------- Weekoverzicht (per medewerker, spreadsheet-stijl) ----------
+let wkLast = null;
+window.renderWeekoverzicht = async function() {
+  const naamSel = document.getElementById('wk-naam');
+  const jaarSel = document.getElementById('wk-jaar');
+  const namen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
+  const curNaam = naamSel.value || namen[0] || '';
+  naamSel.innerHTML = namen.map(n => `<option ${n===curNaam?'selected':''} value="${n}">${n}</option>`).join('');
+
+  const huidigJaar = new Date().getFullYear();
+  const jarenSet = new Set(allEntries.map(e => e.datum.substring(0,4)));
+  jarenSet.add(String(huidigJaar));
+  const jaren = [...jarenSet].sort().reverse();
+  const curJaar = jaarSel.value || String(huidigJaar);
+  jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
+
+  const linesEl = document.getElementById('wk-lines');
+  const statsEl = document.getElementById('wk-stats');
+  const tableEl = document.getElementById('wk-table-wrap');
+  const vrijeDagenEl = document.getElementById('wk-vrije-dagen');
+
+  if (!curNaam) { linesEl.innerHTML=''; statsEl.innerHTML=''; tableEl.innerHTML = '<div class="empty">Nog geen medewerkers</div>'; return; }
+
+  vrijeDagenEl.textContent = 'Vrije dagen laden...';
+  try {
+    const key = curNaam.toLowerCase().replace(/\s+/g,'-');
+    const snap = await getDoc(doc(db, 'vrije_dagen', key));
+    const dagenObj = snap.exists() ? (snap.data().dagen || {}) : {};
+    const datumsDitJaar = Object.keys(dagenObj).filter(d => dagenObj[d] && d.startsWith(curJaar)).sort();
+    vrijeDagenEl.textContent = vrijeDagenSamenvatting(datumsDitJaar);
+  } catch(e) { vrijeDagenEl.textContent = 'Vrije dagen niet beschikbaar'; }
+
+  const u = allUsers.find(x => x.name === curNaam) || {};
+  const contract = u.contracturen || 0;
+  const wekenperjaar = u.wekenperjaar || 52;
+  const jaarsnippers = u.jaarsnippers || 0;
+  const startsaldo = u.startsaldo || 0;
+  const sf = snipFactor(u);
+
+  const jaarEntries = allEntries.filter(e => e.naam === curNaam && e.datum.startsWith(curJaar));
+  const weken = groupByWeek(jaarEntries);
+  const weekMap = {};
+  weken.forEach(w => { weekMap[getWeekNr(w.items[0].datum)] = w; });
+
+  // Saldo dat over is na alle ingevulde weken dit jaar
+  const sommeSnip = weken.reduce((acc, {items}) => {
+    const t = totals(items);
+    const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
+    const s = contract > 0 ? +(contract - tot).toFixed(1) : 0;
+    return acc + s;
+  }, 0);
+  const saldoOver = +(startsaldo + jaarsnippers - sommeSnip).toFixed(1);
+  const dagenOver = sf > 0 ? +(saldoOver / sf).toFixed(1) : 0;
+
+  wkLast = { naam: curNaam, jaar: curJaar, contract, wekenperjaar, jaarsnippers, startsaldo, saldoOver, dagenOver };
+
+  linesEl.innerHTML = `
+    <div>We rekenen met een werkweek van <b>${contract} uur</b></div>
+    <div><b>${curJaar}</b> heeft <b>${wekenperjaar}</b> weken</div>`;
+
+  document.getElementById('wk-dagen').innerHTML = `Dit zijn nog <b>${dagenOver}</b> dagen over`;
+
+  statsEl.innerHTML = `
+    <div class="wk-stat"><div class="lbl">Saldo 1 jan</div><div class="val">${startsaldo}</div></div>
+    <div class="wk-stat"><div class="lbl">Op te bouwen</div><div class="val">${jaarsnippers}</div></div>
+    <div class="wk-stat" style="background:${saldoOver>=0?'#DDF3E6':'#F8DEDA'}"><div class="lbl">Tot 31 dec</div><div class="val" style="color:${saldoOver>=0?'var(--success)':'var(--danger)'}">${saldoOver}</div></div>`;
+
+  const maxWeek = curJaar === String(huidigJaar) ? Math.max(getWeekNr(todayStr()), ...Object.keys(weekMap).map(Number), 1) : (Object.keys(weekMap).length ? Math.max(...Object.keys(weekMap).map(Number)) : wekenperjaar);
+
+  let totContract=0, totGew=0, totZiek=0, totVrij=0, totDok=0, totSnip=0, gevuldeWeken=0;
+  let rows = '';
+  for (let w = 1; w <= maxWeek; w++) {
+    const wk = weekMap[w];
+    if (wk) {
+      const t = totals(wk.items);
+      const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
+      const snip = contract > 0 ? +(contract - tot).toFixed(1) : 0;
+      const opm = wk.items.filter(e => e.opmerking).map(e => e.opmerking).join('; ');
+      totContract += contract; totGew += t.g; totZiek += t.z; totVrij += t.v; totDok += t.d; totSnip += snip; gevuldeWeken++;
+      rows += `<tr id="wkrow-${w}">
+        <td class="weeknr" style="cursor:pointer" onclick="toggleWkDag(${w})">${w} ▾</td>
+        <td>${contract>0?contract.toFixed(2):'–'}</td>
+        <td>${t.g>0?t.g.toFixed(2):'–'}</td>
+        <td>${t.z>0?t.z.toFixed(2):'–'}</td>
+        <td>${t.v>0?t.v.toFixed(2):'–'}</td>
+        <td>${t.d>0?t.d.toFixed(2):'–'}</td>
+        <td style="color:${snip<0?'var(--danger)':snip>0?'var(--success)':'var(--muted)'};font-weight:600">${snip.toFixed(2)}</td>
+        <td class="opm-cell">${opm||''}</td>
+      </tr>
+      <tr id="wkdag-${w}" style="display:none"><td colspan="8" style="padding:0">${weekTable(wk.items)}</td></tr>`;
+    } else {
+      rows += `<tr id="wkrow-${w}">
+        <td class="weeknr">${w}</td>
+        <td>${contract>0?contract.toFixed(2):'–'}</td>
+        <td class="zero">–</td><td class="zero">–</td><td class="zero">–</td><td class="zero">–</td><td class="zero">–</td>
+        <td class="opm-cell"></td>
+      </tr>`;
+    }
+  }
+
+  tableEl.innerHTML = `<div class="wk-table-scroll"><table class="uren-table wk-table">
+    <thead>
+      <tr class="headrow">
+        <th class="left">Week</th><th>Contract uren</th><th>Gewerkte uren</th><th>Ziekteverlof</th><th>Doorbetaald vrij</th><th>Dokter/tandarts</th><th>Snipperuren</th><th class="left">Opmerking</th>
+      </tr>
+      <tr class="totalenrow">
+        <td class="left">Totalen &rarr;</td>
+        <td>${totContract>0?totContract.toFixed(2):'–'}</td>
+        <td>${totGew>0?totGew.toFixed(2):'–'}</td>
+        <td>${totZiek>0?totZiek.toFixed(2):'–'}</td>
+        <td>${totVrij>0?totVrij.toFixed(2):'–'}</td>
+        <td>${totDok>0?totDok.toFixed(2):'–'}</td>
+        <td style="color:${totSnip<0?'var(--danger)':totSnip>0?'var(--success)':'var(--muted)'}">${gevuldeWeken>0?totSnip.toFixed(2):'–'}</td>
+        <td></td>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table></div>`;
+
+  const targetRow = document.getElementById('wkrow-' + maxWeek);
+  if (targetRow) setTimeout(() => targetRow.scrollIntoView({ block: 'center' }), 50);
+};
+
+window.toggleWkDag = function(w) {
+  const el = document.getElementById('wkdag-' + w);
+  if (el) el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
+};
+
+// ---------- Weekoverzicht printen (1 A4) ----------
+window.printWeekoverzicht = async function() {
+  if (!wkLast) return;
+  const { naam, jaar, contract, wekenperjaar, jaarsnippers, startsaldo, saldoOver, dagenOver } = wkLast;
+  const headHtml = document.querySelector('#wk-table-wrap thead').innerHTML;
+  const allRows = Array.from(document.querySelectorAll('#wk-table-wrap table.wk-table > tbody > tr'));
+  const bodyRows = allRows.filter(tr => !tr.id.startsWith('wkdag-'));
+  let rowsHtml = '';
+  bodyRows.forEach(tr => rowsHtml += tr.outerHTML);
+  rowsHtml = rowsHtml.replace(/ ▾/g, '').replace(/ onclick="[^"]*"/g, '').replace(/ style="cursor:pointer"/g, '');
+
+  let logoUrl = '';
+  try {
+    const resp = await fetch('logo.png');
+    if (resp.ok) {
+      const blob = await resp.blob();
+      logoUrl = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
+    }
+  } catch(e) { /* logo.png niet gevonden, print gaat door zonder logo */ }
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8">
+    <title>Weekoverzicht ${naam} ${jaar}</title>
+    <style>
+      @page{size:A4 portrait;margin:8mm}
+      *{box-sizing:border-box}
+      body{font-family:Arial,sans-serif;color:#000;padding:0}
+      h1{font-size:14px;margin-bottom:1px}
+      p.sub{color:#666;font-size:10px;margin-bottom:7px}
+      .titelrij{display:flex;align-items:center;gap:6px}
+      .titelrij img{height:15px;width:auto;display:block}
+      .sum{display:grid;grid-template-columns:1.2fr 1fr;border:1px solid #B9D3E8;border-radius:5px;margin-bottom:7px;font-size:9.5px}
+      .sum-left .row{display:flex;justify-content:space-between;gap:6px;padding:3px 8px;border-bottom:1px solid #E5E5E5}
+      .sum-left .row:last-child{border-bottom:none}
+      .sum .val{font-weight:700;background:#DBF0FF;padding:0 6px;border-radius:3px}
+      .sum-right{border-left:1px solid #E5E5E5;padding:4px 8px;display:flex;flex-direction:column;justify-content:center;gap:2px;color:#555}
+      table{width:100%;border-collapse:collapse;font-size:9px}
+      th{background:#EAF1F8;padding:2.5px 4px;text-align:right;border:1px solid #C8DFF0}
+      th.left,td.left{text-align:left}
+      td{padding:2px 4px;text-align:right;border:1px solid #E5E5E5;line-height:1.25}
+      tr.totalenrow td{background:#DBF0FF;font-weight:700}
+      tr.headrow th{background:#DBF0FF}
+    </style></head><body>
+    <div class="titelrij">${logoUrl?`<img src="${logoUrl}" alt="">`:''}<h1>Weekoverzicht — ${naam}</h1></div>
+    <p class="sub">Jaar ${jaar} · afgedrukt op ${new Date().toLocaleDateString('nl-NL')}</p>
+    <div class="sum">
+      <div class="sum-left">
+        <div class="row"><span>Saldo op 1 jan over van ${+jaar-1}</span><span class="val">${startsaldo} uren</span></div>
+        <div class="row"><span>Uren op te bouwen per jaar</span><span class="val">${jaarsnippers} uren</span></div>
+        <div class="row"><span>Tot 31 dec nog beschikbaar</span><span class="val">${saldoOver} uren</span></div>
+      </div>
+      <div class="sum-right">
+        <div>We rekenen met een werkweek van <b>${contract} uur</b></div>
+        <div><b>${jaar}</b> heeft <b>${wekenperjaar}</b> weken</div>
+        <div>Dit zijn nog <b>${dagenOver}</b> dagen over</div>
+      </div>
+    </div>
+    <table>
+      <thead>${headHtml}</thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    </body></html>`);
+  win.document.close();
+  win.print();
+};
+
+// ---------- Losse krachten ----------
+window.renderLosseKrachten = function() {
+  const losseKrachten = allUsers.filter(u => u.role !== 'admin' && u.losseKracht).map(u => u.name).sort();
+  const sel = document.getElementById('f-lk-week');
+  const el = document.getElementById('lk-week-list');
+  const weeks = [...new Set(allEntries.filter(e => losseKrachten.includes(e.naam)).map(e => weekKey(e.datum)))].sort().reverse();
+  const curWeek = sel.value;
+  sel.innerHTML = '<option value="">Alle weken</option>' + weeks.map(w => {
+    const e = allEntries.find(x => weekKey(x.datum) === w && losseKrachten.includes(x.naam));
+    return `<option ${w===curWeek?'selected':''} value="${w}">${e ? weekLabel(e.datum) : w}</option>`;
+  }).join('');
+  if (!losseKrachten.length) { el.innerHTML = '<div class="empty">Geen losse krachten</div>'; return; }
+  const lkEntries = allEntries.filter(e => losseKrachten.includes(e.naam) && (!curWeek || weekKey(e.datum) === curWeek));
+  if (!lkEntries.length) { el.innerHTML = '<div class="empty">Geen registraties gevonden</div>'; return; }
+  const weeksToShow = curWeek ? [curWeek] : [...new Set(lkEntries.map(e => weekKey(e.datum)))].sort().reverse();
+  let html = '';
+  weeksToShow.forEach(wk => {
+    const wkEntries = lkEntries.filter(e => weekKey(e.datum) === wk);
+    if (!wkEntries.length) return;
+    let personHtml = '';
+    losseKrachten.forEach(n => {
+      const pe = wkEntries.filter(e => e.naam === n);
+      if (!pe.length) return;
+      const tot = totals(pe);
+      personHtml += `<div class="person-block">
+        <div class="person-header" onclick="togglePerson(this)">
+          <span class="person-name">${n}</span>
+          <span class="person-toggle">${tot.g}u ▾</span>
+        </div>
+        <div class="person-body" style="display:none">${weekTable(pe)}</div>
+      </div>`;
+    });
+    if (personHtml) {
+      html += `<div class="week-block">
+        <div class="week-header" onclick="toggleWeek(this)">
+          <span class="week-title">${weekLabel(wkEntries[0].datum)}</span>
+          <span class="week-totals">${wkEntries.length} registratie${wkEntries.length!==1?'s':''}</span>
+        </div>
+        <div class="week-body">${personHtml}</div>
+      </div>`;
+    }
+  });
+  el.innerHTML = html || '<div class="empty">Geen registraties gevonden</div>';
+};
+
+// ---------- Jaaroverzicht ----------
+window.renderJaaroverzicht = function() {
+  const jaren = [...new Set(allEntries.map(e => e.datum.substring(0,4)))].sort().reverse();
+  const jaarSel = document.getElementById('f-jaar');
+  const naamSel = document.getElementById('f-jaar-naam');
+  const curJaar = jaarSel.value || new Date().getFullYear().toString();
+  const curNaam = naamSel.value;
+  jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
+  const namen = [...new Set(allEntries.map(e => e.naam))].sort();
+  naamSel.innerHTML = '<option value="">Alle medewerkers</option>' + namen.map(n => `<option ${n===curNaam?'selected':''} value="${n}">${n}</option>`).join('');
+  const filtered = allEntries.filter(e => e.datum.startsWith(curJaar) && (!curNaam || e.naam === curNaam));
+  const el = document.getElementById('jaar-list');
+  if (!filtered.length) { el.innerHTML = '<div class="empty">Geen registraties gevonden</div>'; return; }
+  const namen2 = curNaam ? [curNaam] : [...new Set(filtered.map(e => e.naam))].filter(n => {
+    const u = allUsers.find(x => x.name === n);
+    return !u || !u.losseKracht;
+  }).sort();
+  el.innerHTML = namen2.map(naam => {
+    const pEntries = filtered.filter(e => e.naam === naam);
+    const weken = groupByWeek(pEntries);
+    const jaarTot = totals(pEntries);
+    const u = allUsers.find(x => x.name === naam);
+    const contract = u ? (u.contracturen || 0) : 0;
+    const startsaldo = u ? (u.startsaldo || 0) : 0;
+    const jaarSnippers = u ? (u.jaarsnippers || 0) : 0;
+    const s_gew = u ? (u.saldo_gew || 0) : 0;
+    const s_ziek = u ? (u.saldo_ziek || 0) : 0;
+    const s_dok = u ? (u.saldo_dok || 0) : 0;
+    const s_vrij = u ? (u.saldo_vrij || 0) : 0;
+    const heeftSaldo = s_gew||s_ziek||s_dok||s_vrij||startsaldo;
+    const rows = weken.map(({label, items}) => {
+      const t = totals(items);
+      const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
+      const snip = contract > 0 ? +(contract - tot).toFixed(1) : null;
+      return `<tr>
+        <td class="left">${label}</td>
+        <td>${t.g||'–'}</td><td>${t.z>0?t.z:'–'}</td><td>${t.d>0?t.d:'–'}</td><td>${t.v>0?t.v:'–'}</td>
+        <td><b>${tot>0?tot.toFixed(1):'–'}</b></td>
+        ${jaarSnippers>0&&contract>0?`<td style="color:${snip<0?'var(--danger)':snip>0?'var(--success)':'var(--muted)'};font-weight:700">${snip!==null?snip:'–'}</td>`:''}
+      </tr>`;
+    }).join('');
+    const totGew = +(jaarTot.g + s_gew).toFixed(1);
+    const totZiek = +(jaarTot.z + s_ziek).toFixed(1);
+    const totDok = +(jaarTot.d + s_dok).toFixed(1);
+    const totVrij = +(jaarTot.v + s_vrij).toFixed(1);
+    const jTot = +(totGew + totZiek + totDok + totVrij).toFixed(1);
+    const sommeSnip = weken.reduce((acc, {items}) => {
+      const t2 = totals(items);
+      const tot2 = +(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);
+      const snip2 = contract > 0 ? +(contract - tot2).toFixed(1) : 0;
+      return acc + snip2;
+    }, 0);
+    const snipperSaldo = jaarSnippers > 0 ? +(startsaldo + jaarSnippers - sommeSnip).toFixed(1) : null;
+    const sf = snipFactor(u || {});
+    const snipperDagen = (jaarSnippers > 0 && sf > 0) ? +(snipperSaldo / sf).toFixed(2) : null;
+    return `<div class="week-block" style="grid-column:span 1">
+      <div class="week-header" style="flex-direction:column;align-items:stretch;gap:5px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span class="week-title">${naam}</span>
+          <span class="week-totals">${curJaar}</span>
+        </div>
+        ${jaarSnippers>0?`<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px">
+          <span style="color:var(--muted)">Snipperuren per jaar: <b style="color:var(--text)">${jaarSnippers} uur</b></span>
+          ${snipperSaldo!==null?`<span>Saldo: <b style="color:${snipperSaldo>=0?'#155C36':'#A6362A'}">${snipperSaldo} uur${snipperDagen!==null?` (${Math.round(snipperDagen)} dagen)`:''}</b></span>`:''}
+        </div>`:''}
+      </div>
+      <div class="uren-table-wrap" style="padding:0 0 8px">
+        <table class="uren-table">
+          <thead>
+            ${heeftSaldo?`<tr style="background:var(--accent-light);font-size:11px;color:var(--muted)">
+              <td class="left" style="font-style:italic">Beginsaldo</td>
+              <td>${s_gew||'–'}</td><td>${s_ziek||'–'}</td><td>${s_dok||'–'}</td><td>${s_vrij||'–'}</td>
+              <td>${startsaldo?startsaldo+'s':'–'}</td>${contract>0?`<td>${startsaldo||'–'}</td>`:''}
+            </tr>`:''}
+            <tr><th class="left">Week</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th>${contract>0?'<th>Snip.</th>':''}</tr>
+          </thead>
+          <tbody>${rows}</tbody>
+          <tfoot><tr class="totaalrij">
+            <td class="left">Totaal${heeftSaldo?' incl. saldo':''}</td>
+            <td>${totGew||'–'}</td><td>${totZiek>0?totZiek:'–'}</td><td>${totDok>0?totDok:'–'}</td><td>${totVrij>0?totVrij:'–'}</td>
+            <td><b>${jTot>0?jTot:'–'}</b></td>
+            ${contract>0?`<td style="color:${snipperSaldo!==null?(snipperSaldo>=0?'var(--success)':'var(--danger)'):'inherit'};font-weight:700">${snipperSaldo!==null?snipperSaldo:'–'}</td>`:''}
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+// ---------- Teelten ----------
+window.renderTeelten = function() {
+  const weeks = [...new Set(allEntries.map(e => weekKey(e.datum)))].sort().reverse();
+  const sel = document.getElementById('f-teelt-week');
+  const curWeek = sel.value;
+  sel.innerHTML = '<option value="">Alle weken</option>' + weeks.map(w => {
+    const e = allEntries.find(x => weekKey(x.datum) === w);
+    return `<option ${w===curWeek?'selected':''} value="${w}">${e ? weekLabel(e.datum) : w}</option>`;
+  }).join('');
+  const filtered = curWeek ? allEntries.filter(e => weekKey(e.datum) === curWeek) : allEntries;
+  if (!filtered.length) { document.getElementById('teelten-list').innerHTML = '<div class="empty">Geen registraties gevonden</div>'; return; }
+  const weekSet = [...new Set(filtered.map(e => weekKey(e.datum)))].sort().reverse();
+  let html = `<div class="uren-table-wrap"><table class="uren-table">
+    <thead><tr><th class="left">Week</th>${TEELTEN.map(t => `<th>${t}</th>`).join('')}<th>Totaal</th></tr></thead>
+    <tbody>`;
+  let grandTotals = Object.fromEntries(TEELTEN.map(t => [t, 0]));
+  let grandTotal = 0;
+  weekSet.forEach(wk => {
+    const wkEntries = filtered.filter(e => weekKey(e.datum) === wk);
+    const label = weekLabel(wkEntries[0].datum);
+    const perTeelt = Object.fromEntries(TEELTEN.map(t => [t, 0]));
+    wkEntries.forEach(e => {
+      if (!e.teelten || !e.teelten.length || !e.gewerkt) return;
+      const aandeel = e.gewerkt / e.teelten.length;
+      e.teelten.forEach(t => { if (perTeelt[t] !== undefined) perTeelt[t] += aandeel; });
+    });
+    const weekTot = TEELTEN.reduce((s, t) => s + perTeelt[t], 0);
+    TEELTEN.forEach(t => { grandTotals[t] += perTeelt[t]; });
+    grandTotal += weekTot;
+    html += `<tr><td class="left">${label}</td>`;
+    TEELTEN.forEach(t => { const v = perTeelt[t]; html += `<td ${v===0?'class="zero"':''}>${v>0 ? v.toFixed(1) : '–'}</td>`; });
+    html += `<td><b>${weekTot>0 ? weekTot.toFixed(1) : '–'}</b></td></tr>`;
+  });
+  html += `<tr class="totaalrij"><td class="left">Totaal</td>`;
+  TEELTEN.forEach(t => { const v = grandTotals[t]; html += `<td>${v>0 ? v.toFixed(1) : '–'}</td>`; });
+  html += `<td><b>${grandTotal>0 ? grandTotal.toFixed(1) : '–'}</b></td></tr>`;
+  html += '</tbody></table></div>';
+  html += `<p style="font-size:12px;color:var(--muted);margin-top:.75rem">* Uren worden evenredig verdeeld als meerdere teelten zijn aangevinkt.</p>`;
+  document.getElementById('teelten-list').innerHTML = html;
+};
+
+// ---------- Details ----------
+window.renderDetails = function() {
+  fillCommonFilters();
+  const naam = val('f-naam');
+  const week2 = val('f-week2');
+  let filtered = allEntries.filter(e => {
+    if (naam && e.naam !== naam) return false;
+    if (week2 && weekKey(e.datum) !== week2) return false;
+    return true;
+  });
+  document.getElementById('admin-list').innerHTML = filtered.length
+    ? '<div class="card">' + filtered.map(e => {
+        const id = e.naam.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum;
+        return `<div class="entry-row">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <b>${e.naam}</b>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span style="font-size:13px;color:var(--muted)">${fmtDate(e.datum)}</span>
+              <button class="btn btn-secondary btn-sm" onclick="editEntry('${id}')">✏️ Bewerken</button>
+            </div>
+          </div>
+          <div id="entry-view-${id}" style="font-size:14px;color:var(--muted);margin-top:4px">
+            ${e.aanvang||'–'} – ${e.einde||'–'} · ${e.gewerkt}u gewerkt
+            ${e.ziek ? ` · ${e.ziek}u ziek` : ''}${e.dokter ? ` · ${e.dokter}u dokter` : ''}${e.vrij ? ` · ${e.vrij}u vrij` : ''}
+            ${e.teelten && e.teelten.length ? `<div style="margin-top:3px">🌱 ${e.teelten.join(', ')}</div>` : ''}
+            ${e.opmerking ? `<div style="margin-top:3px;font-style:italic">💬 ${e.opmerking}</div>` : ''}
+          </div>
+          <div id="entry-edit-${id}" style="display:none;margin-top:10px;max-width:600px">
+            <div class="row2">
+              <div><label class="mini-lbl">Aanvang</label><input type="time" id="ea-aanvang-${id}" value="${e.aanvang||''}"></div>
+              <div><label class="mini-lbl">Einde</label><input type="time" id="ea-einde-${id}" value="${e.einde||''}"></div>
+            </div>
+            <div class="row4" style="margin-top:8px">
+              <div><label class="mini-lbl">Gewerkt</label><input type="number" min="0" max="24" step="0.5" id="ea-gew-${id}" value="${e.gewerkt||0}"></div>
+              <div><label class="mini-lbl">Ziek</label><input type="number" min="0" max="24" step="0.5" id="ea-ziek-${id}" value="${e.ziek||0}"></div>
+              <div><label class="mini-lbl">Dokter</label><input type="number" min="0" max="24" step="0.5" id="ea-dok-${id}" value="${e.dokter||0}"></div>
+              <div><label class="mini-lbl">Vrij</label><input type="number" min="0" max="24" step="0.5" id="ea-vrij-${id}" value="${e.vrij||0}"></div>
+            </div>
+            <label class="mini-lbl" style="margin-top:8px">Opmerking</label>
+            <input type="text" id="ea-opm-${id}" value="${(e.opmerking||'').replace(/"/g,'&quot;')}" placeholder="Geen opmerking">
+            <label class="mini-lbl" style="margin-top:8px">Teelt</label>
+            <div class="row2" style="gap:6px 12px">
+              ${TEELTEN.map(t => `<label class="chk-row"><input type="checkbox" class="ea-teelt-${id}" value="${t}" ${e.teelten&&e.teelten.includes(t)?'checked':''}> ${t}</label>`).join('')}
+            </div>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button class="btn btn-primary btn-sm" onclick="saveEditEntry('${id}','${e.naam}','${e.datum}')">Opslaan</button>
+              <button class="btn btn-secondary btn-sm" onclick="cancelEditEntry('${id}')">Annuleren</button>
+              <button class="btn btn-secondary btn-sm btn-danger" onclick="deleteEntry('${id}')">🗑️ Verwijderen</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('') + '</div>'
+    : '<div class="empty">Geen registraties gevonden</div>';
+};
+window.editEntry = function(id) {
+  document.getElementById('entry-view-' + id).style.display = 'none';
+  document.getElementById('entry-edit-' + id).style.display = 'block';
+};
+window.cancelEditEntry = function(id) {
+  document.getElementById('entry-view-' + id).style.display = 'block';
+  document.getElementById('entry-edit-' + id).style.display = 'none';
+};
+window.saveEditEntry = async function(id, naam, datum) {
+  const rec = {
+    naam, datum,
+    aanvang: document.getElementById('ea-aanvang-' + id).value,
+    einde: document.getElementById('ea-einde-' + id).value,
+    gewerkt: parseFloat(document.getElementById('ea-gew-' + id).value) || 0,
+    ziek: parseFloat(document.getElementById('ea-ziek-' + id).value) || 0,
+    dokter: parseFloat(document.getElementById('ea-dok-' + id).value) || 0,
+    vrij: parseFloat(document.getElementById('ea-vrij-' + id).value) || 0,
+    opmerking: document.getElementById('ea-opm-' + id).value || '',
+    teelten: Array.from(document.querySelectorAll('.ea-teelt-' + id + ':checked')).map(c => c.value),
+  };
   await setDoc(doc(db, 'entries', id), rec);
   await loadEntries();
-  btn.textContent = 'Opslaan'; btn.disabled = false;
-  const okEl = document.getElementById('u-ok');
-  okEl.textContent = t('saved_for') + ' ' + fmtDate(datum);
-  okEl.style.display = 'block';
-  setTimeout(() => okEl.style.display = 'none', 3000);
+  renderDetails();
 };
-// --- Admin medewerkers ---
+window.deleteEntry = async function(id) {
+  if (!confirm('Deze registratie definitief verwijderen?')) return;
+  await deleteDoc(doc(db, 'entries', id));
+  await loadEntries();
+  renderDetails();
+};
+
+// ---------- Medewerkers ----------
+window.renderMedewerkers = function() {
+  fillCommonFilters();
+  fillFixNaamSelects();
+  const nonAdmin = allUsers.filter(u => u.role !== 'admin');
+  document.getElementById('admin-users-list').innerHTML = nonAdmin.length
+    ? nonAdmin.map(u => `<div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+          <span style="font-weight:700;font-size:16px">${u.name}</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="resetPassword('${u.name}')">🔑 Reset</button>
+            <button class="btn btn-secondary btn-sm btn-danger" onclick="deleteUser('${u.name}')">✕ Verwijder</button>
+          </div>
+        </div>
+        <div class="row4">
+          <div><label class="mini-lbl">Contract/week</label><input type="number" min="0" max="60" step="0.5" value="${u.contracturen||0}" id="contract-${u.name}" class="mini-input"></div>
+          <div><label class="mini-lbl">Werkdagen/week</label><input type="number" min="1" max="7" step="0.5" value="${u.werkdagen||5}" id="werkdagen-${u.name}" class="mini-input" oninput="updateSnipPreview('${u.name}')"></div>
+          <div><label class="mini-lbl">Weken/jaar</label><input type="number" min="1" max="53" step="0.5" value="${u.wekenperjaar||52}" id="weken-${u.name}" class="mini-input" oninput="updateSnipPreview('${u.name}')"></div>
+          <div><label class="mini-lbl">Snipdag/jaar</label><input type="number" min="0" step="0.5" value="${u.snipperdagen||0}" id="snipperdagen-${u.name}" class="mini-input" oninput="updateSnipPreview('${u.name}')"></div>
+        </div>
+        <div id="snip-preview-${u.name}" style="background:var(--accent-light);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--accent);margin:.6rem 0">${calcSnipPreview(u)}</div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem">Beginsaldo</div>
+        <div class="row5" style="margin-bottom:.75rem">
+          <div><label class="mini-lbl">Gewerkt</label><input type="number" step="0.5" value="${u.saldo_gew||0}" id="saldo-gew-${u.name}" class="mini-input"></div>
+          <div><label class="mini-lbl">Ziek</label><input type="number" step="0.5" value="${u.saldo_ziek||0}" id="saldo-ziek-${u.name}" class="mini-input"></div>
+          <div><label class="mini-lbl">Dokter</label><input type="number" step="0.5" value="${u.saldo_dok||0}" id="saldo-dok-${u.name}" class="mini-input"></div>
+          <div><label class="mini-lbl">Vrij</label><input type="number" step="0.5" value="${u.saldo_vrij||0}" id="saldo-vrij-${u.name}" class="mini-input"></div>
+          <div><label class="mini-lbl">Snip.saldo</label><input type="number" step="0.5" value="${u.startsaldo||0}" id="saldo-${u.name}" class="mini-input"></div>
+        </div>
+        <label class="mini-lbl">Notitie (alleen zichtbaar voor jou)</label>
+        <input type="text" value="${(u.notitie||'').replace(/"/g,'&quot;')}" id="notitie-${u.name}" class="mini-input" style="margin-bottom:.6rem">
+        <label class="mini-lbl">Taal medewerker</label>
+        <select id="taal-${u.name}" class="mini-input" style="margin-bottom:.6rem">
+          <option value="nl" ${(u.taal||'nl')==='nl'?'selected':''}>🇳🇱 Nederlands</option>
+          <option value="en" ${u.taal==='en'?'selected':''}>🇬🇧 English</option>
+          <option value="pl" ${u.taal==='pl'?'selected':''}>🇵🇱 Polski</option>
+        </select>
+        <label class="chk-row" style="margin-bottom:.75rem">
+          <input type="checkbox" id="losse-kracht-${u.name}" ${u.losseKracht?'checked':''}> Losse kracht (niet in week- en jaaroverzicht)
+        </label>
+        <button class="btn btn-primary btn-block" onclick="saveContract('${u.name}')">✓ Opslaan</button>
+      </div>`).join('')
+    : '<p style="color:var(--muted);font-size:14px">Nog geen medewerkers</p>';
+};
 window.addUser = async function() {
-  const n    = val('new-naam').trim();
-  const p    = val('new-pass');
-  const c    = parseFloat(document.getElementById('new-contract').value)     || 0;
-  const wd   = parseFloat(document.getElementById('new-werkdagen').value)    || 5;
-  const wj   = parseFloat(document.getElementById('new-weken').value)        || 52;
-  const sd   = parseFloat(document.getElementById('new-snipperdagen').value) || 0;
-  const s    = parseFloat(document.getElementById('new-startsaldo').value)   || 0;
-  const sgew = parseFloat(document.getElementById('new-s-gew').value)        || 0;
-  const sziek= parseFloat(document.getElementById('new-s-ziek').value)       || 0;
-  const sdok = parseFloat(document.getElementById('new-s-dok').value)        || 0;
-  const svrij= parseFloat(document.getElementById('new-s-vrij').value)       || 0;
+  const n = val('new-naam').trim();
+  const p = val('new-pass');
+  const c = parseFloat(document.getElementById('new-contract').value) || 0;
+  const wd = parseFloat(document.getElementById('new-werkdagen').value) || 5;
+  const wj = parseFloat(document.getElementById('new-weken').value) || 52;
+  const sd = parseFloat(document.getElementById('new-snipperdagen').value) || 0;
+  const s = parseFloat(document.getElementById('new-startsaldo').value) || 0;
+  const sgew = parseFloat(document.getElementById('new-s-gew').value) || 0;
+  const sziek = parseFloat(document.getElementById('new-s-ziek').value) || 0;
+  const sdok = parseFloat(document.getElementById('new-s-dok').value) || 0;
+  const svrij = parseFloat(document.getElementById('new-s-vrij').value) || 0;
   if (!n || !p) { showErr('new-err', 'Vul naam en wachtwoord in'); return; }
   if (allUsers.find(u => u.name.toLowerCase() === n.toLowerCase())) { showErr('new-err', 'Naam al in gebruik'); return; }
   const newU = { name: n, pass: p, role: 'user', contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij };
@@ -582,28 +1055,297 @@ window.addUser = async function() {
   await loadUsers();
   ['new-naam','new-pass','new-contract','new-werkdagen','new-weken','new-snipperdagen','new-startsaldo','new-s-gew','new-s-ziek','new-s-dok','new-s-vrij'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   hideEl('new-err');
-  renderAdmin();
+  renderMedewerkers();
 };
-window.changePassword = async function() {
-  const oud = val('pw-oud');
-  const nieuw = val('pw-nieuw');
-  const herhaal = val('pw-herhaal');
-  const err = document.getElementById('pw-err');
-  const ok = document.getElementById('pw-ok');
-  if (!oud || !nieuw || !herhaal) { err.textContent = t('pw_err_vul'); err.style.display='block'; return; }
-  if (me.pass !== oud) { err.textContent = t('pw_err_oud'); err.style.display='block'; return; }
-  if (nieuw !== herhaal) { err.textContent = t('pw_err_match'); err.style.display='block'; return; }
-  if (nieuw.length < 4) { err.textContent = t('pw_err_kort'); err.style.display='block'; return; }
-  err.style.display='none';
-  const key = me.name.toLowerCase().replace(/\s+/g,'-');
-  await setDoc(doc(db, 'users', key), { ...me, pass: nieuw });
+window.updateNewSnipPreview = function() {
+  const el = document.getElementById('new-snip-preview');
+  if (!el) return;
+  const u = {
+    contracturen: parseFloat(document.getElementById('new-contract')?.value) || 0,
+    werkdagen: parseFloat(document.getElementById('new-werkdagen')?.value) || 5,
+    wekenperjaar: parseFloat(document.getElementById('new-weken')?.value) || 52,
+    snipperdagen: parseFloat(document.getElementById('new-snipperdagen')?.value) || 0,
+  };
+  el.innerHTML = calcSnipPreview(u);
+};
+window.updateSnipPreview = function(name) {
+  const el = document.getElementById('snip-preview-' + name);
+  if (!el) return;
+  const u = {
+    contracturen: parseFloat(document.getElementById('contract-' + name)?.value) || 0,
+    werkdagen: parseFloat(document.getElementById('werkdagen-' + name)?.value) || 5,
+    wekenperjaar: parseFloat(document.getElementById('weken-' + name)?.value) || 52,
+    snipperdagen: parseFloat(document.getElementById('snipperdagen-' + name)?.value) || 0,
+  };
+  el.innerHTML = calcSnipPreview(u);
+};
+window.saveContract = async function(name) {
+  const c = parseFloat(document.getElementById('contract-' + name).value) || 0;
+  const wd = parseFloat(document.getElementById('werkdagen-' + name).value) || 5;
+  const wj = parseFloat(document.getElementById('weken-' + name).value) || 52;
+  const sd = parseFloat(document.getElementById('snipperdagen-' + name).value) || 0;
+  const s = parseFloat(document.getElementById('saldo-' + name).value) || 0;
+  const sgew = parseFloat(document.getElementById('saldo-gew-' + name).value) || 0;
+  const sziek = parseFloat(document.getElementById('saldo-ziek-' + name).value) || 0;
+  const sdok = parseFloat(document.getElementById('saldo-dok-' + name).value) || 0;
+  const svrij = parseFloat(document.getElementById('saldo-vrij-' + name).value) || 0;
+  const notitie = (document.getElementById('notitie-' + name)?.value) || '';
+  const taal = document.getElementById('taal-' + name)?.value || 'nl';
+  const losseKracht = document.getElementById('losse-kracht-' + name)?.checked || false;
+  const key = name.toLowerCase().replace(/\s+/g,'-');
+  const u = allUsers.find(x => x.name === name);
+  if (!u) return;
+  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, notitie, taal, losseKracht };
+  newU.jaarsnippers = calcJaarsnippers(newU);
+  await setDoc(doc(db, 'users', key), newU);
   await loadUsers();
-  me = allUsers.find(u => u.name === me.name);
-  setVal('pw-oud',''); setVal('pw-nieuw',''); setVal('pw-herhaal','');
-  ok.textContent = t('pw_ok');
-  ok.style.display = 'block';
-  setTimeout(() => ok.style.display = 'none', 3000);
+  renderMedewerkers();
+  alert(`Gegevens voor ${name} opgeslagen (${newU.jaarsnippers}u snipperuren/jaar)`);
 };
+window.resetPassword = async function(name) {
+  const nieuw = prompt(`Nieuw wachtwoord voor ${name}:`);
+  if (!nieuw) return;
+  if (nieuw.length < 4) { alert('Wachtwoord moet minimaal 4 tekens zijn'); return; }
+  const key = name.toLowerCase().replace(/\s+/g,'-');
+  const u = allUsers.find(x => x.name === name);
+  if (!u) return;
+  await setDoc(doc(db, 'users', key), { ...u, pass: nieuw });
+  await loadUsers();
+  alert(`Wachtwoord van ${name} is gewijzigd.`);
+};
+window.deleteUser = async function(name) {
+  if (!confirm(`Medewerker "${name}" verwijderen?`)) return;
+  await deleteDoc(doc(db, 'users', name.toLowerCase().replace(/\s+/g,'-')));
+  await loadUsers();
+  renderMedewerkers();
+};
+window.fixNaam = async function() {
+  const oud = val('fix-oud');
+  const nieuw = val('fix-nieuw');
+  const err = document.getElementById('fix-err');
+  const ok = document.getElementById('fix-ok');
+  if (!oud || !nieuw) { err.textContent = 'Kies beide namen'; err.style.display = 'block'; ok.style.display='none'; return; }
+  if (oud === nieuw) { err.textContent = 'Oude en nieuwe naam zijn gelijk'; err.style.display = 'block'; ok.style.display='none'; return; }
+  err.style.display = 'none';
+  const teWijzigen = allEntries.filter(e => e.naam === oud);
+  let gewijzigd = 0, overgeslagen = 0;
+  for (const e of teWijzigen) {
+    const oldId = oud.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum;
+    const newId = nieuw.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum;
+    if (newId === oldId) { await setDoc(doc(db, 'entries', oldId), { ...e, naam: nieuw }); gewijzigd++; continue; }
+    const bestaatAl = allEntries.find(x => (x.naam.toLowerCase().replace(/\s+/g,'-') + '_' + x.datum) === newId);
+    if (bestaatAl) {
+      const leeg = !(+(e.gewerkt||0) || +(e.ziek||0) || +(e.dokter||0) || +(e.vrij||0) || e.opmerking || (e.teelten && e.teelten.length));
+      if (leeg) { await deleteDoc(doc(db, 'entries', oldId)); gewijzigd++; } else { overgeslagen++; }
+      continue;
+    }
+    await setDoc(doc(db, 'entries', newId), { ...e, naam: nieuw });
+    await deleteDoc(doc(db, 'entries', oldId));
+    gewijzigd++;
+  }
+  await loadEntries();
+  renderMedewerkers();
+  setVal('fix-oud',''); setVal('fix-nieuw','');
+  ok.textContent = `✓ ${gewijzigd} registratie(s) overgezet naar ${nieuw}` + (overgeslagen ? ` · ${overgeslagen} overgeslagen (datum bestond al bij ${nieuw})` : '');
+  ok.style.display = 'block';
+  setTimeout(() => ok.style.display = 'none', 5000);
+};
+
+// ---------- Weekcheck ----------
+window.renderWeekcheck = function() {
+  const jaren = [...new Set(allEntries.map(e => e.datum.substring(0,4)))].sort().reverse();
+  const huidigJaar = new Date().getFullYear().toString();
+  if (!jaren.includes(huidigJaar)) jaren.unshift(huidigJaar);
+  const jaarSel = document.getElementById('f-wc-jaar');
+  const curJaar = jaarSel.value || huidigJaar;
+  jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
+  const namen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
+  if (!namen.length) { document.getElementById('weekcheck-list').innerHTML = '<div class="empty">Nog geen medewerkers</div>'; return; }
+  let maxWeek = 53;
+  if (curJaar === huidigJaar) maxWeek = getWeekNr(todayStr());
+  const ingevuld = new Set();
+  allEntries.forEach(e => { if (e.datum.startsWith(curJaar)) ingevuld.add(e.naam + '_' + getWeekNr(e.datum)); });
+  let rows = '';
+  for (let w = 1; w <= maxWeek; w++) {
+    rows += `<tr><td class="left"><b>${w}</b></td>`;
+    namen.forEach(n => {
+      const ok = ingevuld.has(n + '_' + w);
+      rows += `<td style="text-align:center;${ok?'':'background:#FBE2DE'}">${ok ? '<span style="color:#155C36;font-weight:700">✓</span>' : '<span style="color:#A6362A;font-weight:700">✕</span>'}</td>`;
+    });
+    rows += '</tr>';
+  }
+  document.getElementById('weekcheck-list').innerHTML = `
+    <div style="font-size:13px;color:var(--muted);margin-bottom:.75rem">✓ = minstens 1 dag ingevuld die week &nbsp;·&nbsp; ✕ = niets ingevuld</div>
+    <div class="uren-table-wrap">
+      <table class="uren-table">
+        <thead><tr><th class="left">Week</th>${namen.map(n=>`<th style="font-size:11px">${n}</th>`).join('')}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+};
+
+// ---------- Vakantie ----------
+let vakAllVrij = null;
+async function laadVrijeDagen() {
+  const snap = await getDocs(collection(db, 'vrije_dagen'));
+  vakAllVrij = {};
+  snap.docs.forEach(d => { vakAllVrij[d.data().naam] = d.data().dagen || {}; });
+}
+window.renderVakantie = async function() {
+  const matrixEl = document.getElementById('vakantie-matrix');
+  matrixEl.innerHTML = '<div class="loading">Laden...</div>';
+  await laadVrijeDagen();
+
+  const huidigJaar = new Date().getFullYear();
+  const jaarSel = document.getElementById('f-vak-jaar');
+  const jaren = [huidigJaar-1, huidigJaar, huidigJaar+1].map(String);
+  const curJaar = parseInt(jaarSel.value || huidigJaar);
+  jaarSel.innerHTML = jaren.map(j => `<option ${+j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
+
+  const namen = allUsers.filter(u => u.role !== 'admin' && !u.losseKracht).map(u => u.name).sort();
+  if (!namen.length) { matrixEl.innerHTML = '<div class="empty">Nog geen medewerkers</div>'; return; }
+
+  const dagen = ['Ma','Di','Wo','Do','Vr'];
+  const huidigWeek = getWeekNr(todayStr());
+
+  let html = `<div style="font-size:13px;color:var(--muted);margin-bottom:.9rem">🟩 = vrije dag &nbsp;·&nbsp; huidige week is gemarkeerd &nbsp;·&nbsp; klik op een blokje om vrij/werk om te zetten</div>`;
+  html += '<div class="vak-table-scroll"><table class="uren-table" style="table-layout:auto">';
+  html += `<thead><tr><th class="left" style="min-width:130px">Week</th>`;
+  namen.forEach(n => html += `<th class="left" style="padding-left:10px">${n}</th>`);
+  html += '</tr></thead><tbody>';
+
+  for (let w = 1; w <= 53; w++) {
+    const isHuidig = w === huidigWeek && curJaar === huidigJaar;
+    const ma = datumVanWeekdag(curJaar, w, 0);
+    const vr = datumVanWeekdag(curJaar, w, 4);
+    html += `<tr id="vk-row-${w}" style="${isHuidig?'background:var(--warn-bg)':''}">`;
+    html += `<td class="left" style="font-weight:${isHuidig?'700':'400'};white-space:nowrap">W${w} <span style="font-size:11px;color:var(--muted)">${fmtDateShort(ma)}–${fmtDateShort(vr)}</span></td>`;
+    namen.forEach(naam => {
+      const vrijDagen = vakAllVrij[naam] || {};
+      const blokjes = dagen.map((dag, i) => {
+        const datum = datumVanWeekdag(curJaar, w, i);
+        const isVrij = !!vrijDagen[datum];
+        return `<span title="${naam} · ${dag} ${fmtDateShort(datum)}" onclick="toggleVakDag('${naam}','${datum}',${w})" style="cursor:pointer;display:inline-block;width:13px;height:13px;border-radius:3px;background:${isVrij?'var(--success)':'var(--border)'};margin:1px"></span>`;
+      }).join('');
+      html += `<td style="padding:6px 10px 6px 0">${blokjes}</td>`;
+    });
+    html += '</tr>';
+  }
+  html += '</tbody></table></div>';
+  matrixEl.innerHTML = html;
+
+  if (curJaar === huidigJaar) {
+    setTimeout(() => { const row = document.getElementById('vk-row-' + huidigWeek); if (row) row.scrollIntoView({ behavior:'smooth', block:'center' }); }, 100);
+  }
+
+  renderVakantieDetail();
+};
+window.toggleVakDag = async function(naam, datum, week) {
+  const key = naam.toLowerCase().replace(/\s+/g,'-');
+  const vrijDagen = { ...(vakAllVrij[naam] || {}) };
+  if (vrijDagen[datum]) delete vrijDagen[datum]; else vrijDagen[datum] = true;
+  await setDoc(doc(db, 'vrije_dagen', key), { naam, dagen: vrijDagen });
+  vakAllVrij[naam] = vrijDagen;
+  renderVakantie();
+};
+window.renderVakantieDetail = function() {
+  const el = document.getElementById('vakantie-list');
+  if (!vakAllVrij) { el.innerHTML = ''; return; }
+  const namen = allUsers.filter(u => u.role !== 'admin' && !u.losseKracht).map(u => u.name).sort();
+  const alleWeken = new Set();
+  namen.forEach(naam => { Object.keys(vakAllVrij[naam] || {}).forEach(datum => { if (vakAllVrij[naam][datum]) alleWeken.add(weekKey(datum)); }); });
+  const wekenSorted = [...alleWeken].sort();
+  const sel = document.getElementById('f-vak-week');
+  const curWeek = sel.value;
+  const huidigSel = curWeek;
+  sel.innerHTML = '<option value="">Alle weken</option>' + wekenSorted.map(w => {
+    const weekNr = parseInt(w.split('-W')[1]);
+    const jaar = parseInt(w.split('-W')[0]);
+    const ma = datumVanWeekdag(jaar, weekNr, 0);
+    const vr = datumVanWeekdag(jaar, weekNr, 4);
+    return `<option ${w===huidigSel?'selected':''} value="${w}">Week ${weekNr} (${fmtDateShort(ma)}–${fmtDateShort(vr)})</option>`;
+  }).join('');
+  el.innerHTML = '';
+  const dagNamen = ['Ma','Di','Wo','Do','Vr'];
+  const teTonenWeken = curWeek ? [curWeek] : wekenSorted;
+  if (!teTonenWeken.length) { el.innerHTML = '<div class="empty">Geen vakantiedagen aangevraagd</div>'; return; }
+  const grid = document.createElement('div');
+  grid.className = 'cards-grid';
+  teTonenWeken.forEach(wk => {
+    const weekNr = parseInt(wk.split('-W')[1]);
+    const jaar = parseInt(wk.split('-W')[0]);
+    const ma = datumVanWeekdag(jaar, weekNr, 0);
+    const vr = datumVanWeekdag(jaar, weekNr, 4);
+    const vrijDezeWeek = [];
+    namen.forEach(naam => {
+      const vrijDagen = vakAllVrij[naam] || {};
+      const dagenDezeWeek = [];
+      for (let i = 0; i < 5; i++) { const datum = datumVanWeekdag(jaar, weekNr, i); if (vrijDagen[datum]) dagenDezeWeek.push({ dag: dagNamen[i], datum }); }
+      if (dagenDezeWeek.length) vrijDezeWeek.push({ naam, dagen: dagenDezeWeek });
+    });
+    if (!vrijDezeWeek.length) return;
+    const blok = document.createElement('div');
+    blok.className = 'week-block';
+    const header = document.createElement('div');
+    header.className = 'week-header';
+    header.innerHTML = `<span class="week-title">Week ${weekNr}</span><span class="week-totals">${fmtDateShort(ma)} – ${fmtDateShort(vr)}</span>`;
+    const body = document.createElement('div');
+    body.style.cssText = 'padding:12px 18px;background:var(--surface)';
+    vrijDezeWeek.forEach(({naam, dagen}) => {
+      const rij = document.createElement('div');
+      rij.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px';
+      const tags = dagen.map(({dag, datum}) => `<span class="tag-day">${dag} ${fmtDateShort(datum)}</span>`).join('');
+      rij.innerHTML = `<span style="font-weight:700;min-width:110px">${naam}</span>${tags}`;
+      body.appendChild(rij);
+    });
+    blok.appendChild(header); blok.appendChild(body);
+    grid.appendChild(blok);
+  });
+  el.appendChild(grid);
+  if (!grid.children.length) el.innerHTML = '<div class="empty">Geen vakantiedagen voor deze week</div>';
+};
+
+// ---------- Opmerkingen ----------
+window.renderOpmerkingen = function() {
+  const dInput = document.getElementById('opm-datum');
+  if (!dInput.value) dInput.value = todayStr();
+  const items = [];
+  allNotes.forEach(n => items.push({ datum: n.datum, tekst: n.tekst, auteur: n.auteur || 'Beheerder', type: 'note', id: n.id }));
+  allEntries.forEach(e => { if (e.opmerking) items.push({ datum: e.datum, tekst: e.opmerking, auteur: e.naam, type: 'entry', id: e.naam.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum }); });
+  items.sort((a,b) => b.datum.localeCompare(a.datum));
+  const list = document.getElementById('opmerkingen-list');
+  if (!items.length) { list.innerHTML = '<div class="empty">Nog geen opmerkingen</div>'; return; }
+  list.innerHTML = '<div class="card">' + items.map(it => `
+    <div class="entry-row" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+      <div>
+        <div style="font-size:13px;color:var(--muted)">${fmtDate(it.datum)} · ${it.auteur}</div>
+        <div style="margin-top:3px">${it.tekst}</div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="deleteOpmerking('${it.type}','${it.id}')">✕</button>
+    </div>`).join('') + '</div>';
+};
+window.addOpmerking = async function() {
+  const datum = val('opm-datum') || todayStr();
+  const tekst = val('opm-tekst').trim();
+  const err = document.getElementById('opm-err');
+  if (!tekst) { err.textContent = 'Vul een opmerking in'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  await setDoc(doc(collection(db, 'notes')), { datum, tekst, auteur: me.name });
+  await loadNotes();
+  setVal('opm-tekst', '');
+  renderOpmerkingen();
+};
+window.deleteOpmerking = async function(type, id) {
+  if (!confirm('Deze opmerking verwijderen?')) return;
+  if (type === 'note') { await deleteDoc(doc(db, 'notes', id)); await loadNotes(); }
+  else {
+    const e = allEntries.find(x => (x.naam.toLowerCase().replace(/\s+/g,'-') + '_' + x.datum) === id);
+    if (e) { await setDoc(doc(db, 'entries', id), { ...e, opmerking: '' }); await loadEntries(); }
+  }
+  renderOpmerkingen();
+};
+
+// ---------- Wachtwoord ----------
 window.changeAdminPassword = async function() {
   const oud = val('apw-oud');
   const nieuw = val('apw-nieuw');
@@ -624,328 +1366,13 @@ window.changeAdminPassword = async function() {
   ok.style.display = 'block';
   setTimeout(() => ok.style.display = 'none', 3000);
 };
-window.resetPassword = async function(name) {
-  const nieuw = prompt(`Nieuw wachtwoord voor ${name}:`);
-  if (!nieuw) return;
-  if (nieuw.length < 4) { alert('Wachtwoord moet minimaal 4 tekens zijn'); return; }
-  const key = name.toLowerCase().replace(/\s+/g,'-');
-  const u = allUsers.find(x => x.name === name);
-  if (!u) return;
-  await setDoc(doc(db, 'users', key), { ...u, pass: nieuw });
-  await loadUsers();
-  alert(`Wachtwoord van ${name} is gewijzigd.`);
-};
-function snipFactor(u) {
-  const c  = u.contracturen || 0;
-  const wd = u.werkdagen || 5;
-  return wd > 0 ? c / wd : 0;
-}
-function calcJaarsnippers(u) {
-  const c  = u.contracturen  || 0;
-  const wd = u.werkdagen     || 5;
-  const wj = u.wekenperjaar  || 52;
-  const sd = u.snipperdagen  || 0;
-  if (!wd || !wj || !sd) return 0;
-  const aandeel = sd / (wd * wj);
-  return Math.round(wj * c * aandeel * 10) / 10;
-}
-function calcSnipPreview(u) {
-  const sd  = u.snipperdagen || 0;
-  const wd  = u.werkdagen    || 5;
-  const wj  = u.wekenperjaar || 52;
-  const c   = u.contracturen || 0;
-  if (!sd || !wd || !wj || !c) return 'Vul de velden in voor berekening';
-  const aandeelRaw = sd / (wd * wj);
-  const aandeelDisplay = Math.round(aandeelRaw * 1000) / 1000;
-  const jaarsnip = Math.round(wj * c * aandeelRaw * 10) / 10;
-  const uurPerDag = c / wd;
-  return `Aandeel: ${aandeelDisplay} · Snipperuren/jaar: <b>${jaarsnip}u</b> · Uren/dag: ${uurPerDag.toFixed(1)}u`;
-}
-window.updateNewSnipPreview = function() {
-  const el = document.getElementById('new-snip-preview');
-  if (!el) return;
-  const u = {
-    contracturen: parseFloat(document.getElementById('new-contract')?.value) || 0,
-    werkdagen:    parseFloat(document.getElementById('new-werkdagen')?.value) || 5,
-    wekenperjaar: parseFloat(document.getElementById('new-weken')?.value) || 52,
-    snipperdagen: parseFloat(document.getElementById('new-snipperdagen')?.value) || 0,
-  };
-  el.innerHTML = calcSnipPreview(u);
-};
-window.updateSnipPreview = function(name) {
-  const el = document.getElementById('snip-preview-' + name);
-  if (!el) return;
-  const u = {
-    contracturen: parseFloat(document.getElementById('contract-'   + name)?.value) || 0,
-    werkdagen:    parseFloat(document.getElementById('werkdagen-'   + name)?.value) || 5,
-    wekenperjaar: parseFloat(document.getElementById('weken-'       + name)?.value) || 52,
-    snipperdagen: parseFloat(document.getElementById('snipperdagen-'+ name)?.value) || 0,
-  };
-  el.innerHTML = calcSnipPreview(u);
-};
-window.saveContract = async function(name) {
-  const c   = parseFloat(document.getElementById('contract-'   + name).value) || 0;
-  const wd  = parseFloat(document.getElementById('werkdagen-'  + name).value) || 5;
-  const wj  = parseFloat(document.getElementById('weken-'      + name).value) || 52;
-  const sd  = parseFloat(document.getElementById('snipperdagen-'+ name).value)|| 0;
-  const s   = parseFloat(document.getElementById('saldo-'      + name).value) || 0;
-  const sgew  = parseFloat(document.getElementById('saldo-gew-' + name).value) || 0;
-  const sziek = parseFloat(document.getElementById('saldo-ziek-'+ name).value) || 0;
-  const sdok  = parseFloat(document.getElementById('saldo-dok-' + name).value) || 0;
-  const svrij = parseFloat(document.getElementById('saldo-vrij-'+ name).value) || 0;
-  const notitie = (document.getElementById('notitie-' + name)?.value) || '';
-  const taal    = document.getElementById('taal-' + name)?.value || 'nl';
-  const losseKracht = document.getElementById('losse-kracht-' + name)?.checked || false;
-  const key   = name.toLowerCase().replace(/\s+/g,'-');
-  const u     = allUsers.find(x => x.name === name);
-  if (!u) return;
-  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, notitie, taal, losseKracht };
-  newU.jaarsnippers = calcJaarsnippers(newU);
-  await setDoc(doc(db, 'users', key), newU);
-  await loadUsers();
-  renderAdmin();
-  alert(`Gegevens voor ${name} opgeslagen (${newU.jaarsnippers}u snipperuren/jaar)`);
-};
-window.editEntry = function(id, naam, datum) {
-  document.getElementById('entry-view-' + id).style.display = 'none';
-  document.getElementById('entry-edit-' + id).style.display = 'block';
-};
-window.cancelEditEntry = function(id) {
-  document.getElementById('entry-view-' + id).style.display = 'block';
-  document.getElementById('entry-edit-' + id).style.display = 'none';
-};
-window.saveEditEntry = async function(id, naam, datum) {
-  const rec = {
-    naam, datum,
-    aanvang: document.getElementById('ea-aanvang-' + id).value,
-    einde:   document.getElementById('ea-einde-'   + id).value,
-    gewerkt: parseFloat(document.getElementById('ea-gew-'  + id).value) || 0,
-    ziek:    parseFloat(document.getElementById('ea-ziek-' + id).value) || 0,
-    dokter:  parseFloat(document.getElementById('ea-dok-'  + id).value) || 0,
-    vrij:    parseFloat(document.getElementById('ea-vrij-' + id).value) || 0,
-    opmerking: document.getElementById('ea-opm-' + id).value || '',
-    teelten: Array.from(document.querySelectorAll('.ea-teelt-' + id + ':checked')).map(c => c.value),
-  };
-  await setDoc(doc(db, 'entries', id), rec);
-  await loadEntries();
-  renderAdmin();
-};
-window.deleteEntry = async function(id) {
-  if (!confirm('Deze registratie definitief verwijderen?')) return;
-  await deleteDoc(doc(db, 'entries', id));
-  await loadEntries();
-  renderAdmin();
-};
-window.deleteUser = async function(name) {
-  if (!confirm(`Medewerker "${name}" verwijderen?`)) return;
-  await deleteDoc(doc(db, 'users', name.toLowerCase().replace(/\s+/g,'-')));
-  await loadUsers();
-  renderAdmin();
-};
-window.fixNaam = async function() {
-  const oud = val('fix-oud');
-  const nieuw = val('fix-nieuw');
-  const err = document.getElementById('fix-err');
-  const ok = document.getElementById('fix-ok');
-  if (!oud || !nieuw) { err.textContent = 'Kies beide namen'; err.style.display = 'block'; ok.style.display='none'; return; }
-  if (oud === nieuw) { err.textContent = 'Oude en nieuwe naam zijn gelijk'; err.style.display = 'block'; ok.style.display='none'; return; }
-  err.style.display = 'none';
-  const teWijzigen = allEntries.filter(e => e.naam === oud);
-  let gewijzigd = 0, overgeslagen = 0;
-  for (const e of teWijzigen) {
-    const oldId = oud.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum;
-    const newId = nieuw.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum;
-    if (newId === oldId) {
-      await setDoc(doc(db, 'entries', oldId), { ...e, naam: nieuw });
-      gewijzigd++;
-      continue;
-    }
-    const bestaatAl = allEntries.find(x => (x.naam.toLowerCase().replace(/\s+/g,'-') + '_' + x.datum) === newId);
-    if (bestaatAl) {
-      const leeg = !(+(e.gewerkt||0) || +(e.ziek||0) || +(e.dokter||0) || +(e.vrij||0) || e.opmerking || (e.teelten && e.teelten.length));
-      if (leeg) { await deleteDoc(doc(db, 'entries', oldId)); gewijzigd++; }
-      else { overgeslagen++; }
-      continue;
-    }
-    await setDoc(doc(db, 'entries', newId), { ...e, naam: nieuw });
-    await deleteDoc(doc(db, 'entries', oldId));
-    gewijzigd++;
-  }
-  await loadEntries();
-  renderAdmin();
-  setVal('fix-oud',''); setVal('fix-nieuw','');
-  ok.textContent = `✓ ${gewijzigd} registratie(s) overgezet naar ${nieuw}` + (overgeslagen ? ` · ${overgeslagen} overgeslagen (datum bestond al bij ${nieuw})` : '');
-  ok.style.display = 'block';
-  setTimeout(() => ok.style.display = 'none', 5000);
-};
-// --- Render ---
-function showNotitieBanner() {
-  const banner = document.getElementById('notitie-banner');
-  if (!banner) return;
-  if (me.notitie) {
-    banner.innerHTML = `<div style="background:var(--accent-light);border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:.5rem;font-size:12px">
-      📌 ${me.notitie}
-    </div>`;
-    banner.style.display = 'block';
-  } else {
-    banner.style.display = 'none';
-  }
-}
-// --- Herinnering / pushmeldingen ---
-let reminderInterval = null;
-function setupReminder() {
-  const aanEl = document.getElementById('rem-aan');
-  const tijdEl = document.getElementById('rem-tijd');
-  if (!aanEl) return;
-  aanEl.checked = !!me.reminderAan;
-  tijdEl.value = me.reminderTijd || '17:00';
-  startReminderCheck();
-}
-window.toggleReminder = function() {
-  const aan = document.getElementById('rem-aan').checked;
-  if (aan && 'Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission();
-  }
-};
-window.saveReminder = async function() {
-  const aan = document.getElementById('rem-aan').checked;
-  const tijd = val('rem-tijd');
-  const err = document.getElementById('rem-err');
-  const ok = document.getElementById('rem-ok');
-  if (aan && !('Notification' in window)) {
-    err.textContent = t('rem_not_supported');
-    err.style.display = 'block';
-    return;
-  }
-  if (aan && Notification.permission === 'denied') {
-    err.textContent = t('rem_blocked');
-    err.style.display = 'block';
-    return;
-  }
-  if (aan && Notification.permission === 'default') {
-    const perm = await Notification.requestPermission();
-    if (perm !== 'granted') {
-      err.textContent = t('rem_denied');
-      err.style.display = 'block';
-      return;
-    }
-  }
-  err.style.display = 'none';
-  const key = me.name.toLowerCase().replace(/\s+/g,'-');
-  me = { ...me, reminderAan: aan, reminderTijd: tijd };
-  await setDoc(doc(db, 'users', key), me);
-  await loadUsers();
-  startReminderCheck();
-  ok.textContent = t('rem_ok');
-  ok.style.display = 'block';
-  setTimeout(() => ok.style.display = 'none', 3000);
-};
-function isFeestdag(d) {
-  const y = d.getFullYear();
-  const md = (m,day) => d.getMonth()===m && d.getDate()===day;
-  if (md(0,1)) return true;   // Nieuwjaar
-  if (md(11,25) || md(11,26)) return true; // Kerst
-  // Pasen-gebaseerde feestdagen (Goede Vrijdag, 2e Paasdag, Hemelvaart, 2e Pinksterdag)
-  const easter = getEaster(y);
-  const days = [
-    addDays(easter, 1),  // 2e Paasdag
-    addDays(easter, 39), // Hemelvaart
-    addDays(easter, 50), // 2e Pinksterdag
-  ];
-  return days.some(e => e.getFullYear()===y && e.getMonth()===d.getMonth() && e.getDate()===d.getDate());
-}
-function addDays(date, n) {
-  const r = new Date(date);
-  r.setDate(r.getDate()+n);
-  return r;
-}
-function getEaster(y) {
-  const a=y%19,b=Math.floor(y/100),c=y%100,dd=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3);
-  const h=(19*a+b-dd-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7;
-  const m=Math.floor((a+11*h+22*l)/451);
-  const month=Math.floor((h+l-7*m+114)/31)-1, day=((h+l-7*m+114)%31)+1;
-  return new Date(y, month, day);
-}
-function startReminderCheck() {
-  if (reminderInterval) clearInterval(reminderInterval);
-  if (!me.reminderAan) return;
-  reminderInterval = setInterval(() => {
-    if (!me || !me.reminderAan) return;
-    const now = new Date();
-    const dag = now.getDay(); // 0=zo,6=za
-    if (dag === 0 || dag === 6) return;
-    if (isFeestdag(now)) return;
-    const hhmm = now.toTimeString().substring(0,5);
-    if (hhmm !== (me.reminderTijd || '17:00')) return;
-    const today = todayStr();
-    const heeftVandaag = allEntries.find(e => e.naam === me.name && e.datum === today);
-    if (!heeftVandaag && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification(t('notif_title'), { body: t('notif_body'), icon: 'icon-192.png' });
-    }
-  }, 60000);
-}
-// --- Backup ---
-window.downloadBackup = function() {
-  const data = { exportDatum: new Date().toISOString(), users: allUsers, entries: allEntries, notes: allNotes };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `urenregistratie_backup_${todayStr()}.json`;
-  a.click(); URL.revokeObjectURL(url);
-};
-function showSnipperBanner() {
-  const banner = document.getElementById('snipper-banner');
-  if (!banner) return;
-  const contract     = me.contracturen  || 0;
-  const jaarsnippers = me.jaarsnippers  || 0;
-  const startsaldo   = me.startsaldo    || 0;
-  if (!jaarsnippers) { banner.style.display = 'none'; return; }
-  const mine = allEntries.filter(e => e.naam === me.name);
-  const weken = groupByWeek(mine);
-  const sommeSnip = weken.reduce((acc, {items}) => {
-    const t = totals(items);
-    const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
-    const s = contract > 0 ? +(contract - tot).toFixed(1) : 0;
-    return acc + s;
-  }, 0);
-  const snip = +(startsaldo + jaarsnippers - sommeSnip).toFixed(1);
-  const kleur = snip >= 0 ? 'var(--success)' : 'var(--danger)';
-  banner.innerHTML = `<div style="background:var(--accent-light);border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;font-size:12px">
-    <span>${t('snip_saldo')}</span>
-    <b style="color:${kleur};font-size:14px">${snip} uur</b>
-  </div>`;
-  banner.style.display = 'block';
-}
-function checkVergeten() {
-  const banner = document.getElementById('vergeten-banner');
-  if (!banner) return;
-  const gisteren = new Date();
-  gisteren.setDate(gisteren.getDate() - 1);
-  const gisteren_str = gisteren.toISOString().split('T')[0];
-  // Sla weekend en feestdagen over
-  if (gisteren.getDay() === 0 || gisteren.getDay() === 6 || isFeestdag(gisteren)) { banner.style.display = 'none'; return; }
-  const heeftGisteren = allEntries.find(e => e.naam === me.name && e.datum === gisteren_str);
-  if (!heeftGisteren) {
-    banner.innerHTML = `<div style="background:var(--warn-bg);border:1px solid var(--warn);border-radius:8px;padding:10px 12px;margin-bottom:1rem;font-size:13px;color:var(--warn)">
-      ${t('verg_prefix')}${fmtDate(gisteren_str)}${t('verg_suffix')}
-      <button onclick="setDatum('${gisteren_str}')" style="margin-left:8px;background:var(--warn);color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer">${t('verg_btn')}</button>
-    </div>`;
-    banner.style.display = 'block';
-  } else {
-    banner.style.display = 'none';
-  }
-}
-window.setDatum = function(datum) {
-  setVal('u-datum', datum);
-  onDatumChange();
-  document.getElementById('vergeten-banner').style.display = 'none';
-};
+
+// ---------- Export & backup ----------
 window.exportExcel = function() {
-  const curJaar = document.getElementById('f-jaar') ? document.getElementById('f-jaar').value || new Date().getFullYear().toString() : new Date().getFullYear().toString();
-  const curNaam = document.getElementById('f-jaar-naam') ? document.getElementById('f-jaar-naam').value : '';
+  const curJaar = val('f-jaar') || new Date().getFullYear().toString();
+  const curNaam = val('f-jaar-naam');
   const filtered = allEntries.filter(e => e.datum.startsWith(curJaar) && (!curNaam || e.naam === curNaam));
   if (!filtered.length) { alert('Geen data om te exporteren'); return; }
-  // CSV aanmaken
   const rows = [['Naam','Datum','Week','Aanvang','Einde','Gewerkt','Ziek','Dokter','Vrij/Feestdag','Totaal']];
   filtered.sort((a,b) => a.naam.localeCompare(b.naam) || a.datum.localeCompare(b.datum));
   filtered.forEach(e => {
@@ -962,7 +1389,7 @@ window.exportExcel = function() {
 window.printOverzicht = function() {
   const el = document.getElementById('jaar-list');
   if (!el || !el.innerHTML.trim()) { alert('Laad eerst het jaaroverzicht'); return; }
-  const curJaar = document.getElementById('f-jaar') ? document.getElementById('f-jaar').value || new Date().getFullYear().toString() : '';
+  const curJaar = val('f-jaar') || '';
   const win = window.open('', '_blank');
   win.document.write(`<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8">
     <title>Urenregistratie ${curJaar}</title>
@@ -986,519 +1413,26 @@ window.printOverzicht = function() {
   win.document.close();
   win.print();
 };
-window.renderUserWeek = function() {
-  const mine = allEntries.filter(e => e.naam === me.name);
-  const el = document.getElementById('user-week-list');
-  const contract     = me.contracturen  || 0;
-  const jaarsnippers = me.jaarsnippers  || 0;
-  const startsaldo   = me.startsaldo    || 0;
-  const curYear      = new Date().getFullYear().toString();
-  // Snipperuren samenvatting
-  const summary = document.getElementById('user-snipper-summary');
-  if (contract > 0 || jaarsnippers > 0) {
-    const mine2 = allEntries.filter(e => e.naam === me.name && e.datum.startsWith(curYear));
-    const weken2 = groupByWeek(mine2);
-    const totaalGebruiktSnip2 = weken2.reduce((acc, {items}) => {
-      const t2 = totals(items);
-      const tot2 = +(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);
-      const s2 = contract > 0 ? +(contract - tot2).toFixed(1) : 0;
-      return acc + s2;
-    }, 0);
-    const snipperSaldo = jaarsnippers > 0 ? +(startsaldo + jaarsnippers - totaalGebruiktSnip2).toFixed(1) : null;
-    const sf = snipFactor(me);
-    const snipperDagen = (jaarsnippers > 0 && sf > 0) ? +(snipperSaldo / sf).toFixed(2) : null;
-    summary.innerHTML = `<div style="display:flex;gap:8px;margin-bottom:.75rem">
-      ${contract>0?`<div class="stat" style="flex:1"><div class="stat-val">${contract} uur</div><div class="stat-lbl">${t('snip_contract')}</div></div>`:''}
-      ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val">${jaarsnippers} uur</div><div class="stat-lbl">${t('snip_jaar')}</div></div>`:''}
-      ${snipperSaldo!==null?`<div class="stat" style="flex:1"><div class="stat-val" style="color:${snipperSaldo>=0?'#155C36':'#A6362A'}">${snipperSaldo} uur</div><div class="stat-lbl" style="color:${snipperSaldo>=0?'#155C36':'#A6362A'};font-weight:600;margin-top:2px">${snipperDagen!==null?t('snip_saldo_over')+' '+Math.round(snipperDagen)+' '+t('snip_dagen'):''}</div></div>`:''}
-    </div>`;
-  } else {
-    summary.innerHTML = '';
-  }
-  if (!mine.length) { el.innerHTML = `<div class="empty">${t('week_empty')}</div>`; return; }
-  const weken = groupByWeek(mine);
-  el.innerHTML = `<div class="uren-table-wrap"><table class="uren-table">
-    <colgroup><col style="width:28%"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num">${contract>0?'<col class="c-num">':''}</colgroup>
-    <thead><tr><th class="left">${t('col_week')}</th><th>${t('col_gew')}</th><th>${t('col_ziek')}</th><th>${t('col_dok')}</th><th>${t('col_vrij')}</th><th>${t('col_tot')}</th>${jaarsnippers>0?`<th>${t('col_snip')}</th>`:''}</tr></thead>
-    <tbody>
-    ${weken.map(({label, items, key}) => {
-      const t = totals(items);
-      const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
-      const snipWeek = contract > 0 ? +(contract - tot).toFixed(1) : null;
-      const snipperCell = jaarsnippers > 0 && contract > 0 ? `<td style="color:${snipWeek<0?'var(--danger)':snipWeek>0?'var(--success)':'var(--muted)'};font-weight:600">${snipWeek!==null?snipWeek:'–'}</td>` : '';
-      return `<tr class="week-row" onclick="toggleWeekDetail('${key}')" style="cursor:pointer">
-        <td class="left">${label} ▾</td>
-        <td>${t.g||'–'}</td><td>${t.z>0?t.z:'–'}</td><td>${t.d>0?t.d:'–'}</td><td>${t.v>0?t.v:'–'}</td>
-        <td><b>${tot>0?tot.toFixed(1):'–'}</b></td>${snipperCell}
-      </tr>
-      <tr id="detail-${key}" style="display:none"><td colspan="${jaarsnippers>0?7:6}" style="padding:0">${weekTable(items)}</td></tr>`;
-    }).join('')}
-    </tbody>
-  </table></div>`;
+window.downloadBackup = function() {
+  const data = { exportDatum: new Date().toISOString(), users: allUsers, entries: allEntries, notes: allNotes };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `urenregistratie_backup_${todayStr()}.json`;
+  a.click(); URL.revokeObjectURL(url);
 };
-window.renderVrijeDagen = async function() {
-  const el = document.getElementById('vrije-dagen-list');
-  el.innerHTML = '<div class="loading">Laden...</div>';
-  const jaar = new Date().getFullYear();
-  const dagen = ['Ma','Di','Wo','Do','Vr'];
-  const key = me.name.toLowerCase().replace(/\s+/g,'-');
-  let vrijeDagen = {};
-  try {
-    const snap = await getDoc(doc(db, 'vrije_dagen', key));
-    if (snap.exists()) vrijeDagen = snap.data().dagen || {};
-  } catch(e) {}
-
-  const huidigWeek = getWeekNr(todayStr());
-  el.innerHTML = '';
-
-  for (let w = 1; w <= 52; w++) {
-    const isHuidig = w === huidigWeek;
-    const heeftDagen = Object.keys(vrijeDagen).some(datum => vrijeDagen[datum] && getWeekNr(datum) === w && new Date(datum).getFullYear() === jaar);
-    const openKlap = isHuidig || heeftDagen;
-    const count = countVrijeDagen(vrijeDagen, jaar, w);
-
-    const blok = document.createElement('div');
-    blok.className = 'week-block';
-    blok.id = 'vd-week-' + w;
-    blok.style.marginBottom = '.5rem';
-
-    const header = document.createElement('div');
-    header.className = 'week-header';
-    header.style.cssText = 'cursor:pointer;padding:8px 14px';
-    const maandag = datumVanWeekdag(jaar, w, 0);
-    const vrijdag = datumVanWeekdag(jaar, w, 4);
-    header.innerHTML = `<span class="week-title">Week ${w} <span style="font-weight:400;font-size:12px">${fmtDateShort(maandag)} – ${fmtDateShort(vrijdag)}</span></span><span class="week-totals" id="vd-count-${w}">${count} dag(en) vrij</span>`;
-    header.onclick = () => toggleVrijeDagenWeek(w);
-
-    const body = document.createElement('div');
-    body.id = 'vd-body-' + w;
-    body.style.cssText = `display:${openKlap?'block':'none'};padding:10px 14px;background:var(--surface)`;
-
-    const grid = document.createElement('div');
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px';
-
-    dagen.forEach((dag, i) => {
-      const datum = datumVanWeekdag(jaar, w, i);
-      const lbl = document.createElement('label');
-      lbl.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;text-transform:none;font-weight:500;color:var(--text);margin:0;cursor:pointer';
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.checked = !!vrijeDagen[datum];
-      cb.dataset.datum = datum;
-      cb.style.cssText = 'width:18px;height:18px;margin:0';
-      cb.onchange = () => saveDag(key, datum, cb.checked);
-      const dagSpan = document.createElement('span');
-      dagSpan.textContent = dag;
-      const datumSpan = document.createElement('span');
-      datumSpan.style.cssText = 'font-size:10px;color:var(--muted)';
-      datumSpan.textContent = fmtDateShort(datum);
-      lbl.appendChild(cb); lbl.appendChild(dagSpan); lbl.appendChild(datumSpan);
-      grid.appendChild(lbl);
-    });
-
-    body.appendChild(grid);
-    blok.appendChild(header);
-    blok.appendChild(body);
-    el.appendChild(blok);
+function checkWeeklyBackup() {
+  const KEY = 'ur_laatste_backup';
+  const last = localStorage.getItem(KEY);
+  const nu = new Date();
+  if (!last || (nu - new Date(last)) >= 7*24*60*60*1000) {
+    downloadBackup();
+    localStorage.setItem(KEY, nu.toISOString());
   }
-
-  setTimeout(() => {
-    const huidig = document.getElementById('vd-week-' + huidigWeek);
-    if (huidig) huidig.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 100);
-};
-
-function countVrijeDagen(vrijeDagen, jaar, week) {
-  let count = 0;
-  for (let i = 0; i < 5; i++) {
-    const datum = datumVanWeekdag(jaar, week, i);
-    if (vrijeDagen[datum]) count++;
-  }
-  return count;
 }
 
-window.toggleVrijeDagenWeek = function(w) {
-  const body = document.getElementById('vd-body-' + w);
-  if (!body) return;
-  const isOpen = body.style.display !== 'none' && body.style.display !== '';
-  body.style.display = isOpen ? 'none' : 'block';
-};
-
-window.saveDag = async function(key, datum, checked) {
-  // Haal huidige data op
-  let vrijeDagen = {};
-  try {
-    const snap = await getDoc(doc(db, 'vrije_dagen', key));
-    if (snap.exists()) vrijeDagen = snap.data().dagen || {};
-  } catch(e) {}
-  if (checked) vrijeDagen[datum] = true;
-  else delete vrijeDagen[datum];
-  await setDoc(doc(db, 'vrije_dagen', key), { naam: me.name, dagen: vrijeDagen });
-
-  // Update teller in header
-  const jaar = new Date().getFullYear();
-  const week = getWeekNr(datum);
-  const countEl = document.getElementById('vd-count-' + week);
-  if (countEl) countEl.textContent = countVrijeDagen(vrijeDagen, jaar, week) + ' dag(en) vrij';
-};
-
-function getMaandagVanWeek(jaar, week) {
-  // ISO week: gebruik UTC om tijdzoneproblemen te vermijden
-  const jan4 = new Date(Date.UTC(jaar, 0, 4));
-  const startDow = jan4.getUTCDay() || 7; // maandag=1 ... zondag=7
-  const maandag = new Date(Date.UTC(jaar, 0, 4 + (1 - startDow) + (week - 1) * 7));
-  return maandag;
-}
-
-function datumVanWeekdag(jaar, week, dagIndex) {
-  const ma = getMaandagVanWeek(jaar, week);
-  return new Date(ma.getTime() + dagIndex * 86400000).toISOString().split('T')[0];
-}
-
-function fmtDateShort(d) {
-  const [,m,day] = d.split('-');
-  return `${day}-${m}`;
-}
-window.toggleWeekDetail = function(key) {
-  const el = document.getElementById('detail-' + key);
-  if (el) el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
-};
-window.renderOpmerkingen = function() {
-  const dInput = document.getElementById('opm-datum');
-  if (!dInput.value) dInput.value = todayStr();
-  // Verzamel opmerkingen: eigen notes + opmerkingen uit entries
-  const items = [];
-  allNotes.forEach(n => items.push({ datum: n.datum, tekst: n.tekst, auteur: n.auteur || 'Beheerder', type: 'note', id: n.id }));
-  allEntries.forEach(e => {
-    if (e.opmerking) items.push({ datum: e.datum, tekst: e.opmerking, auteur: e.naam, type: 'entry', id: e.naam.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum });
-  });
-  items.sort((a,b) => b.datum.localeCompare(a.datum));
-  const list = document.getElementById('opmerkingen-list');
-  if (!items.length) { list.innerHTML = '<div class="empty">Nog geen opmerkingen</div>'; return; }
-  list.innerHTML = '<div class="card" style="padding:.75rem 1rem;margin-top:1rem">' + items.map(it => `
-    <div class="entry" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-      <div>
-        <div style="font-size:12px;color:var(--muted)">${fmtDate(it.datum)} · ${it.auteur}</div>
-        <div style="margin-top:2px">${it.tekst}</div>
-      </div>
-      <button class="btn btn-secondary btn-sm" onclick="deleteOpmerking('${it.type}','${it.id}')">✕</button>
-    </div>`).join('') + '</div>';
-};
-window.addOpmerking = async function() {
-  const datum = val('opm-datum') || todayStr();
-  const tekst = val('opm-tekst').trim();
-  const err = document.getElementById('opm-err');
-  if (!tekst) { err.textContent = 'Vul een opmerking in'; err.style.display = 'block'; return; }
-  err.style.display = 'none';
-  await setDoc(doc(collection(db, 'notes')), { datum, tekst, auteur: me.name });
-  await loadNotes();
-  setVal('opm-tekst', '');
-  renderOpmerkingen();
-};
-window.deleteOpmerking = async function(type, id) {
-  if (!confirm('Deze opmerking verwijderen?')) return;
-  if (type === 'note') {
-    await deleteDoc(doc(db, 'notes', id));
-    await loadNotes();
-  } else {
-    const e = allEntries.find(x => (x.naam.toLowerCase().replace(/\s+/g,'-') + '_' + x.datum) === id);
-    if (e) {
-      await setDoc(doc(db, 'entries', id), { ...e, opmerking: '' });
-      await loadEntries();
-    }
-  }
-  renderOpmerkingen();
-};
-window.renderWeekcheck = function() {
-  // Jaar filter
-  const jaren = [...new Set(allEntries.map(e => e.datum.substring(0,4)))].sort().reverse();
-  const huidigJaar = new Date().getFullYear().toString();
-  if (!jaren.includes(huidigJaar)) jaren.unshift(huidigJaar);
-  const jaarSel = document.getElementById('f-wc-jaar');
-  const curJaar = jaarSel.value || huidigJaar;
-  jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
-  const namen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
-  if (!namen.length) { document.getElementById('weekcheck-list').innerHTML = '<div class="empty">Nog geen medewerkers</div>'; return; }
-  // Bepaal aantal weken: tot huidige week als curJaar = huidig jaar, anders 53
-  let maxWeek = 53;
-  if (curJaar === huidigJaar) {
-    maxWeek = getWeekNr(todayStr());
-  }
-  // Maak set van naam_week die ingevuld zijn
-  const ingevuld = new Set();
-  allEntries.forEach(e => {
-    if (e.datum.startsWith(curJaar)) {
-      ingevuld.add(e.naam + '_' + getWeekNr(e.datum));
-    }
-  });
-  let rows = '';
-  for (let w = 1; w <= maxWeek; w++) {
-    rows += `<tr><td class="left"><b>${w}</b></td>`;
-    namen.forEach(n => {
-      const ok = ingevuld.has(n + '_' + w);
-      rows += `<td style="text-align:center;${ok?'':'background:#FBE2DE'}">${ok ? '<span style="color:#155C36;font-weight:700">✓</span>' : '<span style="color:#A6362A;font-weight:700">✕</span>'}</td>`;
-    });
-    rows += '</tr>';
-  }
-  const colWidth = Math.max(8, Math.floor(72 / namen.length));
-  document.getElementById('weekcheck-list').innerHTML = `
-    <div style="font-size:12px;color:var(--muted);margin-bottom:.5rem">✓ = minstens 1 dag ingevuld die week &nbsp;·&nbsp; ✕ = niets ingevuld</div>
-    <div class="uren-table-wrap">
-      <table class="uren-table">
-        <colgroup><col style="width:14%">${namen.map(()=>`<col style="width:${colWidth}%">`).join('')}</colgroup>
-        <thead><tr><th class="left">Week</th>${namen.map(n=>`<th style="font-size:9px;writing-mode:vertical-rl;text-orientation:mixed;padding:4px 2px;height:60px">${n}</th>`).join('')}</tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
-};
-window.renderJaaroverzicht = function() {
-  // Vul jaar-filter
-  const jaren = [...new Set(allEntries.map(e => e.datum.substring(0,4)))].sort().reverse();
-  const jaarSel = document.getElementById('f-jaar');
-  const naamSel = document.getElementById('f-jaar-naam');
-  const curJaar = jaarSel.value || new Date().getFullYear().toString();
-  const curNaam = naamSel.value;
-  jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
-  const namen = [...new Set(allEntries.map(e => e.naam))].sort();
-  naamSel.innerHTML = '<option value="">Alle medewerkers</option>' + namen.map(n => `<option ${n===curNaam?'selected':''} value="${n}">${n}</option>`).join('');
-  const filtered = allEntries.filter(e => e.datum.startsWith(curJaar) && (!curNaam || e.naam === curNaam));
-  const el = document.getElementById('jaar-list');
-  if (!filtered.length) { el.innerHTML = '<div class="empty">Geen registraties gevonden</div>'; return; }
-  const namen2 = curNaam ? [curNaam] : [...new Set(filtered.map(e => e.naam))].filter(n => {
-    const u = allUsers.find(x => x.name === n);
-    return !u || !u.losseKracht;
-  }).sort();
-  el.innerHTML = namen2.map(naam => {
-    const pEntries = filtered.filter(e => e.naam === naam);
-    const weken = groupByWeek(pEntries);
-    const jaarTot = totals(pEntries);
-    const u = allUsers.find(x => x.name === naam);
-    const contract      = u ? (u.contracturen   || 0) : 0;
-    const startsaldo    = u ? (u.startsaldo      || 0) : 0;
-    const jaarSnippers  = u ? (u.jaarsnippers    || 0) : 0;
-    const s_gew  = u ? (u.saldo_gew  || 0) : 0;
-    const s_ziek = u ? (u.saldo_ziek || 0) : 0;
-    const s_dok  = u ? (u.saldo_dok  || 0) : 0;
-    const s_vrij = u ? (u.saldo_vrij || 0) : 0;
-    const heeftSaldo = s_gew||s_ziek||s_dok||s_vrij||startsaldo;
-    // Snipperuren per week berekend
-    const gebruikteSnip = weken.reduce((acc, {items}) => {
-      const t = totals(items);
-      const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
-      const snip = contract > 0 ? contract - tot : 0;
-      return acc + (snip < 0 ? snip : 0); // alleen negatieve snipper telt als gebruik
-    }, 0);
-    const rows = weken.map(({label, items}) => {
-      const t = totals(items);
-      const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
-      const snip = contract > 0 ? +(contract - tot).toFixed(1) : null;
-      return `<tr>
-        <td class="left">${label}</td>
-        <td>${t.g||'–'}</td>
-        <td>${t.z>0?t.z:'–'}</td>
-        <td>${t.d>0?t.d:'–'}</td>
-        <td>${t.v>0?t.v:'–'}</td>
-        <td><b>${tot>0?tot.toFixed(1):'–'}</b></td>
-        ${jaarSnippers>0&&contract>0?`<td style="color:${snip<0?'var(--danger)':snip>0?'var(--success)':'var(--muted)'};font-weight:600">${snip!==null?snip:'–'}</td>`:''}
-      </tr>`;
-    }).join('');
-    // Totalen inclusief beginsaldo
-    const totGew  = +(jaarTot.g + s_gew).toFixed(1);
-    const totZiek = +(jaarTot.z + s_ziek).toFixed(1);
-    const totDok  = +(jaarTot.d + s_dok).toFixed(1);
-    const totVrij = +(jaarTot.v + s_vrij).toFixed(1);
-    const jTot    = +(totGew + totZiek + totDok + totVrij).toFixed(1);
-    // Snipper saldo = startsaldo + jaarsnippers - som van alle wekelijkse snip waarden
-    const sommeSnip = weken.reduce((acc, {items}) => {
-      const t2 = totals(items);
-      const tot2 = +(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);
-      const snip2 = contract > 0 ? +(contract - tot2).toFixed(1) : 0;
-      return acc + snip2;
-    }, 0);
-    const snipperSaldo = jaarSnippers > 0 ? +(startsaldo + jaarSnippers - sommeSnip).toFixed(1) : null;
-    const sf = snipFactor(u || {});
-    const snipperDagen = (jaarSnippers > 0 && sf > 0) ? +(snipperSaldo / sf).toFixed(2) : null;
-    return `<div class="week-block" style="margin-bottom:1.25rem">
-      <div class="week-header" style="flex-direction:column;align-items:stretch;gap:4px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <span class="week-title">${naam}</span>
-          <span class="week-totals">${curJaar}</span>
-        </div>
-        ${jaarSnippers>0?`<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px">
-          <span style="color:var(--muted)">Snipperuren per jaar: <b style="color:var(--text)">${jaarSnippers} uur</b></span>
-          ${snipperSaldo!==null?`<span>Saldo: <b style="color:${snipperSaldo>=0?'#155C36':'#A6362A'}">${snipperSaldo} uur${snipperDagen!==null?`&nbsp;&nbsp;&nbsp;(${Math.round(snipperDagen)} dagen)`:''}</b></span>`:''}
-        </div>`:''}
-      </div>
-      <div class="uren-table-wrap">
-        <table class="uren-table">
-          <colgroup><col style="width:28%"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num">${contract>0?'<col class="c-num">':''}</colgroup>
-          <thead>
-            ${heeftSaldo?`<tr style="background:var(--accent-light);font-size:10px;color:var(--muted)">
-              <td class="left" style="padding:4px 6px;font-style:italic">Beginsaldo</td>
-              <td style="padding:4px 3px">${s_gew||'–'}</td>
-              <td style="padding:4px 3px">${s_ziek||'–'}</td>
-              <td style="padding:4px 3px">${s_dok||'–'}</td>
-              <td style="padding:4px 3px">${s_vrij||'–'}</td>
-              <td style="padding:4px 3px">${startsaldo?startsaldo+'s':'–'}</td>
-              ${contract>0?`<td style="padding:4px 3px">${startsaldo||'–'}</td>`:''}
-            </tr>`:''}
-            <tr>
-              <th class="left">Week</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th>${contract>0?'<th>Snip.</th>':''}
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-          <tfoot><tr class="totaalrij">
-            <td class="left">Totaal${heeftSaldo?' incl. saldo':''}</td>
-            <td>${totGew||'–'}</td>
-            <td>${totZiek>0?totZiek:'–'}</td>
-            <td>${totDok>0?totDok:'–'}</td>
-            <td>${totVrij>0?totVrij:'–'}</td>
-            <td><b>${jTot>0?jTot:'–'}</b></td>
-            ${contract>0?`<td style="color:${snipperSaldo!==null?(snipperSaldo>=0?'var(--success)':'var(--danger)'):'inherit'};font-weight:700">${snipperSaldo!==null?snipperSaldo:'–'}</td>`:''}
-          </tr></tfoot>
-        </table>
-      </div>
-    </div>`;
-  }).join('');
-};
-window.renderAdmin = function() {
-  fillFilters();
-  fillFixNaamSelects();
-  const week  = document.getElementById('f-week')  ? document.getElementById('f-week').value  : '';
-  const weekNaam = document.getElementById('f-week-naam') ? document.getElementById('f-week-naam').value : '';
-  const naam  = document.getElementById('f-naam')  ? document.getElementById('f-naam').value  : '';
-  const week2 = document.getElementById('f-week2') ? document.getElementById('f-week2').value : '';
-  // Weekoverzicht
-  const nonAdminNames = weekNaam ? [weekNaam] : [...new Set(allEntries.map(e => e.naam))].filter(n => {
-    const u = allUsers.find(x => x.name === n);
-    return !u || !u.losseKracht;
-  }).sort();
-  const allWeeks = [...new Set(allEntries.map(e => weekKey(e.datum)))].sort().reverse();
-  const weeksToShow = week ? [week] : allWeeks;
-  let weekHtml = '';
-  if (!allEntries.length) {
-    weekHtml = '<div class="empty">Nog geen registraties</div>';
-  } else {
-    weeksToShow.forEach(wk => {
-      const wkEntries = allEntries.filter(e => weekKey(e.datum) === wk && (!weekNaam || e.naam === weekNaam));
-      if (!wkEntries.length) return;
-      let personHtml = '';
-      nonAdminNames.forEach(n => {
-        const pe = wkEntries.filter(e => e.naam === n);
-        if (!pe.length) return;
-        const tot = totals(pe);
-        personHtml += `<div class="person-block" style="margin:8px 0">
-          <div class="person-header" onclick="togglePerson(this)">
-            <span class="person-name">${n}</span>
-            <span class="person-toggle">${tot.g}u ▾</span>
-          </div>
-          <div class="person-body" style="display:none">${weekTable(pe)}</div>
-        </div>`;
-      });
-      if (personHtml) {
-        weekHtml += `<div class="week-block">
-          <div class="week-header" onclick="toggleWeek(this)">
-            <span class="week-title">${weekLabel(wkEntries[0].datum)}</span>
-            <span class="week-totals">${wkEntries.length} registratie${wkEntries.length!==1?'s':''}</span>
-          </div>
-          <div class="week-body">${personHtml}</div>
-        </div>`;
-      }
-    });
-    if (!weekHtml) weekHtml = '<div class="empty">Geen registraties gevonden</div>';
-  }
-  document.getElementById('admin-week-list').innerHTML = weekHtml;
-  // Details
-  let filtered = allEntries.filter(e => {
-    if (naam && e.naam !== naam) return false;
-    if (week2 && weekKey(e.datum) !== week2) return false;
-    return true;
-  });
-  document.getElementById('admin-list').innerHTML = filtered.length
-    ? '<div class="card" style="padding:.75rem 1rem">' + filtered.map(e => {
-        const id = e.naam.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum;
-        return `<div class="entry" style="padding:10px 0;border-bottom:1px solid var(--border)">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <b>${e.naam}</b>
-            <div style="display:flex;gap:6px;align-items:center">
-              <span style="font-size:12px;color:var(--muted)">${fmtDate(e.datum)}</span>
-              <button class="btn btn-secondary btn-sm" onclick="editEntry('${id}','${e.naam}','${e.datum}')">✏️</button>
-            </div>
-          </div>
-          <div id="entry-view-${id}" style="font-size:13px;color:var(--muted);margin-top:3px">
-            ${e.aanvang||'–'} – ${e.einde||'–'} · ${e.gewerkt}u gewerkt
-            ${e.ziek ? ` · ${e.ziek}u ziek` : ''}${e.dokter ? ` · ${e.dokter}u dokter` : ''}${e.vrij ? ` · ${e.vrij}u vrij` : ''}
-            ${e.teelten && e.teelten.length ? `<div style="margin-top:3px">🌱 ${e.teelten.join(', ')}</div>` : ''}
-            ${e.opmerking ? `<div style="margin-top:3px;font-style:italic">💬 ${e.opmerking}</div>` : ''}
-          </div>
-          <div id="entry-edit-${id}" style="display:none;margin-top:8px">
-            <div class="row2">
-              <div><label style="margin-top:0">Aanvang</label><input type="time" id="ea-aanvang-${id}" value="${e.aanvang||''}"></div>
-              <div><label style="margin-top:0">Einde</label><input type="time" id="ea-einde-${id}" value="${e.einde||''}"></div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
-              <div><label style="margin-top:0">Gewerkt</label><input type="number" min="0" max="24" step="0.5" id="ea-gew-${id}" value="${e.gewerkt||0}"></div>
-              <div><label style="margin-top:0">Ziek</label><input type="number" min="0" max="24" step="0.5" id="ea-ziek-${id}" value="${e.ziek||0}"></div>
-              <div><label style="margin-top:0">Dokter</label><input type="number" min="0" max="24" step="0.5" id="ea-dok-${id}" value="${e.dokter||0}"></div>
-              <div><label style="margin-top:0">Vrij</label><input type="number" min="0" max="24" step="0.5" id="ea-vrij-${id}" value="${e.vrij||0}"></div>
-            </div>
-            <label style="margin-top:6px">Opmerking</label>
-            <input type="text" id="ea-opm-${id}" value="${(e.opmerking||'').replace(/"/g,'&quot;')}" placeholder="Geen opmerking">
-            <label style="margin-top:6px">Teelt</label>
-            <div class="row2" style="grid-template-columns:1fr 1fr;gap:4px 8px">
-              ${['Jonge planten','Hortensia','Micro','Mini','Cyclamen','Algemeen'].map(t => `<label style="display:flex;align-items:center;gap:6px;text-transform:none;font-size:13px;font-weight:400;margin-top:0"><input type="checkbox" class="ea-teelt-${id}" value="${t}" ${e.teelten&&e.teelten.includes(t)?'checked':''} style="width:auto;margin:0"> ${t}</label>`).join('')}
-            </div>
-            <div style="display:flex;gap:8px;margin-top:8px">
-              <button class="btn btn-primary btn-sm" onclick="saveEditEntry('${id}','${e.naam}','${e.datum}')">Opslaan</button>
-              <button class="btn btn-secondary btn-sm" onclick="cancelEditEntry('${id}')">Annuleren</button>
-              <button class="btn btn-secondary btn-sm" style="color:var(--danger)" onclick="deleteEntry('${id}')">🗑️ Verwijderen</button>
-            </div>
-          </div>
-        </div>`;
-      }).join('') + '</div>'
-    : '<div class="empty">Geen registraties gevonden</div>';
-  // Medewerkers
-  const nonAdmin = allUsers.filter(u => u.role !== 'admin');
-  document.getElementById('admin-users-list').innerHTML = nonAdmin.length
-    ? nonAdmin.map(u => `<div class="user-row" style="flex-direction:column;align-items:stretch;gap:6px;padding:10px 0">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-weight:600">${u.name}</span>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-secondary btn-sm" onclick="resetPassword('${u.name}')">🔑</button>
-            <button class="btn btn-secondary btn-sm" onclick="deleteUser('${u.name}')">✕</button>
-          </div>
-        </div>
-        <div class="row2" style="grid-template-columns:1fr 1fr 1fr 1fr">
-          <div><label style="margin:0 0 3px;font-size:11px">Contract/week</label><input type="number" min="0" max="60" step="0.5" value="${u.contracturen||0}" id="contract-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
-          <div><label style="margin:0 0 3px;font-size:11px">Werkdagen/week</label><input type="number" min="1" max="7" step="0.5" value="${u.werkdagen||5}" id="werkdagen-${u.name}" style="margin:0;padding:5px 6px;font-size:12px" oninput="updateSnipPreview('${u.name}')"></div>
-          <div><label style="margin:0 0 3px;font-size:11px">Weken/jaar</label><input type="number" min="1" max="53" step="0.5" value="${u.wekenperjaar||52}" id="weken-${u.name}" style="margin:0;padding:5px 6px;font-size:12px" oninput="updateSnipPreview('${u.name}')"></div>
-          <div><label style="margin:0 0 3px;font-size:11px">Snipdag/jaar</label><input type="number" min="0" step="0.5" value="${u.snipperdagen||0}" id="snipperdagen-${u.name}" style="margin:0;padding:5px 6px;font-size:12px" oninput="updateSnipPreview('${u.name}')"></div>
-        </div>
-        <div id="snip-preview-${u.name}" style="background:var(--accent-light);border-radius:6px;padding:5px 8px;font-size:11px;color:var(--accent)">${calcSnipPreview(u)}</div>
-        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Beginsaldo</div>
-        <div class="row2" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr">
-          <div><label style="margin:0 0 3px;font-size:11px">Gewerkt</label><input type="number" step="0.5" value="${u.saldo_gew||0}" id="saldo-gew-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
-          <div><label style="margin:0 0 3px;font-size:11px">Ziek</label><input type="number" step="0.5" value="${u.saldo_ziek||0}" id="saldo-ziek-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
-          <div><label style="margin:0 0 3px;font-size:11px">Dokter</label><input type="number" step="0.5" value="${u.saldo_dok||0}" id="saldo-dok-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
-          <div><label style="margin:0 0 3px;font-size:11px">Vrij</label><input type="number" step="0.5" value="${u.saldo_vrij||0}" id="saldo-vrij-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
-          <div><label style="margin:0 0 3px;font-size:11px">Snip.saldo</label><input type="number" step="0.5" value="${u.startsaldo||0}" id="saldo-${u.name}" style="margin:0;padding:5px 6px;font-size:12px"></div>
-        </div>
-        <label style="margin:0 0 3px;font-size:11px">Notitie (alleen zichtbaar voor jou)</label>
-        <input type="text" value="${(u.notitie||'').replace(/"/g,'&quot;')}" id="notitie-${u.name}" style="margin:0;padding:5px 6px;font-size:12px">
-        <label style="margin:4px 0 3px;font-size:11px">Taal medewerker</label>
-        <select id="taal-${u.name}" style="margin:0;padding:5px 6px;font-size:12px">
-          <option value="nl" ${(u.taal||'nl')==='nl'?'selected':''}>🇳🇱 Nederlands</option>
-          <option value="en" ${u.taal==='en'?'selected':''}>🇬🇧 English</option>
-          <option value="pl" ${u.taal==='pl'?'selected':''}>🇵🇱 Polski</option>
-        </select>
-        <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-size:13px;font-weight:500;color:var(--text);margin:6px 0 2px">
-          <input type="checkbox" id="losse-kracht-${u.name}" ${u.losseKracht?'checked':''} style="width:auto;margin:0"> Losse kracht (niet in week- en jaaroverzicht)
-        </label>
-        <button class="btn btn-primary btn-sm" style="width:100%;margin-top:2px" onclick="saveContract('${u.name}')">✓ Opslaan</button>
-      </div>`).join('')
-    : '<p style="color:var(--muted);font-size:14px">Nog geen medewerkers</p>';
-};
-function fillFilters() {
+// ---------- Gedeelde filters ----------
+function fillCommonFilters() {
   const names = [...new Set(allEntries.map(e => e.naam))].sort();
   const weeks = [...new Set(allEntries.map(e => weekKey(e.datum)))].sort().reverse();
   ['f-naam','f-week-naam'].forEach(id => {
@@ -1526,360 +1460,11 @@ function fillFixNaamSelects() {
   oudSel.innerHTML = '<option value="">Kies naam...</option>' + oudNamen.map(n => `<option ${n===curOud?'selected':''} value="${n}">${n}</option>`).join('');
   nieuwSel.innerHTML = '<option value="">Kies medewerker...</option>' + huidigeNamen.map(n => `<option ${n===curNieuw?'selected':''} value="${n}">${n}</option>`).join('');
 }
-// --- Vakantie overzicht beheerder ---
-window.renderVakantie = async function() {
-  const el = document.getElementById('vakantie-list');
-  el.innerHTML = '<div class="loading">Laden...</div>';
 
-  const huidigJaar = new Date().getFullYear();
-  const jaarSel = document.getElementById('f-vak-jaar');
-  const jaren = [huidigJaar-1, huidigJaar, huidigJaar+1].map(String);
-  const curJaar = parseInt(jaarSel.value || huidigJaar);
-  jaarSel.innerHTML = jaren.map(j => `<option ${j==curJaar?'selected':''} value="${j}">${j}</option>`).join('');
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('screen-login').style.display !== 'none') doLogin();
+});
 
-  // Laad alle vrije_dagen uit Firestore
-  const snap = await getDocs(collection(db, 'vrije_dagen'));
-  const allVrij = {};
-  snap.docs.forEach(d => { allVrij[d.data().naam] = d.data().dagen || {}; });
-
-  const namen = allUsers.filter(u => u.role !== 'admin' && !u.losseKracht).map(u => u.name).sort();
-  if (!namen.length) { el.innerHTML = '<div class="empty">Geen medewerkers</div>'; return; }
-
-  const dagen = ['Ma','Di','Wo','Do','Vr'];
-  const huidigWeek = getWeekNr(todayStr());
-
-  let html = '<div class="uren-table-wrap"><table class="uren-table" style="table-layout:auto">';
-  // Header
-  const naamKolBreedte = Math.max(10, Math.floor(35 / namen.length));
-  html += `<colgroup><col style="width:12%">`;
-  namen.forEach(() => html += `<col style="width:${naamKolBreedte}%">`);
-  html += '</colgroup>';
-  html += `<thead><tr><th class="left">Week</th>`;
-  namen.forEach(n => html += `<th style="font-size:9px;writing-mode:vertical-rl;text-orientation:mixed;padding:4px 2px;height:55px;text-align:left">${n}</th>`);
-  html += '</tr></thead><tbody>';
-
-  for (let w = 1; w <= 52; w++) {
-    const isHuidig = w === huidigWeek && curJaar === huidigJaar;
-    html += `<tr style="${isHuidig?'background:var(--warn-bg)':''}">`;
-    html += `<td class="left" style="font-weight:${isHuidig?'700':'400'};white-space:nowrap">W${w}</td>`;
-    namen.forEach(naam => {
-      const vrijDagen = allVrij[naam] || {};
-      const blokjes = dagen.map((dag, i) => {
-        const datum = datumVanWeekdag(curJaar, w, i);
-        const isVrij = vrijDagen[datum];
-        return isVrij
-          ? `<span title="${dag} ${fmtDateShort(datum)}" style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--success);margin:1px"></span>`
-          : `<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--border);margin:1px"></span>`;
-      }).join('');
-      html += `<td style="text-align:center;padding:4px 2px">${blokjes}</td>`;
-    });
-    html += '</tr>';
-  }
-
-  html += '</tbody></table></div>';
-  html += `<p style="font-size:11px;color:var(--muted);margin-top:.5rem">🟩 = vrije dag &nbsp;·&nbsp; huidige week is gemarkeerd</p>`;
-  el.innerHTML = html;
-
-  // Scroll naar huidige week
-  if (curJaar === huidigJaar) {
-    setTimeout(() => {
-      const rows = el.querySelectorAll('tbody tr');
-      if (rows[huidigWeek-1]) rows[huidigWeek-1].scrollIntoView({ behavior:'smooth', block:'center' });
-    }, 100);
-  }
-};
-// --- Vakantie overzicht beheerder ---
-window.renderVakantie = async function() {
-  const el = document.getElementById('vakantie-list');
-  el.innerHTML = '<div class="loading">Laden...</div>';
-
-  const snap = await getDocs(collection(db, 'vrije_dagen'));
-  const allVrij = {};
-  snap.docs.forEach(d => { allVrij[d.data().naam] = d.data().dagen || {}; });
-
-  const namen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
-
-  // Verzamel alle weken met vrije dagen
-  const alleWeken = new Set();
-  namen.forEach(naam => {
-    Object.keys(allVrij[naam] || {}).forEach(datum => {
-      if (allVrij[naam][datum]) alleWeken.add(weekKey(datum));
-    });
-  });
-  const wekenSorted = [...alleWeken].sort();
-
-  // Vul week-filter
-  const sel = document.getElementById('f-vak-week');
-  const huidigWeekKey = weekKey(todayStr());
-  const curWeek = sel.value || huidigWeekKey;
-  sel.innerHTML = '<option value="">Alle weken</option>' + wekenSorted.map(w => {
-    const weekNr = parseInt(w.split('-W')[1]);
-    const jaar = parseInt(w.split('-W')[0]);
-    const ma = datumVanWeekdag(jaar, weekNr, 0);
-    const vr = datumVanWeekdag(jaar, weekNr, 4);
-    return `<option ${w===curWeek?'selected':''} value="${w}">Week ${weekNr} (${fmtDateShort(ma)}–${fmtDateShort(vr)})</option>`;
-  }).join('');
-
-  el.innerHTML = '';
-  const dagNamen = ['Ma','Di','Wo','Do','Vr'];
-
-  // Filter op geselecteerde week of toon allemaal
-  const teTonenWeken = curWeek ? [curWeek] : wekenSorted;
-
-  if (!teTonenWeken.length) {
-    el.innerHTML = '<div class="empty">Geen vakantiedagen aangevraagd</div>';
-    return;
-  }
-
-  teTonenWeken.forEach(wk => {
-    const weekNr = parseInt(wk.split('-W')[1]);
-    const jaar = parseInt(wk.split('-W')[0]);
-    const ma = datumVanWeekdag(jaar, weekNr, 0);
-    const vr = datumVanWeekdag(jaar, weekNr, 4);
-
-    // Wie is vrij deze week?
-    const vrijDezeWeek = [];
-    namen.forEach(naam => {
-      const vrijDagen = allVrij[naam] || {};
-      const dagenDezeWeek = [];
-      for (let i = 0; i < 5; i++) {
-        const datum = datumVanWeekdag(jaar, weekNr, i);
-        if (vrijDagen[datum]) dagenDezeWeek.push({ dag: dagNamen[i], datum });
-      }
-      if (dagenDezeWeek.length) vrijDezeWeek.push({ naam, dagen: dagenDezeWeek });
-    });
-
-    if (!vrijDezeWeek.length) return;
-
-    const blok = document.createElement('div');
-    blok.className = 'week-block';
-    blok.style.marginBottom = '1rem';
-
-    const header = document.createElement('div');
-    header.className = 'week-header';
-    header.innerHTML = `<span class="week-title">Week ${weekNr}</span><span class="week-totals">${fmtDateShort(ma)} – ${fmtDateShort(vr)}</span>`;
-
-    const body = document.createElement('div');
-    body.style.cssText = 'padding:8px 14px;background:var(--surface)';
-
-    vrijDezeWeek.forEach(({naam, dagen}) => {
-      const rij = document.createElement('div');
-      rij.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px';
-      const tags = dagen.map(({dag, datum}) =>
-        `<span style="background:var(--accent-light);color:var(--accent);border-radius:4px;padding:2px 6px;font-size:12px;margin-right:3px">${dag} ${fmtDateShort(datum)}</span>`
-      ).join('');
-      rij.innerHTML = `<span style="font-weight:600;min-width:90px">${naam}</span>${tags}`;
-      body.appendChild(rij);
-    });
-
-    blok.appendChild(header);
-    blok.appendChild(body);
-    el.appendChild(blok);
-  });
-
-  if (!el.children.length) {
-    el.innerHTML = '<div class="empty">Geen vakantiedagen voor deze week</div>';
-  }
-};
-
-// --- Losse krachten weekoverzicht ---
-window.renderLosseKrachten = function() {
-  const losseKrachten = allUsers.filter(u => u.role !== 'admin' && u.losseKracht).map(u => u.name).sort();
-  const sel = document.getElementById('f-lk-week');
-  const el = document.getElementById('lk-week-list');
-
-  // Vul weekfilter
-  const weeks = [...new Set(allEntries.filter(e => losseKrachten.includes(e.naam)).map(e => weekKey(e.datum)))].sort().reverse();
-  const curWeek = sel.value;
-  sel.innerHTML = '<option value="">Alle weken</option>' + weeks.map(w => {
-    const e = allEntries.find(x => weekKey(x.datum) === w && losseKrachten.includes(x.naam));
-    return `<option ${w===curWeek?'selected':''} value="${w}">${e ? weekLabel(e.datum) : w}</option>`;
-  }).join('');
-
-  if (!losseKrachten.length) { el.innerHTML = '<div class="empty">Geen losse krachten</div>'; return; }
-
-  const lkEntries = allEntries.filter(e => losseKrachten.includes(e.naam) && (!curWeek || weekKey(e.datum) === curWeek));
-  if (!lkEntries.length) { el.innerHTML = '<div class="empty">Geen registraties gevonden</div>'; return; }
-
-  const weeksToShow = curWeek ? [curWeek] : [...new Set(lkEntries.map(e => weekKey(e.datum)))].sort().reverse();
-  let html = '';
-
-  weeksToShow.forEach(wk => {
-    const wkEntries = lkEntries.filter(e => weekKey(e.datum) === wk);
-    if (!wkEntries.length) return;
-    let personHtml = '';
-    losseKrachten.forEach(n => {
-      const pe = wkEntries.filter(e => e.naam === n);
-      if (!pe.length) return;
-      const tot = totals(pe);
-      personHtml += `<div class="person-block" style="margin:8px 0">
-        <div class="person-header" onclick="togglePerson(this)">
-          <span class="person-name">${n}</span>
-          <span class="person-toggle">${tot.g}u ▾</span>
-        </div>
-        <div class="person-body" style="display:none">${weekTable(pe)}</div>
-      </div>`;
-    });
-    if (personHtml) {
-      html += `<div class="week-block">
-        <div class="week-header" onclick="toggleWeek(this)">
-          <span class="week-title">${weekLabel(wkEntries[0].datum)}</span>
-          <span class="week-totals">${wkEntries.length} registratie${wkEntries.length!==1?'s':''}</span>
-        </div>
-        <div class="week-body">${personHtml}</div>
-      </div>`;
-    }
-  });
-
-  el.innerHTML = html || '<div class="empty">Geen registraties gevonden</div>';
-};
-
-window.renderTeelten = function() {
-  const teelten = ['Jonge planten','Hortensia','Micro','Mini','Cyclamen','Algemeen'];
-  // Vul week-filter
-  const weeks = [...new Set(allEntries.map(e => weekKey(e.datum)))].sort().reverse();
-  const sel = document.getElementById('f-teelt-week');
-  const curWeek = sel.value;
-  sel.innerHTML = '<option value="">Alle weken</option>' + weeks.map(w => {
-    const e = allEntries.find(x => weekKey(x.datum) === w);
-    return `<option ${w===curWeek?'selected':''} value="${w}">${e ? weekLabel(e.datum) : w}</option>`;
-  }).join('');
-  const filtered = curWeek ? allEntries.filter(e => weekKey(e.datum) === curWeek) : allEntries;
-  if (!filtered.length) {
-    document.getElementById('teelten-list').innerHTML = '<div class="empty">Geen registraties gevonden</div>';
-    return;
-  }
-  // Bereken uren per teelt per week
-  const weekSet = [...new Set(filtered.map(e => weekKey(e.datum)))].sort().reverse();
-  let html = `<div class="uren-table-wrap"><table class="uren-table">
-    <colgroup><col style="width:32%">${teelten.map(() => '<col class="c-num">').join('')}<col class="c-num"></colgroup>
-    <thead><tr><th class="left">Week</th>${teelten.map(t => `<th style="font-size:9px">${t.replace(' ',' ')}</th>`).join('')}<th>Totaal</th></tr></thead>
-    <tbody>`;
-  let grandTotals = Object.fromEntries(teelten.map(t => [t, 0]));
-  let grandTotal = 0;
-  weekSet.forEach(wk => {
-    const wkEntries = filtered.filter(e => weekKey(e.datum) === wk);
-    const label = weekLabel(wkEntries[0].datum);
-    // Per teelt: som gewerkte uren van entries waarbij die teelt aangevinkt is
-    const perTeelt = Object.fromEntries(teelten.map(t => [t, 0]));
-    wkEntries.forEach(e => {
-      if (!e.teelten || !e.teelten.length || !e.gewerkt) return;
-      const aandeel = e.gewerkt / e.teelten.length;
-      e.teelten.forEach(t => { if (perTeelt[t] !== undefined) perTeelt[t] += aandeel; });
-    });
-    const weekTot = teelten.reduce((s, t) => s + perTeelt[t], 0);
-    teelten.forEach(t => { grandTotals[t] += perTeelt[t]; });
-    grandTotal += weekTot;
-    html += `<tr><td class="left">${label}</td>`;
-    teelten.forEach(t => {
-      const v = perTeelt[t];
-      html += `<td ${v===0?'class="zero"':''}>${v>0 ? v.toFixed(1) : '–'}</td>`;
-    });
-    html += `<td><b>${weekTot>0 ? weekTot.toFixed(1) : '–'}</b></td></tr>`;
-  });
-  html += `<tr class="totaalrij"><td class="left">Totaal</td>`;
-  teelten.forEach(t => {
-    const v = grandTotals[t];
-    html += `<td>${v>0 ? v.toFixed(1) : '–'}</td>`;
-  });
-  html += `<td><b>${grandTotal>0 ? grandTotal.toFixed(1) : '–'}</b></td></tr>`;
-  html += '</tbody></table></div>';
-  html += `<p style="font-size:11px;color:var(--muted);margin-top:.5rem">* Uren worden evenredig verdeeld als meerdere teelten zijn aangevinkt.</p>`;
-  document.getElementById('teelten-list').innerHTML = html;
-};
-// --- Helpers ---
-window.switchTab = function(scope, tab, btn) {
-  document.querySelectorAll(`#screen-${scope} .tabpanel`).forEach(p => p.classList.remove('active'));
-  document.querySelectorAll(`#screen-${scope} .tab`).forEach(t => t.classList.remove('active'));
-  document.getElementById(`${scope}-${tab}`).classList.add('active');
-  btn.classList.add('active');
-  if (scope === 'user' && tab === 'weekoverzicht') renderUserWeek();
-  if (scope === 'user' && tab === 'vrijevdagen') renderVrijeDagen();
-  if (scope === 'admin' && tab === 'jaaroverzicht') renderJaaroverzicht();
-  if (scope === 'admin' && tab === 'weekcheck') renderWeekcheck();
-  if (scope === 'admin' && tab === 'opmerkingen') renderOpmerkingen();
-  if (scope === 'admin' && tab === 'vakantie') renderVakantie();
-  if (scope === 'admin' && tab === 'teelten') renderTeelten();
-  if (scope === 'admin' && tab === 'lossekrachten') renderLosseKrachten();
-  if (scope === 'admin' && !['jaaroverzicht','weekcheck','wachtwoord','opmerkingen','teelten','vakantie','lossekrachten'].includes(tab)) renderAdmin();
-};
-window.onDatumChange = function() {
-  const datum = val('u-datum');
-  const locked = isLocked(datum);
-  document.getElementById('lock-notice').style.display = locked ? 'block' : 'none';
-  ['u-aanvang','u-einde','u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id => document.getElementById(id).disabled = locked);
-  document.querySelectorAll('.u-teelt').forEach(c => c.disabled = locked);
-  document.getElementById('btn-opslaan').disabled = locked;
-  if (datum) {
-    const ex = allEntries.find(e => e.naam === me.name && e.datum === datum);
-    if (ex) { setVal('u-aanvang',ex.aanvang||''); setVal('u-einde',ex.einde||''); setVal('u-gewerkt',ex.gewerkt||''); setVal('u-ziek',ex.ziek||''); setVal('u-dokter',ex.dokter||''); setVal('u-vrij',ex.vrij||''); setVal('u-opmerking',ex.opmerking||''); setTeelten(ex.teelten||[]); }
-    else { setVal('u-aanvang','08:00'); setVal('u-einde','17:00'); ['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,'')); setTeelten([]); }
-  }
-};
-function setTeelten(arr) {
-  document.querySelectorAll('.u-teelt').forEach(c => c.checked = arr.includes(c.value));
-}
-window.toggleWeek = function(h) { const b=h.nextElementSibling; b.style.display=b.style.display==='none'?'block':'none'; };
-window.togglePerson = function(h) { const b=h.nextElementSibling; b.style.display=b.style.display==='none'?'block':'none'; };
-function initEntryForm(datum) {
-  const inp = document.getElementById('u-datum');
-  inp.value = datum; inp.min = minDate(); inp.max = todayStr();
-  setVal('u-aanvang','08:00'); setVal('u-einde','17:00');
-  ['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,''));
-  onDatumChange();
-}
-function resetUserTabs() {
-  document.querySelectorAll('#screen-user .tab').forEach((t,i)=>t.classList.toggle('active',i===0));
-  document.getElementById('user-invullen').classList.add('active');
-  document.getElementById('user-weekoverzicht').classList.remove('active');
-}
-function weekTable(items) {
-  const tot = totals(items);
-  const fmt = v => (v && v > 0) ? v : '<span class="zero">–</span>';
-  const rows = items.slice().sort((a,b)=>a.datum.localeCompare(b.datum)).map(e => {
-    const locked = isLocked(e.datum);
-    const dag = +(e.gewerkt||0)+ +(e.ziek||0)+ +(e.dokter||0)+ +(e.vrij||0);
-    return `<tr>
-      <td class="left">${fmtDate(e.datum)}${locked?'🔒':''}${e.teelten&&e.teelten.length?`<div style="font-size:9px;color:var(--muted);font-weight:400">${e.teelten.join(', ')}</div>`:''}</td>
-      <td class="left">${(e.aanvang||'–').substring(0,5)}/${(e.einde||'–').substring(0,5)}</td>
-      <td>${fmt(e.gewerkt)}</td><td>${fmt(e.ziek)}</td><td>${fmt(e.dokter)}</td><td>${fmt(e.vrij)}</td>
-      <td><b>${dag>0?dag.toFixed(1):'–'}</b></td>
-    </tr>`;
-  }).join('');
-  const totT = +(tot.g||0)+ +(tot.z||0)+ +(tot.d||0)+ +(tot.v||0);
-  return `<div class="uren-table-wrap"><table class="uren-table">
-    <colgroup><col class="c-datum"><col class="c-tijd"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"></colgroup>
-    <thead><tr><th class="left">${t('col_datum')}</th><th class="left">${t('col_tijd')}</th><th>${t('col_gew')}</th><th>${t('col_ziek')}</th><th>${t('col_dok')}</th><th>${t('col_vrij')}</th><th>${t('col_tot')}</th></tr></thead>
-    <tbody>${rows}</tbody>
-    <tfoot><tr class="totaalrij"><td class="left" colspan="2">${t('week_totaal')}</td>
-      <td>${tot.g||'–'}</td><td>${tot.z>0?tot.z:'–'}</td><td>${tot.d>0?tot.d:'–'}</td><td>${tot.v>0?tot.v:'–'}</td>
-      <td><b>${totT>0?totT.toFixed(1):'–'}</b></td>
-    </tr></tfoot>
-  </table></div>`;
-}
-function groupByWeek(list) {
-  const map = {};
-  list.forEach(e => { const k=weekKey(e.datum); if(!map[k])map[k]={key:k,label:weekLabel(e.datum),items:[]}; map[k].items.push(e); });
-  return Object.values(map).sort((a,b)=>b.key.localeCompare(a.key));
-}
-function totals(items) {
-  let g=0,z=0,d=0,v=0;
-  items.forEach(e=>{g+=+(e.gewerkt||0);z+=+(e.ziek||0);d+=+(e.dokter||0);v+=+(e.vrij||0);});
-  return {g:+g.toFixed(1),z:+z.toFixed(1),d:+d.toFixed(1),v:+v.toFixed(1)};
-}
-function todayStr(){return new Date().toISOString().split('T')[0];}
-function minDate(){const d=new Date();d.setDate(d.getDate()-6);return d.toISOString().split('T')[0];}
-function isLocked(datum){return datum<minDate();}
-function getWeekNr(datum){const d=new Date(datum);const thu=new Date(d);thu.setDate(d.getDate()-((d.getDay()+6)%7)+3);const jan4=new Date(thu.getFullYear(),0,4);return Math.round((thu-jan4)/604800000)+1;}
-function weekKey(datum){const d=new Date(datum);const thu=new Date(d);thu.setDate(d.getDate()-((d.getDay()+6)%7)+3);return `${thu.getFullYear()}-W${String(getWeekNr(datum)).padStart(2,'0')}`;}
-function weekLabel(datum){return `Week ${getWeekNr(datum)} (${new Date(datum).getFullYear()})`;}
-function fmtDate(d){const[y,m,day]=d.split('-');return `${day}-${m}-${y}`;}
-window.show = function(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
-window.val = function(id){return document.getElementById(id).value;}
-window.setVal = function(id,v){document.getElementById(id).value=v;}
-window.showErr = function(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
-window.hideEl = function(id){document.getElementById(id).style.display='none';}
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('screen-login').classList.contains('active'))doLogin();});
 init();
 </script>
 </body>
