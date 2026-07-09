@@ -1,1 +1,514 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urenregistratie — Mijn overzicht</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#E4EEF7;--surface:#FFFFFF;--border:#A9C9E3;--text:#142433;
+    --muted:#4F7395;--accent:#1F5E8C;--accent-light:#C9E2F5;
+    --danger:#A6362A;--success:#155C36;--radius:10px;--font:'Inter',system-ui,sans-serif;
+  }
+  body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.5;min-height:100vh}
+  .screen{display:none}
+  .screen.active{display:block}
 
+  /* Login */
+  #screen-login{min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .login-box{width:380px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem}
+  .login-logo{text-align:center;margin-bottom:1.5rem}
+  .login-logo img{max-width:180px;border-radius:8px}
+  .login-title{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:.25rem}
+  .login-sub{font-size:22px;font-weight:600;text-align:center;margin-bottom:1.5rem}
+  label{display:block;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem;margin-top:1rem}
+  label:first-child{margin-top:0}
+  input,select{display:block;width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:15px;font-family:var(--font);outline:none}
+  input:focus,select:focus{border-color:var(--accent)}
+  .btn{display:inline-block;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600;font-family:var(--font);cursor:pointer;text-align:center;border:none}
+  .btn:active{transform:scale(.98);opacity:.85}
+  .btn-block{display:block;width:100%;margin-top:1.25rem}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
+  .btn-sm{padding:6px 11px;font-size:13px}
+  .error{font-size:13px;color:var(--danger);margin-top:.6rem}
+
+  /* Topbar + main */
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:1rem 2.5rem;background:var(--surface);border-bottom:1px solid var(--border)}
+  .topbar-title{font-size:19px;font-weight:700;color:var(--accent)}
+  .topbar-eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .logout{background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);font-family:var(--font);text-decoration:underline}
+  .logout:hover{color:var(--text)}
+  .main{max-width:1500px;margin:0 auto;padding:2rem 2.5rem 4rem}
+
+  .wk-header{display:flex;align-items:center;gap:1.75rem;flex-wrap:wrap;padding:1rem 1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.25rem}
+  .wk-header-left{display:flex;flex-direction:column;gap:.55rem}
+  .wk-selects{display:flex;gap:8px}
+  .wk-selects select{width:auto;min-width:110px;margin:0}
+  .wk-lines{font-size:12px;color:var(--muted);line-height:1.5}
+  .wk-lines b{color:var(--text)}
+  .wk-vrije-dagen{font-size:12px;color:var(--accent);background:var(--accent-light);border-radius:6px;padding:7px 14px;display:inline-block;text-align:center;max-width:360px}
+  .wk-header-mid{flex:1;display:flex;justify-content:center}
+  .wk-stats{display:flex;gap:10px}
+  .wk-stats-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:auto}
+  .wk-stats-title{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  .wk-stats-sub{font-size:12px;color:var(--muted)}
+  .wk-stats-sub b{color:var(--text)}
+  .wk-stat{background:var(--accent-light);border-radius:8px;padding:6px 14px;text-align:center;min-width:92px}
+  .wk-stat .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+  .wk-stat .val{font-size:17px;font-weight:700;color:var(--accent);margin-top:2px}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem}
+  .uren-table-wrap{width:100%;overflow-x:auto}
+  .uren-table{width:100%;border-collapse:collapse}
+  .uren-table th{background:var(--accent-light);color:var(--accent);font-weight:700;font-size:12px;padding:9px 8px;text-align:right;white-space:nowrap;border-bottom:2px solid var(--border)}
+  .uren-table th.left{text-align:left}
+  .uren-table td{font-size:13px;padding:8px 8px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+  .uren-table td.left{text-align:left;white-space:normal}
+  .uren-table tr:last-child td{border-bottom:none}
+  .uren-table tr.totaalrij td,.uren-table tr.totalenrow td{font-weight:700;font-size:13px;background:var(--accent-light);color:var(--accent);border-top:2px solid var(--border);border-bottom:none}
+  .uren-table td.zero{color:var(--muted)}
+  .wk-table-scroll{max-height:68vh;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
+  .wk-table-scroll table{border-collapse:separate;border-spacing:0}
+  .wk-table thead tr.headrow th{position:sticky;top:0;z-index:3;box-shadow:0 1px 0 var(--border)}
+  .wk-table thead tr.totalenrow td{position:sticky;top:37px;z-index:2;box-shadow:0 1px 0 var(--border);background:#EFF6FC}
+  .wk-table td.weeknr{font-weight:700;color:var(--accent);text-align:left}
+  .wk-table td.opm-cell{text-align:left;color:var(--muted);font-style:italic;white-space:normal}
+  .loading{text-align:center;padding:2rem;color:var(--muted);font-size:14px}
+  .empty{text-align:center;padding:3rem 0;color:var(--muted);font-size:15px}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="screen-loading" class="screen active">
+  <div style="padding-top:6rem;text-align:center">
+    <div class="login-title">Urenregistratie</div>
+    <p style="margin-top:1rem;color:var(--muted)">Verbinden...</p>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen">
+  <div class="login-box">
+    <div class="login-logo"><img src="logo.png" alt="Vollebregt Cyclamen"></div>
+    <div class="login-title">Urenregistratie</div>
+    <div class="login-sub" data-i18n="login_sub">Mijn overzicht — desktop</div>
+    <label data-i18n="lbl_naam">Naam</label>
+    <input type="text" id="login-name" placeholder="Uw naam" autocomplete="username">
+    <label data-i18n="lbl_wachtwoord">Wachtwoord</label>
+    <input type="password" id="login-pass" placeholder="Wachtwoord" autocomplete="current-password">
+    <div id="login-err" class="error" style="display:none"></div>
+    <button class="btn btn-primary btn-block" onclick="doLogin()" data-i18n="btn_inloggen">Inloggen</button>
+    <p style="font-size:12px;color:var(--muted);margin-top:1rem;text-align:center" data-i18n="login_hint">Uren invullen doe je via de mobiele app. Hier zie en print je je eigen weekoverzicht.</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="screen-app" class="screen">
+  <div class="topbar">
+    <div>
+      <div class="topbar-eyebrow">Urenregistratie</div>
+      <div class="topbar-title" id="topbar-naam">Mijn overzicht</div>
+    </div>
+    <div style="display:flex;gap:14px;align-items:center">
+      <button class="btn btn-secondary btn-sm" onclick="printWeekoverzicht()"><span data-i18n="btn_afdrukken">🖨️ Afdrukken (1 A4)</span></button>
+      <button class="logout" onclick="doLogout()" data-i18n="btn_uitloggen">Uitloggen</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="wk-header">
+      <div class="wk-header-left">
+        <div class="wk-selects">
+          <select id="wk-jaar" onchange="renderWeekoverzicht()"></select>
+        </div>
+        <div class="wk-lines" id="wk-lines"></div>
+      </div>
+      <div class="wk-header-mid">
+        <div class="wk-vrije-dagen" id="wk-vrije-dagen"></div>
+      </div>
+      <div class="wk-stats-wrap">
+        <div class="wk-stats-title" data-i18n="stats_titel">Snipperuren</div>
+        <div class="wk-stats" id="wk-stats"></div>
+        <div class="wk-stats-sub" id="wk-dagen"></div>
+      </div>
+    </div>
+    <div class="card" id="wk-table-wrap"><div class="loading" data-i18n="laden">Laden...</div></div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDha05hLJuL1O-4cjcCOdutdQmbUPXGN4Q",
+  authDomain: "urenregistratie-416e5.firebaseapp.com",
+  projectId: "urenregistratie-416e5",
+  storageBucket: "urenregistratie-416e5.firebasestorage.app",
+  messagingSenderId: "324133291974",
+  appId: "1:324133291974:web:e185a51b03a86e15ced4c7"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let me = null;
+let curLang = 'nl';
+const LANG = {
+  nl: {
+    login_sub:'Mijn overzicht — desktop', lbl_naam:'Naam', lbl_wachtwoord:'Wachtwoord', btn_inloggen:'Inloggen',
+    login_hint:'Uren invullen doe je via de mobiele app. Hier zie en print je je eigen weekoverzicht.',
+    btn_afdrukken:'🖨️ Afdrukken (1 A4)', btn_uitloggen:'Uitloggen', stats_titel:'Snipperuren', laden:'Laden...',
+    err_login:'Naam of wachtwoord onjuist', err_isadmin:'Dit is de medewerker-omgeving. Gebruik voor beheer de beheerpagina.',
+    werkweek:'We rekenen met een werkweek van', uur:'uur', heeft:'heeft', weken:'weken',
+    dagen_over_pre:'Dit zijn nog', dagen_over_post:'dagen over',
+    stat_saldo:'Saldo 1 jan', stat_opbouw:'Op te bouwen', stat_tot:'Tot 31 dec',
+    vd_label:'Aangevraagde vrije dagen', vd_laden:'Vrije dagen laden...', vd_geen:'Geen aangevraagde vrije dagen', vd_fout:'niet beschikbaar',
+    col_week:'Week', col_contract:'Contract uren', col_gewerkt:'Gewerkte uren', col_ziek:'Ziekteverlof', col_vrij:'Doorbetaald vrij', col_dokter:'Dokter/tandarts', col_snipper:'Snipperuren', col_opm:'Opmerking', totalen:'Totalen',
+    maanden:['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'],
+    print_titel:'Weekoverzicht', print_jaar:'Jaar', print_afgedrukt:'afgedrukt op',
+    print_saldo1jan:'Saldo op 1 jan over van', print_optebouwen:'Uren op te bouwen per jaar', print_tot31dec:'Tot 31 dec nog beschikbaar', print_uren:'uren',
+    print_aangevraagd:'Aangevraagde vrije dagen:',
+  },
+  en: {
+    login_sub:'My overview — desktop', lbl_naam:'Name', lbl_wachtwoord:'Password', btn_inloggen:'Log in',
+    login_hint:'Enter your hours via the mobile app. Here you view and print your own weekly overview.',
+    btn_afdrukken:'🖨️ Print (1 A4)', btn_uitloggen:'Log out', stats_titel:'Vacation hours', laden:'Loading...',
+    err_login:'Name or password incorrect', err_isadmin:'This is the employee area. Use the admin page to manage.',
+    werkweek:'We calculate with a work week of', uur:'hours', heeft:'has', weken:'weeks',
+    dagen_over_pre:'There are still', dagen_over_post:'days left',
+    stat_saldo:'Balance Jan 1', stat_opbouw:'Accrual', stat_tot:'By Dec 31',
+    vd_label:'Requested days off', vd_laden:'Loading days off...', vd_geen:'No requested days off', vd_fout:'unavailable',
+    col_week:'Week', col_contract:'Contract hrs', col_gewerkt:'Hours worked', col_ziek:'Sick leave', col_vrij:'Paid leave', col_dokter:'Doctor', col_snipper:'Vacation hrs', col_opm:'Remark', totalen:'Totals',
+    maanden:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    print_titel:'Weekly overview', print_jaar:'Year', print_afgedrukt:'printed on',
+    print_saldo1jan:'Balance Jan 1 carried over from', print_optebouwen:'Hours to accrue per year', print_tot31dec:'Available by Dec 31', print_uren:'hours',
+    print_aangevraagd:'Requested days off:',
+  },
+  pl: {
+    login_sub:'Mój przegląd — desktop', lbl_naam:'Imię', lbl_wachtwoord:'Hasło', btn_inloggen:'Zaloguj',
+    login_hint:'Godziny wpisujesz w aplikacji mobilnej. Tutaj widzisz i drukujesz swój przegląd tygodniowy.',
+    btn_afdrukken:'🖨️ Drukuj (1 A4)', btn_uitloggen:'Wyloguj', stats_titel:'Godziny urlopowe', laden:'Ładowanie...',
+    err_login:'Nieprawidłowe imię lub hasło', err_isadmin:'To jest środowisko pracownika. Użyj strony administratora.',
+    werkweek:'Przyjmujemy tydzień pracy', uur:'godz.', heeft:'ma', weken:'tygodni',
+    dagen_over_pre:'Pozostało jeszcze', dagen_over_post:'dni',
+    stat_saldo:'Saldo 1 sty', stat_opbouw:'Do naliczenia', stat_tot:'Do 31 gru',
+    vd_label:'Wnioskowane dni wolne', vd_laden:'Ładowanie dni wolnych...', vd_geen:'Brak wnioskowanych dni wolnych', vd_fout:'niedostępne',
+    col_week:'Tydz.', col_contract:'Godz. kontr.', col_gewerkt:'Przepracowane', col_ziek:'Choroba', col_vrij:'Płatny urlop', col_dokter:'Lekarz', col_snipper:'Godz. urlop.', col_opm:'Uwaga', totalen:'Razem',
+    maanden:['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'],
+    print_titel:'Przegląd tygodniowy', print_jaar:'Rok', print_afgedrukt:'wydrukowano',
+    print_saldo1jan:'Saldo z 1 sty przeniesione z', print_optebouwen:'Godziny do naliczenia rocznie', print_tot31dec:'Dostępne do 31 gru', print_uren:'godz.',
+    print_aangevraagd:'Wnioskowane dni wolne:',
+  },
+};
+function t(key) { return (LANG[curLang] && LANG[curLang][key]) || LANG.nl[key] || key; }
+function applyLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+}
+let allEntries = [];
+let allUsers = [];
+let wkLast = null;
+
+async function init() {
+  try {
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000));
+    await Promise.race([loadUsers(), timeout]);
+  } catch(e) {
+    document.getElementById('screen-loading').innerHTML = `<div style="padding-top:6rem;text-align:center">
+      <div class="login-title">Urenregistratie</div>
+      <p style="margin-top:1rem;color:var(--danger)">⚠️ Kan geen verbinding maken.<br>Controleer je internet en probeer opnieuw.</p>
+      <button onclick="location.reload()" style="margin-top:1.5rem;padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer">Opnieuw proberen</button>
+    </div>`;
+    return;
+  }
+  show('screen-login');
+}
+async function loadUsers() { const snap = await getDocs(collection(db, 'users')); allUsers = snap.docs.map(d => d.data()); }
+async function loadEntries() { const snap = await getDocs(query(collection(db, 'entries'), orderBy('datum', 'desc'))); allEntries = snap.docs.map(d => d.data()); }
+
+window.doLogin = async function() {
+  const n = val('login-name').trim().toLowerCase();
+  const p = val('login-pass');
+  const u = allUsers.find(x => x.name.toLowerCase() === n && x.pass === p);
+  if (!u) { showErr('login-err', t('err_login')); return; }
+  if (u.role === 'admin') { curLang = 'nl'; showErr('login-err', t('err_isadmin')); return; }
+  hideEl('login-err');
+  me = u;
+  curLang = me.taal || 'nl';
+  applyLang();
+  await loadEntries();
+  document.getElementById('topbar-naam').textContent = me.name;
+  show('screen-app');
+  renderWeekoverzicht();
+};
+window.doLogout = function() {
+  me = null; allEntries = [];
+  setVal('login-name',''); setVal('login-pass','');
+  show('screen-login');
+};
+window.show = function(id) {
+  document.getElementById('screen-loading').style.display = id==='screen-loading' ? 'block' : 'none';
+  document.getElementById('screen-login').style.display = id==='screen-login' ? 'flex' : 'none';
+  document.getElementById('screen-app').style.display = id==='screen-app' ? 'block' : 'none';
+};
+window.val = function(id){return document.getElementById(id).value;}
+window.setVal = function(id,v){document.getElementById(id).value=v;}
+window.showErr = function(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
+window.hideEl = function(id){document.getElementById(id).style.display='none';}
+
+// ---------- Helpers ----------
+function todayStr(){return new Date().toISOString().split('T')[0];}
+function getWeekNr(datum){const d=new Date(datum);const thu=new Date(d);thu.setDate(d.getDate()-((d.getDay()+6)%7)+3);const jan4=new Date(thu.getFullYear(),0,4);return Math.round((thu-jan4)/604800000)+1;}
+function weekKey(datum){return `${new Date(datum).getFullYear()}-W${String(getWeekNr(datum)).padStart(2,'0')}`;}
+function fmtDate(d){const[y,m,day]=d.split('-');return `${day}-${m}-${y}`;}
+function totals(items){let g=0,z=0,d=0,v=0;items.forEach(e=>{g+=+(e.gewerkt||0);z+=+(e.ziek||0);d+=+(e.dokter||0);v+=+(e.vrij||0);});return {g:+g.toFixed(1),z:+z.toFixed(1),d:+d.toFixed(1),v:+v.toFixed(1)};}
+function groupByWeek(list){const map={};list.forEach(e=>{const k=weekKey(e.datum);if(!map[k])map[k]={key:k,items:[]};map[k].items.push(e);});return Object.values(map);}
+function isLocked(datum){const d=new Date();d.setDate(d.getDate()-6);return datum<d.toISOString().split('T')[0];}
+function snipFactor(u){const c=u.contracturen||0;const wd=u.werkdagen||5;return wd>0?c/wd:0;}
+function maandKort(m){return t('maanden')[m];}
+function vrijeDagenSamenvatting(datums) {
+  if (!datums.length) return t('vd_geen');
+  const sorted = datums.slice().sort();
+  const dates = sorted.map(d => new Date(d + 'T00:00:00'));
+  const runs = [];
+  let curRun = [dates[0]];
+  for (let i = 1; i < dates.length; i++) {
+    const diff = Math.round((dates[i] - dates[i-1]) / 86400000);
+    if (diff <= 3) curRun.push(dates[i]); else { runs.push(curRun); curRun = [dates[i]]; }
+  }
+  runs.push(curRun);
+  const delen = runs.map(run => {
+    if (run.length <= 4) {
+      const maand = maandKort(run[run.length-1].getMonth());
+      return `${run.map(d => d.getDate()).join(',')} ${maand}`;
+    }
+    const eerste = run[0], laatste = run[run.length-1];
+    const mE = maandKort(eerste.getMonth()), mL = maandKort(laatste.getMonth());
+    return mE === mL ? `${eerste.getDate()} t/m ${laatste.getDate()} ${mL}` : `${eerste.getDate()} ${mE} t/m ${laatste.getDate()} ${mL}`;
+  });
+  return `${delen.join(', ')} — totaal ${datums.length} dagen`;
+}
+
+function weekTable(items) {
+  const tot = totals(items);
+  const fmt = v => (v && v > 0) ? v : '<span class="zero">–</span>';
+  const rows = items.slice().sort((a,b)=>a.datum.localeCompare(b.datum)).map(e => {
+    const locked = isLocked(e.datum);
+    const dag = +(e.gewerkt||0)+ +(e.ziek||0)+ +(e.dokter||0)+ +(e.vrij||0);
+    return `<tr>
+      <td class="left">${fmtDate(e.datum)}${locked?' 🔒':''}${e.teelten&&e.teelten.length?`<div style="font-size:11px;color:var(--muted);font-weight:400">${e.teelten.join(', ')}</div>`:''}</td>
+      <td class="left">${(e.aanvang||'–').substring(0,5)}/${(e.einde||'–').substring(0,5)}</td>
+      <td>${fmt(e.gewerkt)}</td><td>${fmt(e.ziek)}</td><td>${fmt(e.dokter)}</td><td>${fmt(e.vrij)}</td>
+      <td><b>${dag>0?dag.toFixed(1):'–'}</b></td>
+    </tr>`;
+  }).join('');
+  const totT = +(tot.g||0)+ +(tot.z||0)+ +(tot.d||0)+ +(tot.v||0);
+  return `<div class="uren-table-wrap"><table class="uren-table">
+    <thead><tr><th class="left">Datum</th><th class="left">Tijd</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr class="totaalrij"><td class="left" colspan="2">Totaal</td>
+      <td>${tot.g||'–'}</td><td>${tot.z>0?tot.z:'–'}</td><td>${tot.d>0?tot.d:'–'}</td><td>${tot.v>0?tot.v:'–'}</td>
+      <td><b>${totT>0?totT.toFixed(1):'–'}</b></td>
+    </tr></tfoot>
+  </table></div>`;
+}
+window.toggleWkDag = function(w) {
+  const el = document.getElementById('wkdag-' + w);
+  if (el) el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
+};
+
+// ---------- Weekoverzicht (eigen gegevens) ----------
+window.renderWeekoverzicht = async function() {
+  const jaarSel = document.getElementById('wk-jaar');
+  const huidigJaar = new Date().getFullYear();
+  const jarenSet = new Set(allEntries.filter(e => e.naam === me.name).map(e => e.datum.substring(0,4)));
+  jarenSet.add(String(huidigJaar));
+  const jaren = [...jarenSet].sort().reverse();
+  const curJaar = jaarSel.value || String(huidigJaar);
+  jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
+
+  const linesEl = document.getElementById('wk-lines');
+  const statsEl = document.getElementById('wk-stats');
+  const tableEl = document.getElementById('wk-table-wrap');
+  const vrijeDagenEl = document.getElementById('wk-vrije-dagen');
+
+  vrijeDagenEl.textContent = t('vd_laden');
+  let vrijeDagenTekst = '';
+  try {
+    const key = me.name.toLowerCase().replace(/\s+/g,'-');
+    const snap = await getDoc(doc(db, 'vrije_dagen', key));
+    const dagenObj = snap.exists() ? (snap.data().dagen || {}) : {};
+    const datumsDitJaar = Object.keys(dagenObj).filter(d => dagenObj[d] && d.startsWith(curJaar)).sort();
+    vrijeDagenTekst = vrijeDagenSamenvatting(datumsDitJaar);
+  } catch(e) { vrijeDagenTekst = t('vd_fout'); }
+  vrijeDagenEl.innerHTML = `<b>${t('vd_label')}</b><br>${vrijeDagenTekst}`;
+
+  const u = me || {};
+  const contract = u.contracturen || 0;
+  const wekenperjaar = u.wekenperjaar || 52;
+  const jaarsnippers = u.jaarsnippers || 0;
+  const startsaldo = u.startsaldo || 0;
+  const sf = snipFactor(u);
+
+  const jaarEntries = allEntries.filter(e => e.naam === me.name && e.datum.startsWith(curJaar));
+  const weken = groupByWeek(jaarEntries);
+  const weekMap = {};
+  weken.forEach(w => { weekMap[getWeekNr(w.items[0].datum)] = w; });
+
+  const sommeSnip = weken.reduce((acc, {items}) => {
+    const t = totals(items);
+    const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
+    const s = contract > 0 ? +(contract - tot).toFixed(1) : 0;
+    return acc + s;
+  }, 0);
+  const saldoOver = +(startsaldo + jaarsnippers - sommeSnip).toFixed(1);
+  const dagenOver = sf > 0 ? +(saldoOver / sf).toFixed(1) : 0;
+
+  wkLast = { naam: me.name, jaar: curJaar, contract, wekenperjaar, jaarsnippers, startsaldo, saldoOver, dagenOver, vrijeDagenTekst };
+
+  linesEl.innerHTML = `
+    <div>${t('werkweek')} <b>${contract} ${t('uur')}</b></div>
+    <div><b>${curJaar}</b> ${t('heeft')} <b>${wekenperjaar}</b> ${t('weken')}</div>`;
+  document.getElementById('wk-dagen').innerHTML = `${t('dagen_over_pre')} <b>${dagenOver}</b> ${t('dagen_over_post')}`;
+  statsEl.innerHTML = `
+    <div class="wk-stat"><div class="lbl">${t('stat_saldo')}</div><div class="val">${startsaldo}</div></div>
+    <div class="wk-stat"><div class="lbl">${t('stat_opbouw')}</div><div class="val">${jaarsnippers}</div></div>
+    <div class="wk-stat" style="background:${saldoOver>=0?'#DDF3E6':'#F8DEDA'}"><div class="lbl">${t('stat_tot')}</div><div class="val" style="color:${saldoOver>=0?'var(--success)':'var(--danger)'}">${saldoOver}</div></div>`;
+
+  const maxWeek = curJaar === String(huidigJaar) ? Math.max(getWeekNr(todayStr()), ...Object.keys(weekMap).map(Number), 1) : (Object.keys(weekMap).length ? Math.max(...Object.keys(weekMap).map(Number)) : wekenperjaar);
+
+  let totContract=0, totGew=0, totZiek=0, totVrij=0, totDok=0, totSnip=0, gevuldeWeken=0;
+  let rows = '';
+  for (let w = 1; w <= maxWeek; w++) {
+    const wk = weekMap[w];
+    if (wk) {
+      const t = totals(wk.items);
+      const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
+      const snip = contract > 0 ? +(contract - tot).toFixed(1) : 0;
+      const opm = wk.items.filter(e => e.opmerking).map(e => e.opmerking).join('; ');
+      totContract += contract; totGew += t.g; totZiek += t.z; totVrij += t.v; totDok += t.d; totSnip += snip; gevuldeWeken++;
+      rows += `<tr id="wkrow-${w}">
+        <td class="weeknr" style="cursor:pointer" onclick="toggleWkDag(${w})">${w} ▾</td>
+        <td>${contract>0?contract.toFixed(2):'–'}</td>
+        <td>${t.g>0?t.g.toFixed(2):'–'}</td>
+        <td>${t.z>0?t.z.toFixed(2):'–'}</td>
+        <td>${t.v>0?t.v.toFixed(2):'–'}</td>
+        <td>${t.d>0?t.d.toFixed(2):'–'}</td>
+        <td style="color:${snip<0?'var(--danger)':snip>0?'var(--success)':'var(--muted)'};font-weight:600">${snip.toFixed(2)}</td>
+        <td class="opm-cell">${opm||''}</td>
+      </tr>
+      <tr id="wkdag-${w}" style="display:none"><td colspan="8" style="padding:0">${weekTable(wk.items)}</td></tr>`;
+    } else {
+      rows += `<tr id="wkrow-${w}">
+        <td class="weeknr">${w}</td>
+        <td>${contract>0?contract.toFixed(2):'–'}</td>
+        <td class="zero">–</td><td class="zero">–</td><td class="zero">–</td><td class="zero">–</td><td class="zero">–</td>
+        <td class="opm-cell"></td>
+      </tr>`;
+    }
+  }
+
+  tableEl.innerHTML = `<div class="wk-table-scroll"><table class="uren-table wk-table">
+    <thead>
+      <tr class="headrow">
+        <th class="left">${t('col_week')}</th><th>${t('col_contract')}</th><th>${t('col_gewerkt')}</th><th>${t('col_ziek')}</th><th>${t('col_vrij')}</th><th>${t('col_dokter')}</th><th>${t('col_snipper')}</th><th class="left">${t('col_opm')}</th>
+      </tr>
+      <tr class="totalenrow">
+        <td class="left">${t('totalen')} &rarr;</td>
+        <td>${totContract>0?totContract.toFixed(2):'–'}</td>
+        <td>${totGew>0?totGew.toFixed(2):'–'}</td>
+        <td>${totZiek>0?totZiek.toFixed(2):'–'}</td>
+        <td>${totVrij>0?totVrij.toFixed(2):'–'}</td>
+        <td>${totDok>0?totDok.toFixed(2):'–'}</td>
+        <td style="color:${totSnip<0?'var(--danger)':totSnip>0?'var(--success)':'var(--muted)'}">${gevuldeWeken>0?totSnip.toFixed(2):'–'}</td>
+        <td></td>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table></div>`;
+
+  const targetRow = document.getElementById('wkrow-' + maxWeek);
+  if (targetRow) setTimeout(() => targetRow.scrollIntoView({ block: 'center' }), 50);
+};
+
+// ---------- Printen (1 A4) ----------
+window.printWeekoverzicht = async function() {
+  if (!wkLast) return;
+  const { naam, jaar, contract, wekenperjaar, jaarsnippers, startsaldo, saldoOver, dagenOver, vrijeDagenTekst } = wkLast;
+  const headHtml = document.querySelector('#wk-table-wrap thead').innerHTML;
+  const allRows = Array.from(document.querySelectorAll('#wk-table-wrap table.wk-table > tbody > tr'));
+  const bodyRows = allRows.filter(tr => !tr.id.startsWith('wkdag-'));
+  let rowsHtml = '';
+  bodyRows.forEach(tr => rowsHtml += tr.outerHTML);
+  rowsHtml = rowsHtml.replace(/ ▾/g, '').replace(/ onclick="[^"]*"/g, '').replace(/ style="cursor:pointer"/g, '');
+
+  let logoUrl = '';
+  try {
+    const resp = await fetch('logo.png');
+    if (resp.ok) {
+      const blob = await resp.blob();
+      logoUrl = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
+    }
+  } catch(e) { /* logo.png niet gevonden, print gaat door zonder logo */ }
+
+  const win = window.open('', '_blank');
+  const localeMap = { nl:'nl-NL', en:'en-GB', pl:'pl-PL' };
+  const datumStr = new Date().toLocaleDateString(localeMap[curLang] || 'nl-NL');
+  win.document.write(`<!DOCTYPE html><html lang="${curLang}"><head><meta charset="UTF-8">
+    <title>${t('print_titel')} ${naam} ${jaar}</title>
+    <style>
+      @page{size:A4 portrait;margin:8mm}
+      *{box-sizing:border-box}
+      body{font-family:Arial,sans-serif;color:#000;padding:0}
+      h1{font-size:14px;margin-bottom:1px}
+      p.sub{color:#666;font-size:10px;margin-bottom:7px}
+      .titelrij{display:flex;align-items:center;gap:6px}
+      .titelrij img{height:15px;width:auto;display:block}
+      .sum{display:grid;grid-template-columns:1.2fr 1fr;border:1px solid #B9D3E8;border-radius:5px;margin-bottom:7px;font-size:9.5px}
+      .sum-left .row{display:flex;justify-content:space-between;gap:6px;padding:3px 8px;border-bottom:1px solid #E5E5E5}
+      .sum-left .row:last-child{border-bottom:none}
+      .sum .val{font-weight:700;background:#DBF0FF;padding:0 6px;border-radius:3px}
+      .sum-right{border-left:1px solid #E5E5E5;padding:4px 8px;display:flex;flex-direction:column;justify-content:center;gap:2px;color:#555}
+      table{width:100%;border-collapse:collapse;font-size:9px}
+      th{background:#EAF1F8;padding:2.5px 4px;text-align:right;border:1px solid #C8DFF0}
+      th.left,td.left{text-align:left}
+      td{padding:2px 4px;text-align:right;border:1px solid #E5E5E5;line-height:1.25}
+      tr.totalenrow td{background:#DBF0FF;font-weight:700}
+      tr.headrow th{background:#DBF0FF}
+    </style></head><body>
+    <div class="titelrij">${logoUrl?`<img src="${logoUrl}" alt="">`:''}<h1>${t('print_titel')} — ${naam}</h1></div>
+    <p class="sub">${t('print_jaar')} ${jaar} · ${t('print_afgedrukt')} ${datumStr}</p>
+    <div class="sum">
+      <div class="sum-left">
+        <div class="row"><span>${t('print_saldo1jan')} ${+jaar-1}</span><span class="val">${startsaldo} ${t('print_uren')}</span></div>
+        <div class="row"><span>${t('print_optebouwen')}</span><span class="val">${jaarsnippers} ${t('print_uren')}</span></div>
+        <div class="row"><span>${t('print_tot31dec')}</span><span class="val">${saldoOver} ${t('print_uren')}</span></div>
+      </div>
+      <div class="sum-right">
+        <div>${t('werkweek')} <b>${contract} ${t('uur')}</b></div>
+        <div><b>${jaar}</b> ${t('heeft')} <b>${wekenperjaar}</b> ${t('weken')}</div>
+        <div>${t('dagen_over_pre')} <b>${dagenOver}</b> ${t('dagen_over_post')}</div>
+        <div style="margin-top:3px"><b>${t('print_aangevraagd')}</b> ${vrijeDagenTekst||'–'}</div>
+      </div>
+    </div>
+    <table>
+      <thead>${headHtml}</thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    </body></html>`);
+  win.document.close();
+  win.print();
+};
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('screen-login').style.display !== 'none') doLogin();
+});
+
+init();
+</script>
+</body>
+</html>
