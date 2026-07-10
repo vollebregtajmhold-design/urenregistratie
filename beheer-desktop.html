@@ -43,6 +43,7 @@
   .sidebar-title{font-size:19px;font-weight:700;color:var(--accent);margin-top:2px}
   .nav{padding:.75rem 0;flex:1}
   .nav-item{display:flex;align-items:center;gap:11px;padding:10px 1.5rem;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;border-left:3px solid transparent;white-space:nowrap}
+  .nav-badge{margin-left:auto;background:var(--danger);color:#fff;font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px;min-width:18px;text-align:center}
   .nav-item:hover{background:var(--bg);color:var(--text)}
   .nav-item.active{color:var(--accent);background:var(--accent-light);border-left-color:var(--accent);font-weight:700}
   .nav-icon{font-size:16px;width:20px;text-align:center}
@@ -93,8 +94,10 @@
   .row5{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px}
   .chk-row{display:flex;align-items:center;gap:8px;text-transform:none;font-weight:400;font-size:14px;color:var(--text);margin-top:0}
   .chk-row input{width:auto;margin:0}
-  .tag-day{display:inline-block;background:var(--accent-light);color:var(--accent);border-radius:4px;padding:2px 5px;font-size:11px;margin-right:2px;white-space:nowrap;border:1px solid transparent}
+  .tag-day{display:inline-block;background:var(--accent-light);color:var(--accent);border-radius:4px;padding:2px 5px;font-size:11px;margin-right:2px;white-space:nowrap;border:1px solid transparent;cursor:pointer}
   .tag-day.is-today{border-color:var(--danger);font-weight:700}
+  .tag-day.status-aangevraagd{background:#DCEAF6;color:var(--accent);border-color:var(--accent)}
+  .tag-day.status-goedgekeurd{background:#DDF3E6;color:var(--success);border-color:var(--success)}
   .entry-row{padding:12px 0;border-bottom:1px solid var(--border)}
   .entry-row:last-child{border-bottom:none}
   .mini-lbl{margin:0 0 3px;font-size:11px}
@@ -140,6 +143,7 @@
   .vak-summary-bar-fill{height:100%;border-radius:3px}
   .vak-day{cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;margin:1.5px;font-size:11px;font-weight:600;border:1px solid var(--border);color:var(--muted);background:var(--surface)}
   .vak-day.is-vrij{background:var(--success);border-color:var(--success);color:#fff}
+  .vak-day.is-aangevraagd{background:var(--accent);border-color:var(--accent);color:#fff}
   .vak-day.is-today{box-shadow:0 0 0 2px var(--warn)}
 </style>
 </head>
@@ -181,7 +185,7 @@
       <div class="nav-item" data-page="details"><span class="nav-icon">🔍</span>Details</div>
       <div class="nav-item" data-page="mensen"><span class="nav-icon">👥</span>Medewerkers</div>
       <div class="nav-item" data-page="weekcheck"><span class="nav-icon">✅</span>Weekcheck</div>
-      <div class="nav-item" data-page="vakantie"><span class="nav-icon">🏖️</span>Vakantie</div>
+      <div class="nav-item" data-page="vakantie"><span class="nav-icon">🏖️</span>Vakantie<span id="nav-badge-vakantie" class="nav-badge" style="display:none"></span></div>
       <div class="nav-item" data-page="opmerkingen"><span class="nav-icon">💬</span>Opmerkingen</div>
       <div class="nav-item" data-page="wachtwoord"><span class="nav-icon">🔒</span>Wachtwoord</div>
     </div>
@@ -191,6 +195,7 @@
     </div>
   </div>
   <div class="main">
+    <div id="global-aanvraag-banner" style="display:none;margin-bottom:1.25rem"></div>
     <!-- WEEKOVERZICHT -->
     <div class="page active" id="page-weekoverzicht">
       <div class="wk-header">
@@ -420,6 +425,7 @@ window.doLogin = async function() {
   document.getElementById('sidebar-user').textContent = me.name;
   show('screen-app');
   goToPage('weekoverzicht');
+  refreshAanvraagBadge();
 };
 window.doLogout = function() {
   me = null; allEntries = [];
@@ -460,6 +466,33 @@ function groupByWeek(list){const map={};list.forEach(e=>{const k=weekKey(e.datum
 function minDate(){const d=new Date();d.setDate(d.getDate()-6);return d.toISOString().split('T')[0];}
 function isLocked(datum){return datum<minDate();}
 function snipFactor(u){const c=u.contracturen||0;const wd=u.werkdagen||5;return wd>0?c/wd:0;}
+// Snipperdagen aanvraag/goedkeuring: 'aangevraagd' = wacht op beheerder, 'goedgekeurd' = akkoord.
+// Oude data had gewoon `true` — dat behandelen we als 'goedgekeurd' (was al zonder aanvraagstap ingevoerd).
+function vrijStatus(v) { if (v === true) return 'goedgekeurd'; return (v === 'aangevraagd' || v === 'goedgekeurd') ? v : null; }
+function updateAanvraagBadge() {
+  let n = 0;
+  Object.values(vakAllVrij || {}).forEach(dagenObj => {
+    Object.values(dagenObj || {}).forEach(v => { if (vrijStatus(v) === 'aangevraagd') n++; });
+  });
+  const badge = document.getElementById('nav-badge-vakantie');
+  if (badge) { badge.textContent = n; badge.style.display = n > 0 ? 'inline-block' : 'none'; }
+  const banner = document.getElementById('global-aanvraag-banner');
+  if (banner) {
+    if (n > 0) {
+      banner.innerHTML = `<div style="background:var(--warn-bg);border:1px solid var(--warn);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--warn)">
+        <span>🔔 Er zijn nog <b>${n}</b> snipperdagen aanvragen</span>
+        <button class="btn btn-secondary btn-sm" onclick="goToPage('vakantie')">Bekijken</button>
+      </div>`;
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+}
+async function refreshAanvraagBadge() {
+  await laadVrijeDagen();
+  updateAanvraagBadge();
+}
 function maandKort(m){return ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'][m];}
 function vrijeDagenSamenvatting(datums) {
   if (!datums.length) return 'Geen aangevraagde vrije dagen';
@@ -1169,6 +1202,7 @@ window.renderVakantie = async function() {
   matrixEl.innerHTML = '<div class="loading">Laden...</div>';
   summaryEl.innerHTML = '<div class="loading">Laden...</div>';
   await laadVrijeDagen();
+  updateAanvraagBadge();
   const huidigJaar = new Date().getFullYear();
   const jaarSel = document.getElementById('f-vak-jaar');
   const jaren = [huidigJaar-1, huidigJaar, huidigJaar+1].map(String);
@@ -1182,16 +1216,17 @@ window.renderVakantie = async function() {
   // ---- Samenvatting per medewerker (totaal opgenomen / budget / resterend) ----
   summaryEl.innerHTML = `
     <div class="vak-legend">
-      <div class="vak-legend-item"><span class="vak-legend-swatch" style="background:var(--success)"></span>Vrije dag</div>
+      <div class="vak-legend-item"><span class="vak-legend-swatch" style="background:var(--accent)"></span>Aangevraagd (wacht op goedkeuring)</div>
+      <div class="vak-legend-item"><span class="vak-legend-swatch" style="background:var(--success)"></span>Goedgekeurd</div>
       <div class="vak-legend-item"><span class="vak-legend-swatch" style="background:var(--surface);border:1px solid var(--border)"></span>Werkdag</div>
       <div class="vak-legend-item"><span class="vak-legend-swatch" style="background:var(--surface);border:1px solid var(--warn);box-shadow:0 0 0 2px var(--warn) inset"></span>Huidige week</div>
-      <div style="margin-left:auto;font-size:12px">Klik op een blokje in de matrix om vrij/werk om te zetten</div>
+      <div style="margin-left:auto;font-size:12px">Klik op een blokje: aangevraagd → goedgekeurd → weg</div>
     </div>
     <div class="vak-summary-grid">
       ${namen.map(naam => {
         const u = allUsers.find(x => x.name === naam) || {};
         const vrijDagen = vakAllVrij[naam] || {};
-        const aangevraagd = Object.keys(vrijDagen).filter(d => vrijDagen[d] && d.startsWith(String(curJaar))).length;
+        const aangevraagd = Object.keys(vrijDagen).filter(d => vrijStatus(vrijDagen[d]) && d.startsWith(String(curJaar))).length;
         const budget = u.snipperdagen || 0;
         const pct = budget ? Math.min(100, Math.round((aangevraagd / budget) * 100)) : (aangevraagd > 0 ? 100 : 0);
         const overBudget = budget > 0 && aangevraagd > budget;
@@ -1221,10 +1256,12 @@ window.renderVakantie = async function() {
       const vrijDagen = vakAllVrij[naam] || {};
       const blokjes = dagen.map((dag, i) => {
         const datum = datumVanWeekdag(curJaar, w, i);
-        const isVrij = !!vrijDagen[datum];
+        const status = vrijStatus(vrijDagen[datum]);
         const isToday = datum === todayStr();
         const dagNr = datum.split('-')[2];
-        return `<span class="vak-day${isVrij?' is-vrij':''}${isToday?' is-today':''}" title="${naam} · ${dag} ${fmtDateShort(datum)}${isVrij?' — vrij':''}" onclick="toggleVakDag('${naam}','${datum}',${w})">${dagNr}</span>`;
+        const statusClass = status === 'aangevraagd' ? ' is-aangevraagd' : status === 'goedgekeurd' ? ' is-vrij' : '';
+        const statusLbl = status === 'aangevraagd' ? ' — aangevraagd' : status === 'goedgekeurd' ? ' — goedgekeurd' : '';
+        return `<span class="vak-day${statusClass}${isToday?' is-today':''}" title="${naam} · ${dag} ${fmtDateShort(datum)}${statusLbl}" onclick="toggleVakDag('${naam}','${datum}',${w})">${dagNr}</span>`;
       }).join('');
       html += `<td style="padding:4px 10px 4px 0">${blokjes}</td>`;
     });
@@ -1249,9 +1286,24 @@ window.renderVakantie = async function() {
   renderVakantieDetail();
 };
 window.toggleVakDag = async function(naam, datum, week) {
+  // Klik-cyclus voor de beheerder: aangevraagd → goedgekeurd (keurt goed) · leeg/goedgekeurd → verwijderen · leeg → direct goedgekeurd toevoegen.
   const key = naam.toLowerCase().replace(/\s+/g,'-');
   const vrijDagen = { ...(vakAllVrij[naam] || {}) };
-  if (vrijDagen[datum]) delete vrijDagen[datum]; else vrijDagen[datum] = true;
+  const cur = vrijStatus(vrijDagen[datum]);
+  if (cur === 'aangevraagd') vrijDagen[datum] = 'goedgekeurd';
+  else if (cur === 'goedgekeurd') delete vrijDagen[datum];
+  else vrijDagen[datum] = 'goedgekeurd';
+  await setDoc(doc(db, 'vrije_dagen', key), { naam, dagen: vrijDagen });
+  vakAllVrij[naam] = vrijDagen;
+  renderVakantie();
+};
+// Snelle goedkeuring vanuit de weekdetails-lijst: alleen 'aangevraagd' → 'goedgekeurd'.
+window.approveFromList = async function(naam, datum) {
+  const cur = vrijStatus((vakAllVrij[naam] || {})[datum]);
+  if (cur !== 'aangevraagd') return;
+  const key = naam.toLowerCase().replace(/\s+/g,'-');
+  const vrijDagen = { ...(vakAllVrij[naam] || {}) };
+  vrijDagen[datum] = 'goedgekeurd';
   await setDoc(doc(db, 'vrije_dagen', key), { naam, dagen: vrijDagen });
   vakAllVrij[naam] = vrijDagen;
   renderVakantie();
@@ -1298,7 +1350,7 @@ window.renderVakantieDetail = function() {
     namen.forEach(naam => {
       const vrijDagen = vakAllVrij[naam] || {};
       const dagenDezeWeek = [];
-      for (let i = 0; i < 5; i++) { const datum = datumVanWeekdag(jaar, weekNr, i); if (vrijDagen[datum]) dagenDezeWeek.push({ dag: dagNamen[i], datum }); }
+      for (let i = 0; i < 5; i++) { const datum = datumVanWeekdag(jaar, weekNr, i); const status = vrijStatus(vrijDagen[datum]); if (status) dagenDezeWeek.push({ dag: dagNamen[i], datum, status }); }
       if (dagenDezeWeek.length) vrijDezeWeek.push({ naam, dagen: dagenDezeWeek });
     });
     // Bij een losse weekkeuze alleen tonen als er data is; bij de aankomende reeks ook lege weken laten zien.
@@ -1316,7 +1368,7 @@ window.renderVakantieDetail = function() {
       vrijDezeWeek.forEach(({naam, dagen}) => {
         const rij = document.createElement('div');
         rij.style.cssText = 'display:flex;align-items:center;gap:5px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;flex-wrap:nowrap;overflow-x:auto';
-        const tags = dagen.map(({dag, datum}) => `<span class="tag-day${datum===todayStr()?' is-today':''}">${dag} ${fmtDateShort(datum)}</span>`).join('');
+        const tags = dagen.map(({dag, datum, status}) => `<span class="tag-day status-${status}${datum===todayStr()?' is-today':''}" title="${status==='aangevraagd'?'Klik om goed te keuren':'Goedgekeurd'}" onclick="approveFromList('${naam}','${datum}')">${dag} ${fmtDateShort(datum)}${status==='aangevraagd'?' ⏳':' ✓'}</span>`).join('');
         rij.innerHTML = `<span style="font-weight:700;min-width:70px;flex-shrink:0">${naam}</span>${tags}`;
         body.appendChild(rij);
       });
