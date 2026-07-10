@@ -184,6 +184,7 @@
       <div class="nav-item" data-page="teelten"><span class="nav-icon">🌱</span>Teelten</div>
       <div class="nav-item" data-page="details"><span class="nav-icon">🔍</span>Details</div>
       <div class="nav-item" data-page="mensen"><span class="nav-icon">👥</span>Medewerkers</div>
+      <div class="nav-item" data-page="personalia"><span class="nav-icon">🪪</span>Personalia</div>
       <div class="nav-item" data-page="weekcheck"><span class="nav-icon">✅</span>Weekcheck</div>
       <div class="nav-item" data-page="vakantie"><span class="nav-icon">🏖️</span>Vakantie<span id="nav-badge-vakantie" class="nav-badge" style="display:none"></span></div>
       <div class="nav-item" data-page="opmerkingen"><span class="nav-icon">💬</span>Opmerkingen</div>
@@ -291,6 +292,15 @@
         </div>
         <label>Snipperuren saldo</label>
         <input type="number" id="new-startsaldo" step="0.5" placeholder="bijv. 10 of -5">
+        <div style="font-weight:700;margin-top:.75rem;margin-bottom:.5rem;font-size:13px">Persoonlijke gegevens (optioneel)</div>
+        <div class="row4">
+          <div><label class="mini-lbl">Geboortedatum</label><input type="date" id="new-geboortedatum"></div>
+          <div><label class="mini-lbl">Mobiel</label><input type="tel" id="new-mobiel" placeholder="06-12345678"></div>
+          <div><label class="mini-lbl">Postcode</label><input type="text" id="new-postcode" placeholder="1234 AB"></div>
+          <div><label class="mini-lbl">Woonplaats</label><input type="text" id="new-woonplaats" placeholder="Plaats"></div>
+        </div>
+        <label class="mini-lbl">Adres</label>
+        <input type="text" id="new-adres" placeholder="Straat en huisnummer">
         <div id="new-err" class="error" style="display:none"></div>
         <button class="btn btn-primary btn-block" onclick="addUser()">Toevoegen</button>
       </div>
@@ -304,6 +314,15 @@
         <div id="fix-err" class="error" style="display:none"></div>
         <div id="fix-ok" class="success-msg" style="display:none"></div>
         <button class="btn btn-primary btn-block" onclick="fixNaam()">Corrigeren</button>
+      </div>
+    </div>
+    <!-- PERSONALIA -->
+    <div class="page" id="page-personalia">
+      <div class="page-head">
+        <div><div class="page-title">Personalia</div><div class="page-hint">Persoonsgegevens van medewerkers — alleen zichtbaar voor jou als beheerder, niet in de medewerkers-app.</div></div>
+      </div>
+      <div class="card" style="overflow-x:auto">
+        <div id="personalia-list"><div class="loading">Laden...</div></div>
       </div>
     </div>
     <!-- WEEKCHECK -->
@@ -444,6 +463,7 @@ function goToPage(name) {
     teelten: renderTeelten,
     details: renderDetails,
     mensen: renderMedewerkers,
+    personalia: renderPersonalia,
     weekcheck: renderWeekcheck,
     vakantie: renderVakantie,
     opmerkingen: renderOpmerkingen,
@@ -1027,6 +1047,15 @@ window.renderMedewerkers = function() {
           <div><label class="mini-lbl">Vrij</label><input type="number" step="0.5" value="${u.saldo_vrij||0}" id="saldo-vrij-${u.name}" class="mini-input"></div>
           <div><label class="mini-lbl">Snip.saldo</label><input type="number" step="0.5" value="${u.startsaldo||0}" id="saldo-${u.name}" class="mini-input"></div>
         </div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem">Persoonlijke gegevens</div>
+        <div class="row4" style="margin-bottom:.6rem">
+          <div><label class="mini-lbl">Geboortedatum</label><input type="date" value="${u.geboortedatum||''}" id="geboortedatum-${u.name}" class="mini-input"></div>
+          <div><label class="mini-lbl">Mobiel</label><input type="tel" value="${(u.mobiel||'').replace(/"/g,'&quot;')}" id="mobiel-${u.name}" class="mini-input"></div>
+          <div><label class="mini-lbl">Postcode</label><input type="text" value="${(u.postcode||'').replace(/"/g,'&quot;')}" id="postcode-${u.name}" class="mini-input"></div>
+          <div><label class="mini-lbl">Woonplaats</label><input type="text" value="${(u.woonplaats||'').replace(/"/g,'&quot;')}" id="woonplaats-${u.name}" class="mini-input"></div>
+        </div>
+        <label class="mini-lbl">Adres</label>
+        <input type="text" value="${(u.adres||'').replace(/"/g,'&quot;')}" id="adres-${u.name}" class="mini-input" style="margin-bottom:.6rem">
         <label class="mini-lbl">Notitie (alleen zichtbaar voor jou)</label>
         <input type="text" value="${(u.notitie||'').replace(/"/g,'&quot;')}" id="notitie-${u.name}" class="mini-input" style="margin-bottom:.6rem">
         <label class="mini-lbl">Taal medewerker</label>
@@ -1042,6 +1071,27 @@ window.renderMedewerkers = function() {
       </div>`).join('')
     : '<p style="color:var(--muted);font-size:14px">Nog geen medewerkers</p>';
 };
+// ---------- Personalia ----------
+window.renderPersonalia = function() {
+  const nonAdmin = allUsers.filter(u => u.role !== 'admin').slice().sort((a,b) => a.name.localeCompare(b.name));
+  const el = document.getElementById('personalia-list');
+  if (!nonAdmin.length) { el.innerHTML = '<div class="empty">Nog geen medewerkers</div>'; return; }
+  el.innerHTML = `<div class="uren-table-wrap"><table class="uren-table">
+    <thead><tr>
+      <th class="left">Naam</th><th class="left">Geboortedatum</th><th class="left">Mobiel</th><th class="left">Adres</th><th class="left">Postcode</th><th class="left">Woonplaats</th>
+    </tr></thead>
+    <tbody>
+      ${nonAdmin.map(u => `<tr>
+        <td class="left"><b>${u.name}</b></td>
+        <td class="left">${u.geboortedatum ? fmtDate(u.geboortedatum) : '<span class="zero">–</span>'}</td>
+        <td class="left">${u.mobiel || '<span class="zero">–</span>'}</td>
+        <td class="left">${u.adres || '<span class="zero">–</span>'}</td>
+        <td class="left">${u.postcode || '<span class="zero">–</span>'}</td>
+        <td class="left">${u.woonplaats || '<span class="zero">–</span>'}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table></div>`;
+};
 window.addUser = async function() {
   const n = val('new-naam').trim();
   const p = val('new-pass');
@@ -1054,13 +1104,18 @@ window.addUser = async function() {
   const sziek = parseFloat(document.getElementById('new-s-ziek').value) || 0;
   const sdok = parseFloat(document.getElementById('new-s-dok').value) || 0;
   const svrij = parseFloat(document.getElementById('new-s-vrij').value) || 0;
+  const geboortedatum = val('new-geboortedatum') || '';
+  const mobiel = val('new-mobiel') || '';
+  const adres = val('new-adres') || '';
+  const postcode = val('new-postcode') || '';
+  const woonplaats = val('new-woonplaats') || '';
   if (!n || !p) { showErr('new-err', 'Vul naam en wachtwoord in'); return; }
   if (allUsers.find(u => u.name.toLowerCase() === n.toLowerCase())) { showErr('new-err', 'Naam al in gebruik'); return; }
-  const newU = { name: n, pass: p, role: 'user', contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij };
+  const newU = { name: n, pass: p, role: 'user', contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, geboortedatum, mobiel, adres, postcode, woonplaats };
   newU.jaarsnippers = calcJaarsnippers(newU);
   await setDoc(doc(db, 'users', n.toLowerCase().replace(/\s+/g,'-')), newU);
   await loadUsers();
-  ['new-naam','new-pass','new-contract','new-werkdagen','new-weken','new-snipperdagen','new-startsaldo','new-s-gew','new-s-ziek','new-s-dok','new-s-vrij'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['new-naam','new-pass','new-contract','new-werkdagen','new-weken','new-snipperdagen','new-startsaldo','new-s-gew','new-s-ziek','new-s-dok','new-s-vrij','new-geboortedatum','new-mobiel','new-adres','new-postcode','new-woonplaats'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   hideEl('new-err');
   renderMedewerkers();
 };
@@ -1099,10 +1154,15 @@ window.saveContract = async function(name) {
   const notitie = (document.getElementById('notitie-' + name)?.value) || '';
   const taal = document.getElementById('taal-' + name)?.value || 'nl';
   const losseKracht = document.getElementById('losse-kracht-' + name)?.checked || false;
+  const geboortedatum = document.getElementById('geboortedatum-' + name)?.value || '';
+  const mobiel = document.getElementById('mobiel-' + name)?.value || '';
+  const adres = document.getElementById('adres-' + name)?.value || '';
+  const postcode = document.getElementById('postcode-' + name)?.value || '';
+  const woonplaats = document.getElementById('woonplaats-' + name)?.value || '';
   const key = name.toLowerCase().replace(/\s+/g,'-');
   const u = allUsers.find(x => x.name === name);
   if (!u) return;
-  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, notitie, taal, losseKracht };
+  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, notitie, taal, losseKracht, geboortedatum, mobiel, adres, postcode, woonplaats };
   newU.jaarsnippers = calcJaarsnippers(newU);
   await setDoc(doc(db, 'users', key), newU);
   await loadUsers();
