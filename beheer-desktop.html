@@ -179,14 +179,16 @@
     </div>
     <div class="nav" id="nav">
       <div class="nav-item active" data-page="weekoverzicht"><span class="nav-icon">📅</span>Weekoverzicht</div>
-      <div class="nav-item" data-page="lossekrachten"><span class="nav-icon">🧑‍🌾</span>Losse krachten</div>
+      <div class="nav-item" data-page="vakantie"><span class="nav-icon">🏖️</span>Vakantie<span id="nav-badge-vakantie" class="nav-badge" style="display:none"></span></div>
       <div class="nav-item" data-page="jaaroverzicht"><span class="nav-icon">📈</span>Jaaroverzicht</div>
       <div class="nav-item" data-page="teelten"><span class="nav-icon">🌱</span>Teelten</div>
-      <div class="nav-item" data-page="details"><span class="nav-icon">🔍</span>Details</div>
+      <div class="nav-item" data-page="loonkosten"><span class="nav-icon">💶</span>Loonkosten</div>
       <div class="nav-item" data-page="mensen"><span class="nav-icon">👥</span>Medewerkers</div>
+      <div class="nav-item" data-page="lossekrachten"><span class="nav-icon">🧑‍🌾</span>Losse krachten</div>
       <div class="nav-item" data-page="personalia"><span class="nav-icon">🪪</span>Personalia</div>
+      <div class="nav-item" data-page="details"><span class="nav-icon">🔍</span>Details</div>
       <div class="nav-item" data-page="weekcheck"><span class="nav-icon">✅</span>Weekcheck</div>
-      <div class="nav-item" data-page="vakantie"><span class="nav-icon">🏖️</span>Vakantie<span id="nav-badge-vakantie" class="nav-badge" style="display:none"></span></div>
+      <div class="nav-item" data-page="import"><span class="nav-icon">📥</span>Import</div>
       <div class="nav-item" data-page="opmerkingen"><span class="nav-icon">💬</span>Opmerkingen</div>
       <div class="nav-item" data-page="wachtwoord"><span class="nav-icon">🔒</span>Wachtwoord</div>
     </div>
@@ -252,6 +254,23 @@
       </div>
       <div class="card" id="teelten-list"><div class="loading">Laden...</div></div>
     </div>
+    <!-- LOONKOSTEN -->
+    <div class="page" id="page-loonkosten">
+      <div class="page-head">
+        <div><div class="page-title">Loonkosten</div><div class="page-hint">Weeksalaris cumulatief, uurwaarde en loonkosten per teelt.</div></div>
+      </div>
+      <div class="filter-row">
+        <div class="field"><label>Jaar</label><select id="f-loon-jaar" onchange="renderLoonkosten()"></select></div>
+      </div>
+      <div class="card" style="margin-bottom:1.5rem;overflow-x:auto">
+        <div style="font-weight:700;margin-bottom:.75rem;font-size:16px">Per medewerker</div>
+        <div id="loon-medewerkers-list"><div class="loading">Laden...</div></div>
+      </div>
+      <div class="card" style="overflow-x:auto">
+        <div style="font-weight:700;margin-bottom:.75rem;font-size:16px">Loonkosten per teelt</div>
+        <div id="loon-teelten-list"><div class="loading">Laden...</div></div>
+      </div>
+    </div>
     <!-- DETAILS -->
     <div class="page" id="page-details">
       <div class="page-head">
@@ -283,6 +302,8 @@
           <div><label class="mini-lbl">Snipperdagen/jaar</label><input type="number" id="new-snipperdagen" min="0" step="0.5" placeholder="25" oninput="updateNewSnipPreview()"></div>
         </div>
         <div style="background:var(--accent-light);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--accent);margin:.75rem 0" id="new-snip-preview">Vul de velden in voor berekening</div>
+        <label>Jaarsalaris (€, optioneel)</label>
+        <input type="number" id="new-jaarsalaris" min="0" step="100" placeholder="bijv. 32000">
         <div style="font-weight:700;margin-top:.5rem;margin-bottom:.5rem;font-size:13px">Beginsaldo (optioneel)</div>
         <div class="row4">
           <div><label class="mini-lbl">Gewerkt</label><input type="number" id="new-s-gew" step="0.5" placeholder="0"></div>
@@ -347,12 +368,46 @@
       <div style="margin-bottom:1.5rem">
         <div id="vakantie-list"></div>
       </div>
-      <div class="card" style="margin-bottom:1.5rem;overflow-x:auto">
-        <div id="vakantie-matrix"><div class="loading">Laden...</div></div>
+      <details class="card" style="margin-bottom:1.5rem">
+        <summary style="cursor:pointer;font-weight:700;font-size:15px;color:var(--text)">📊 Matrix: heel jaar, alle medewerkers</summary>
+        <div style="overflow-x:auto;margin-top:1rem">
+          <div id="vakantie-matrix"><div class="loading">Laden...</div></div>
+        </div>
+      </details>
+      <details class="card">
+        <summary style="cursor:pointer;font-weight:700;font-size:15px;color:var(--text)">👤 Overzicht per medewerker (saldo)</summary>
+        <div id="vakantie-summary" style="margin-top:1rem"><div class="loading">Laden...</div></div>
+      </details>
+    </div>
+    <!-- IMPORT -->
+    <div class="page" id="page-import">
+      <div class="page-head">
+        <div><div class="page-title">Import voorliggende weken</div><div class="page-hint">Uren van vóór de start van dit systeem in één keer op de juiste week zetten.</div></div>
       </div>
-      <div class="card">
-        <div id="vakantie-summary"><div class="loading">Laden...</div></div>
+      <div class="card" style="max-width:760px;margin-bottom:1.25rem">
+        <p style="margin-top:0;font-size:14px;color:var(--muted)">
+          1. Download het sjabloon — alle medewerkers en weken van dit jaar t/m nu staan er al in. Vul per week de Gewerkte uren, Ziekteverlof, Doorbetaald vrij en/of Dokter/tandarts in (net als in je eigen overzicht). "Contract uren" en "Snipperuren" horen hier niet in — die lopen via het contract resp. de Vakantie-module.<br>
+          2. Sla het bestand op als CSV.<br>
+          3. Upload het bestand hieronder, of plak de inhoud direct in het tekstvak.<br>
+          4. Klik op "Verwerken". De uren per week worden gelijk verdeeld over ma t/m vr. Weken die al gegevens bevatten worden nooit overschreven.<br>
+          5. Vul daarna bij "Teelten toewijzen" hieronder per week nog de teelt aan — dat weet het sjabloon namelijk niet.
+        </p>
+        <button class="btn" onclick="downloadImportSjabloon()">⬇️ Download sjabloon (CSV)</button>
       </div>
+      <div class="card" style="max-width:760px;margin-bottom:1.25rem">
+        <label>Bestand uploaden (.csv)</label>
+        <input type="file" id="import-file" accept=".csv,text/csv" onchange="onImportFileChosen(event)">
+        <label style="margin-top:.75rem">...of plak de inhoud hier</label>
+        <textarea id="import-tekst" rows="8" style="width:100%;font-family:monospace;font-size:13px" placeholder="Naam;Jaar;Week;Gewerkte uren;Ziekteverlof;Doorbetaald vrij;Dokter/tandarts;Opmerking"></textarea>
+        <div id="import-err" class="error" style="display:none"></div>
+        <button class="btn btn-primary btn-block" style="margin-top:.75rem" onclick="verwerkImport()">Verwerken</button>
+      </div>
+      <div class="card" id="import-resultaat" style="display:none"></div>
+      <div class="page-head" style="margin-top:2rem">
+        <div><div class="page-title" style="font-size:18px">Teelten toewijzen</div><div class="page-hint">Weken met gewerkte uren maar nog zonder teelt — vink hier de teelt(en) aan.</div></div>
+        <button class="btn" onclick="renderTeeltToewijzing()">🔄 Vernieuwen</button>
+      </div>
+      <div class="card" id="teelt-toewijzing-list"><div class="loading">Klik op Vernieuwen om de lijst te laden.</div></div>
     </div>
     <!-- OPMERKINGEN -->
     <div class="page" id="page-opmerkingen">
@@ -461,12 +516,18 @@ function goToPage(name) {
     lossekrachten: renderLosseKrachten,
     jaaroverzicht: renderJaaroverzicht,
     teelten: renderTeelten,
+    loonkosten: renderLoonkosten,
     details: renderDetails,
     mensen: renderMedewerkers,
     personalia: renderPersonalia,
     weekcheck: renderWeekcheck,
     vakantie: renderVakantie,
     opmerkingen: renderOpmerkingen,
+    import: () => {
+      document.getElementById('import-resultaat').style.display = 'none';
+      document.getElementById('import-err').style.display = 'none';
+      renderTeeltToewijzing();
+    },
   };
   if (renderers[name]) renderers[name]();
 }
@@ -934,6 +995,119 @@ window.renderTeelten = function() {
   html += `<p style="font-size:12px;color:var(--muted);margin-top:.75rem">* Uren worden evenredig verdeeld als meerdere teelten zijn aangevinkt.</p>`;
   document.getElementById('teelten-list').innerHTML = html;
 };
+// ---------- Loonkosten ----------
+// Weeksalaris = jaarsalaris / weken per jaar. Vanaf week 1 wordt dit elke week cumulatief opgebouwd,
+// samen met de cumulatief gewerkte uren. De uurwaarde = cumulatief loon / cumulatief gewerkte uren,
+// en wordt elke week bijgewerkt zodra er uren zijn — dat is de "laatst bekende uurwaarde".
+function calcLoonData(naam, jaar) {
+  const u = allUsers.find(x => x.name === naam) || {};
+  const jaarsalaris = u.jaarsalaris || 0;
+  const wekenperjaar = u.wekenperjaar || 52;
+  const weeksalaris = wekenperjaar > 0 ? jaarsalaris / wekenperjaar : 0;
+  const jaarEntries = allEntries.filter(e => e.naam === naam && e.datum.startsWith(String(jaar)));
+  const weken = groupByWeek(jaarEntries); // alleen weken die daadwerkelijk zijn ingevuld
+  const ingevuldeWeken = weken.length;
+  const weekNrs = weken.map(w => getWeekNr(w.items[0].datum));
+  const maxWeek = weekNrs.length ? Math.max(...weekNrs) : 0;
+  // Loon wordt alleen opgebouwd over de weken die de medewerker ook echt heeft ingevuld —
+  // niet over elke kalenderweek vanaf week 1, ook als daar niets is ingevuld.
+  const cumSalaris = weeksalaris * ingevuldeWeken;
+  const cumUren = jaarEntries.reduce((s, e) => s + (+e.gewerkt || 0), 0);
+  const uurwaarde = cumUren > 0 ? cumSalaris / cumUren : 0;
+  return {
+    weeksalaris: +weeksalaris.toFixed(2),
+    cumSalaris: +cumSalaris.toFixed(2),
+    cumUren: +cumUren.toFixed(1),
+    uurwaarde: +uurwaarde.toFixed(2),
+    ingevuldeWeken,
+    maxWeek,
+  };
+}
+function calcTeeltUren(naam, jaar) {
+  const entries = allEntries.filter(e => e.naam === naam && e.datum.startsWith(String(jaar)));
+  const perTeelt = Object.fromEntries(TEELTEN.map(t => [t, 0]));
+  entries.forEach(e => {
+    if (!e.teelten || !e.teelten.length || !e.gewerkt) return;
+    const aandeel = e.gewerkt / e.teelten.length;
+    e.teelten.forEach(t => { if (perTeelt[t] !== undefined) perTeelt[t] += aandeel; });
+  });
+  return perTeelt;
+}
+window.renderLoonkosten = function() {
+  const huidigJaar = new Date().getFullYear();
+  const jarenSet = new Set(allEntries.map(e => e.datum.substring(0, 4)));
+  jarenSet.add(String(huidigJaar));
+  const jaren = [...jarenSet].sort().reverse();
+  const jaarSel = document.getElementById('f-loon-jaar');
+  const curJaar = jaarSel.value || String(huidigJaar);
+  jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
+  const medEl = document.getElementById('loon-medewerkers-list');
+  const teeltEl = document.getElementById('loon-teelten-list');
+  const namen = allUsers.filter(u => u.role !== 'admin' && !u.losseKracht && (u.jaarsalaris || 0) > 0).map(u => u.name).sort();
+  if (!namen.length) {
+    medEl.innerHTML = '<div class="empty">Vul eerst een jaarsalaris in bij Medewerkers</div>';
+    teeltEl.innerHTML = '';
+    return;
+  }
+  const perNaam = {};
+  namen.forEach(naam => { perNaam[naam] = { loon: calcLoonData(naam, curJaar), teeltUren: calcTeeltUren(naam, curJaar) }; });
+
+  medEl.innerHTML = `<div class="uren-table-wrap"><table class="uren-table">
+    <thead><tr><th class="left">Naam</th><th>Weeksalaris</th><th>Ingevulde weken</th><th>Uren cumulatief</th><th>Loon cumulatief</th><th>Uurwaarde</th></tr></thead>
+    <tbody>
+      ${namen.map(naam => {
+        const { weeksalaris, cumUren, cumSalaris, uurwaarde, ingevuldeWeken } = perNaam[naam].loon;
+        return `<tr>
+          <td class="left"><b>${naam}</b></td>
+          <td>€ ${weeksalaris.toFixed(2)}</td>
+          <td>${ingevuldeWeken}</td>
+          <td>${cumUren.toFixed(1)}</td>
+          <td>€ ${cumSalaris.toFixed(2)}</td>
+          <td style="font-weight:700;color:var(--accent)">€ ${uurwaarde.toFixed(2)}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table></div>`;
+
+  const grandUren = Object.fromEntries(TEELTEN.map(t => [t, 0]));
+  const grandKosten = Object.fromEntries(TEELTEN.map(t => [t, 0]));
+  namen.forEach(naam => {
+    const { teeltUren } = perNaam[naam];
+    const { uurwaarde } = perNaam[naam].loon;
+    TEELTEN.forEach(t => {
+      grandUren[t] += teeltUren[t] || 0;
+      grandKosten[t] += (teeltUren[t] || 0) * uurwaarde;
+    });
+  });
+  const totUren = TEELTEN.reduce((s, t) => s + grandUren[t], 0);
+  const totKosten = TEELTEN.reduce((s, t) => s + grandKosten[t], 0);
+  // 'Algemeen' zijn uren/kosten die niet aan een specifieke teelt zijn toe te wijzen.
+  // Die worden evenredig (naar aandeel gewerkte uren) verdeeld over de overige teelten.
+  const algemeenKosten = grandKosten['Algemeen'] || 0;
+  const overigeTeelten = TEELTEN.filter(t => t !== 'Algemeen');
+  const totUrenOverig = overigeTeelten.reduce((s, t) => s + grandUren[t], 0);
+  const inclAlgemeen = {};
+  overigeTeelten.forEach(t => {
+    const aandeel = totUrenOverig > 0 ? grandUren[t] / totUrenOverig : 0;
+    inclAlgemeen[t] = grandKosten[t] + aandeel * algemeenKosten;
+  });
+  const totInclAlgemeen = overigeTeelten.reduce((s, t) => s + inclAlgemeen[t], 0);
+  teeltEl.innerHTML = `<div class="uren-table-wrap"><table class="uren-table">
+    <thead><tr><th class="left">Teelt</th><th>Uren</th><th>Loonkosten</th><th>Incl. algemeen</th></tr></thead>
+    <tbody>
+      ${TEELTEN.map(t => `<tr>
+        <td class="left">${t}</td>
+        <td>${grandUren[t]>0 ? grandUren[t].toFixed(1) : '–'}</td>
+        <td>${grandKosten[t]>0 ? '€ ' + grandKosten[t].toFixed(2) : '–'}</td>
+        <td>${t === 'Algemeen' ? '–' : '€ ' + inclAlgemeen[t].toFixed(2)}</td>
+      </tr>`).join('')}
+    </tbody>
+    <tfoot><tr class="totaalrij">
+      <td class="left">Totaal</td><td>${totUren.toFixed(1)}</td><td>€ ${totKosten.toFixed(2)}</td><td>€ ${totInclAlgemeen.toFixed(2)}</td>
+    </tr></tfoot>
+  </table></div>
+  <p style="font-size:12px;color:var(--muted);margin-top:.75rem">Loonkosten per teelt = gewerkte uren in die teelt × de meest actuele uurwaarde van de medewerker (cumulatief loon t/m nu ÷ cumulatief gewerkte uren t/m nu). "Incl. algemeen" verdeelt de kosten van de teelt "Algemeen" evenredig (naar aandeel gewerkte uren) over de overige teelten.</p>`;
+};
 // ---------- Details ----------
 window.renderDetails = function() {
   fillCommonFilters();
@@ -1039,6 +1213,8 @@ window.renderMedewerkers = function() {
           <div><label class="mini-lbl">Snipdag/jaar</label><input type="number" min="0" step="0.5" value="${u.snipperdagen||0}" id="snipperdagen-${u.name}" class="mini-input" oninput="updateSnipPreview('${u.name}')"></div>
         </div>
         <div id="snip-preview-${u.name}" style="background:var(--accent-light);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--accent);margin:.6rem 0">${calcSnipPreview(u)}</div>
+        <label class="mini-lbl">Jaarsalaris (€)</label>
+        <input type="number" min="0" step="100" value="${u.jaarsalaris||0}" id="jaarsalaris-${u.name}" class="mini-input" style="margin-bottom:.6rem">
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem">Beginsaldo</div>
         <div class="row5" style="margin-bottom:.75rem">
           <div><label class="mini-lbl">Gewerkt</label><input type="number" step="0.5" value="${u.saldo_gew||0}" id="saldo-gew-${u.name}" class="mini-input"></div>
@@ -1109,13 +1285,14 @@ window.addUser = async function() {
   const adres = val('new-adres') || '';
   const postcode = val('new-postcode') || '';
   const woonplaats = val('new-woonplaats') || '';
+  const jaarsalaris = parseFloat(document.getElementById('new-jaarsalaris').value) || 0;
   if (!n || !p) { showErr('new-err', 'Vul naam en wachtwoord in'); return; }
   if (allUsers.find(u => u.name.toLowerCase() === n.toLowerCase())) { showErr('new-err', 'Naam al in gebruik'); return; }
-  const newU = { name: n, pass: p, role: 'user', contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, geboortedatum, mobiel, adres, postcode, woonplaats };
+  const newU = { name: n, pass: p, role: 'user', contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, geboortedatum, mobiel, adres, postcode, woonplaats, jaarsalaris };
   newU.jaarsnippers = calcJaarsnippers(newU);
   await setDoc(doc(db, 'users', n.toLowerCase().replace(/\s+/g,'-')), newU);
   await loadUsers();
-  ['new-naam','new-pass','new-contract','new-werkdagen','new-weken','new-snipperdagen','new-startsaldo','new-s-gew','new-s-ziek','new-s-dok','new-s-vrij','new-geboortedatum','new-mobiel','new-adres','new-postcode','new-woonplaats'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['new-naam','new-pass','new-contract','new-werkdagen','new-weken','new-snipperdagen','new-startsaldo','new-s-gew','new-s-ziek','new-s-dok','new-s-vrij','new-geboortedatum','new-mobiel','new-adres','new-postcode','new-woonplaats','new-jaarsalaris'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   hideEl('new-err');
   renderMedewerkers();
 };
@@ -1159,10 +1336,11 @@ window.saveContract = async function(name) {
   const adres = document.getElementById('adres-' + name)?.value || '';
   const postcode = document.getElementById('postcode-' + name)?.value || '';
   const woonplaats = document.getElementById('woonplaats-' + name)?.value || '';
+  const jaarsalaris = parseFloat(document.getElementById('jaarsalaris-' + name)?.value) || 0;
   const key = name.toLowerCase().replace(/\s+/g,'-');
   const u = allUsers.find(x => x.name === name);
   if (!u) return;
-  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, notitie, taal, losseKracht, geboortedatum, mobiel, adres, postcode, woonplaats };
+  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, notitie, taal, losseKracht, geboortedatum, mobiel, adres, postcode, woonplaats, jaarsalaris };
   newU.jaarsnippers = calcJaarsnippers(newU);
   await setDoc(doc(db, 'users', key), newU);
   await loadUsers();
@@ -1375,17 +1553,16 @@ window.renderVakantieDetail = function() {
   const alleWeken = new Set();
   namen.forEach(naam => { Object.keys(vakAllVrij[naam] || {}).forEach(datum => { if (vakAllVrij[naam][datum]) alleWeken.add(weekKey(datum)); }); });
   const wekenSorted = [...alleWeken].sort();
-  // Deze week + 5 volgende weken (chronologisch, over jaargrens heen)
+  // Heel jaar (ISO-jaar van vandaag), chronologisch — starten bij de huidige week.
+  const huidigeWeekKey = weekKey(todayStr());
+  const isoJaar = parseInt(huidigeWeekKey.split('-W')[0]);
+  const totalWeken = getWeekNr(`${isoJaar}-12-28`);
   const upcomingWeken = [];
-  for (let i = 0; i < 6; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() + i * 7);
-    upcomingWeken.push(weekKey(d.toISOString().split('T')[0]));
-  }
+  for (let w = 1; w <= totalWeken; w++) upcomingWeken.push(`${isoJaar}-W${String(w).padStart(2,'0')}`);
   const sel = document.getElementById('f-vak-week');
   const curWeek = sel.value || 'aankomend';
   const huidigSel = curWeek;
-  sel.innerHTML = `<option value="aankomend" ${huidigSel==='aankomend'?'selected':''}>Deze week + 5 volgende weken</option>` +
+  sel.innerHTML = `<option value="aankomend" ${huidigSel==='aankomend'?'selected':''}>Heel jaar (start bij deze week)</option>` +
     wekenSorted.map(w => {
       const weekNr = parseInt(w.split('-W')[1]);
       const jaar = parseInt(w.split('-W')[0]);
@@ -1405,7 +1582,7 @@ window.renderVakantieDetail = function() {
     const jaar = parseInt(wk.split('-W')[0]);
     const ma = datumVanWeekdag(jaar, weekNr, 0);
     const vr = datumVanWeekdag(jaar, weekNr, 4);
-    const isHuidig = isAankomend && wk === upcomingWeken[0];
+    const isHuidig = isAankomend && wk === huidigeWeekKey;
     const vrijDezeWeek = [];
     namen.forEach(naam => {
       const vrijDagen = vakAllVrij[naam] || {};
@@ -1417,6 +1594,7 @@ window.renderVakantieDetail = function() {
     if (!vrijDezeWeek.length && !isAankomend) return;
     const blok = document.createElement('div');
     blok.className = 'week-block';
+    if (isHuidig) blok.id = 'vak-week-huidig';
     const header = document.createElement('div');
     header.className = 'week-header';
     header.innerHTML = `<span class="week-title">Week ${weekNr}${isHuidig?' · deze week':''}</span><span class="week-totals">${fmtDateShort(ma)} – ${fmtDateShort(vr)}</span>`;
@@ -1438,6 +1616,165 @@ window.renderVakantieDetail = function() {
   });
   el.appendChild(grid);
   if (!grid.children.length) el.innerHTML = '<div class="empty">Geen vakantiedagen voor deze week</div>';
+  if (isAankomend) {
+    // Vult het scherm vanaf hier tot onderin; pas daarna scrollen. Boven de huidige week
+    // staan de eerdere weken van het jaar — omhoog scrollen toont die.
+    const top = el.getBoundingClientRect().top;
+    el.style.maxHeight = Math.max(320, window.innerHeight - top - 24) + 'px';
+    el.style.overflowY = 'auto';
+    const huidigEl = document.getElementById('vak-week-huidig');
+    if (huidigEl) requestAnimationFrame(() => { huidigEl.scrollIntoView({ block: 'start' }); });
+  } else {
+    el.style.maxHeight = '';
+    el.style.overflowY = '';
+  }
+};
+// ---------- Import voorliggende weken ----------
+function csvSplitLine(line, delim) {
+  // eenvoudige CSV-veldsplitser (geen quotes-ondersteuning nodig voor dit sjabloon)
+  return line.split(delim).map(v => v.trim());
+}
+window.downloadImportSjabloon = function() {
+  const jaar = new Date().getFullYear();
+  const huidigeWeek = getWeekNr(todayStr());
+  const laatsteWeek = Math.max(1, huidigeWeek - 1);
+  const namen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
+  // Let op: 'Contract uren' en 'Snipperuren' staan niet in dit sjabloon — die komen elders
+  // automatisch uit het contract resp. de Vakantie-module. Hier alleen de werkelijk
+  // gewerkte/verzuimde uren per week, net als in je eigen overzicht.
+  const rows = [['Naam','Jaar','Week','Gewerkte uren','Ziekteverlof','Doorbetaald vrij','Dokter/tandarts','Opmerking']];
+  namen.forEach(naam => {
+    for (let w = 1; w <= laatsteWeek; w++) rows.push([naam, jaar, w, '', '', '', '', '']);
+  });
+  const csv = rows.map(r => r.join(';')).join('\r\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `import_sjabloon_${jaar}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+};
+window.onImportFileChosen = function(evt) {
+  const file = evt.target.files && evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { document.getElementById('import-tekst').value = reader.result; };
+  reader.readAsText(file, 'utf-8');
+};
+window.verwerkImport = async function() {
+  const errEl = document.getElementById('import-err');
+  const resEl = document.getElementById('import-resultaat');
+  errEl.style.display = 'none';
+  resEl.style.display = 'none';
+  const raw = val('import-tekst').replace(/^﻿/, '').trim();
+  if (!raw) { errEl.textContent = 'Plak of upload eerst de ingevulde gegevens.'; errEl.style.display = 'block'; return; }
+  const lines = raw.split(/\r?\n/).filter(l => l.trim().length);
+  if (lines.length < 2) { errEl.textContent = 'Geen gegevensregels gevonden.'; errEl.style.display = 'block'; return; }
+  const delim = lines[0].includes(';') ? ';' : ',';
+  const header = csvSplitLine(lines[0], delim).map(h => h.toLowerCase());
+  const iNaam = header.indexOf('naam'), iJaar = header.indexOf('jaar'), iWeek = header.indexOf('week');
+  const iGewerkt = header.findIndex(h => h.includes('gewerkt'));
+  const iZiek = header.findIndex(h => h.includes('ziek'));
+  const iVrij = header.findIndex(h => h.includes('vrij'));
+  const iDokter = header.findIndex(h => h.includes('dokter') || h.includes('tandarts'));
+  const iOpm = header.findIndex(h => h.includes('opmerking'));
+  if (iNaam < 0 || iJaar < 0 || iWeek < 0 || (iGewerkt < 0 && iZiek < 0 && iVrij < 0 && iDokter < 0)) {
+    errEl.textContent = 'Kolommen niet herkend. Gebruik minimaal Naam;Jaar;Week en één van Gewerkte uren/Ziekteverlof/Doorbetaald vrij/Dokter-tandarts.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const getNum = (cols, idx) => {
+    if (idx < 0) return 0;
+    const raw = (cols[idx] || '').trim().replace(',', '.');
+    if (!raw) return 0;
+    const n = parseFloat(raw);
+    return isNaN(n) ? NaN : n;
+  };
+  let verwerkt = 0, overgeslagen = 0, fout = 0;
+  const foutregels = [];
+  const bestaandeIds = new Set(allEntries.map(e => e.naam.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum));
+  for (let li = 1; li < lines.length; li++) {
+    const cols = csvSplitLine(lines[li], delim);
+    const naamRaw = (cols[iNaam] || '').trim();
+    const jaarRaw = (cols[iJaar] || '').trim();
+    const weekRaw = (cols[iWeek] || '').trim();
+    if (!naamRaw) continue; // lege regel
+    const gewerkt = getNum(cols, iGewerkt), ziek = getNum(cols, iZiek), vrij = getNum(cols, iVrij), dokter = getNum(cols, iDokter);
+    const opmerking = iOpm >= 0 ? (cols[iOpm] || '').trim() : '';
+    if ([gewerkt, ziek, vrij, dokter].some(n => isNaN(n))) { fout++; foutregels.push(`Regel ${li+1}: ongeldig getal in urenkolom`); continue; }
+    if (!gewerkt && !ziek && !vrij && !dokter) continue; // niets ingevuld voor deze week
+    const gebruiker = allUsers.find(u => u.name.toLowerCase() === naamRaw.toLowerCase());
+    const jaar = parseInt(jaarRaw, 10);
+    const week = parseInt(weekRaw, 10);
+    if (!gebruiker) { fout++; foutregels.push(`Regel ${li+1}: medewerker "${naamRaw}" niet gevonden`); continue; }
+    if (!jaar || !week || week < 1 || week > 53) { fout++; foutregels.push(`Regel ${li+1}: ongeldig jaar/week`); continue; }
+    const naamKey = gebruiker.name.toLowerCase().replace(/\s+/g,'-');
+    const dagen = [0,1,2,3,4].map(d => datumVanWeekdag(jaar, week, d)); // ma t/m vr
+    const heeftAlData = dagen.some(datum => bestaandeIds.has(naamKey + '_' + datum));
+    if (heeftAlData) { overgeslagen++; continue; }
+    const perDag = n => +(n / 5).toFixed(2);
+    for (let i = 0; i < dagen.length; i++) {
+      const datum = dagen[i];
+      const rec = {
+        naam: gebruiker.name, datum,
+        gewerkt: perDag(gewerkt), ziek: perDag(ziek), dokter: perDag(dokter), vrij: perDag(vrij),
+        opmerking: i === 0 ? opmerking : '',
+        teelten: [],
+      };
+      await setDoc(doc(db, 'entries', naamKey + '_' + datum), rec);
+      bestaandeIds.add(naamKey + '_' + datum);
+    }
+    verwerkt++;
+  }
+  await loadEntries();
+  resEl.style.display = 'block';
+  resEl.innerHTML = `
+    <div><b>${verwerkt}</b> week(en) geïmporteerd, <b>${overgeslagen}</b> overgeslagen (had al gegevens), <b>${fout}</b> fout(en).</div>
+    ${foutregels.length ? '<ul style="margin:.5rem 0 0 1.1rem;font-size:13px;color:var(--muted)">' + foutregels.map(f => `<li>${f}</li>`).join('') + '</ul>' : ''}
+    <p style="font-size:13px;color:var(--muted);margin-top:.75rem">Ga naar "Teelten toewijzen" hieronder om de teelt per week aan te vullen.</p>
+  `;
+  renderTeeltToewijzing();
+};
+function weekGroepenZonderTeelt() {
+  const map = {};
+  allEntries.forEach(e => {
+    const totUren = (+e.gewerkt||0) + (+e.ziek||0) + (+e.dokter||0) + (+e.vrij||0);
+    if (!totUren) return;
+    const wk = weekKey(e.datum);
+    const k = e.naam + '|' + wk;
+    if (!map[k]) map[k] = { naam: e.naam, wk, items: [] };
+    map[k].items.push(e);
+  });
+  return Object.values(map)
+    .filter(g => !g.items.some(e => e.teelten && e.teelten.length))
+    .sort((a, b) => a.wk.localeCompare(b.wk) || a.naam.localeCompare(b.naam));
+}
+window.renderTeeltToewijzing = function() {
+  const el = document.getElementById('teelt-toewijzing-list');
+  const groepen = weekGroepenZonderTeelt();
+  window._ttGroepen = groepen; // bewaard zodat opslaanTeeltWeek() de juiste entries kan terugvinden
+  if (!groepen.length) { el.innerHTML = '<div class="empty">Alle weken met gewerkte uren hebben al een teelt.</div>'; return; }
+  el.innerHTML = groepen.map((g, gi) => {
+    const gewerkt = g.items.reduce((s, e) => s + (+e.gewerkt || 0), 0);
+    return `<div style="padding:.75rem 0;border-bottom:1px solid var(--border)">
+      <div style="font-weight:700">${g.naam} — ${weekLabel(g.items[0].datum)} <span style="font-weight:400;color:var(--muted);font-size:13px">(${gewerkt.toFixed(1)}u gewerkt)</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0">
+        ${TEELTEN.map(t => `<label class="chk-row"><input type="checkbox" class="tt-teelt-g${gi}" value="${t}"> ${t}</label>`).join('')}
+      </div>
+      <button class="btn" onclick="opslaanTeeltWeek(${gi})">Opslaan</button>
+    </div>`;
+  }).join('');
+};
+window.opslaanTeeltWeek = async function(gi) {
+  const groep = (window._ttGroepen || [])[gi];
+  if (!groep) return;
+  const teelten = Array.from(document.querySelectorAll('.tt-teelt-g' + gi + ':checked')).map(c => c.value);
+  if (!teelten.length) { alert('Vink minstens één teelt aan.'); return; }
+  for (const e of groep.items) {
+    const id = e.naam.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum;
+    await setDoc(doc(db, 'entries', id), { ...e, teelten });
+  }
+  await loadEntries();
+  renderTeeltToewijzing();
 };
 // ---------- Opmerkingen ----------
 window.renderOpmerkingen = function() {
