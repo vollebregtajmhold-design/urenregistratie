@@ -93,7 +93,8 @@
   .row5{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px}
   .chk-row{display:flex;align-items:center;gap:8px;text-transform:none;font-weight:400;font-size:14px;color:var(--text);margin-top:0}
   .chk-row input{width:auto;margin:0}
-  .tag-day{display:inline-block;background:var(--accent-light);color:var(--accent);border-radius:4px;padding:2px 5px;font-size:11px;margin-right:2px;white-space:nowrap}
+  .tag-day{display:inline-block;background:var(--accent-light);color:var(--accent);border-radius:4px;padding:2px 5px;font-size:11px;margin-right:2px;white-space:nowrap;border:1px solid transparent}
+  .tag-day.is-today{border-color:var(--danger);font-weight:700}
   .entry-row{padding:12px 0;border-bottom:1px solid var(--border)}
   .entry-row:last-child{border-bottom:none}
   .mini-lbl{margin:0 0 3px;font-size:11px}
@@ -314,10 +315,10 @@
     <div class="page" id="page-vakantie">
       <div class="page-head">
         <div><div class="page-title">Vakantie</div><div class="page-hint">Heel jaar in één oogopslag, plus details per week.</div></div>
-      </div>
-      <div class="filter-row">
-        <div class="field"><label>Jaar</label><select id="f-vak-jaar" onchange="renderVakantie()"></select></div>
-        <div class="field"><label>Week (details)</label><select id="f-vak-week" onchange="renderVakantieDetail()"><option value="aankomend" selected>Deze week + 5 volgende weken</option></select></div>
+        <div class="filter-row" style="margin-bottom:0">
+          <div class="field"><label>Jaar</label><select id="f-vak-jaar" onchange="renderVakantie()"></select></div>
+          <div class="field"><label>Week (details)</label><select id="f-vak-week" onchange="renderVakantieDetail()"><option value="aankomend" selected>Deze week + 5 volgende weken</option></select></div>
+        </div>
       </div>
       <div style="margin-bottom:1.5rem">
         <div id="vakantie-list"></div>
@@ -429,6 +430,7 @@ window.doLogout = function() {
 function goToPage(name) {
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.page === name));
   document.querySelectorAll('.page').forEach(el => el.classList.toggle('active', el.id === 'page-' + name));
+  window.scrollTo(0, 0);
   const renderers = {
     weekoverzicht: renderWeekoverzicht,
     lossekrachten: renderLosseKrachten,
@@ -483,6 +485,25 @@ function vrijeDagenSamenvatting(datums) {
 }
 function calcJaarsnippers(u){const c=u.contracturen||0,wd=u.werkdagen||5,wj=u.wekenperjaar||52,sd=u.snipperdagen||0;if(!wd||!wj||!sd)return 0;const aandeel=sd/(wd*wj);return Math.round(wj*c*aandeel*10)/10;}
 function calcSnipPreview(u){const sd=u.snipperdagen||0,wd=u.werkdagen||5,wj=u.wekenperjaar||52,c=u.contracturen||0;if(!sd||!wd||!wj||!c)return 'Vul de velden in voor berekening';const aandeelRaw=sd/(wd*wj);const aandeelDisplay=Math.round(aandeelRaw*1000)/1000;const jaarsnip=Math.round(wj*c*aandeelRaw*10)/10;const uurPerDag=c/wd;return `Aandeel: ${aandeelDisplay} · Snipperuren/jaar: <b>${jaarsnip}u</b> · Uren/dag: ${uurPerDag.toFixed(1)}u`;}
+// Zelfde berekening als het Weekoverzicht: snipperuren-saldo omgerekend naar dagen die nog over zijn.
+function calcResterendDagen(naam, jaar) {
+  const u = allUsers.find(x => x.name === naam) || {};
+  const contract = u.contracturen || 0;
+  const jaarsnippers = u.jaarsnippers || 0;
+  const startsaldo = u.startsaldo || 0;
+  const sf = snipFactor(u);
+  const jaarEntries = allEntries.filter(e => e.naam === naam && e.datum.startsWith(String(jaar)));
+  const weken = groupByWeek(jaarEntries);
+  const sommeSnip = weken.reduce((acc, {items}) => {
+    const t = totals(items);
+    const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
+    const s = contract > 0 ? +(contract - tot).toFixed(1) : 0;
+    return acc + s;
+  }, 0);
+  const saldoOver = +(startsaldo + jaarsnippers - sommeSnip).toFixed(1);
+  const dagenOver = sf > 0 ? +(saldoOver / sf).toFixed(1) : 0;
+  return { saldoOver, dagenOver, sf };
+}
 function getMaandagVanWeek(jaar, week){const jan4=new Date(Date.UTC(jaar,0,4));const startDow=jan4.getUTCDay()||7;return new Date(Date.UTC(jaar,0,4+(1-startDow)+(week-1)*7));}
 function datumVanWeekdag(jaar, week, dagIndex){const ma=getMaandagVanWeek(jaar,week);return new Date(ma.getTime()+dagIndex*86400000).toISOString().split('T')[0];}
 window.val = function(id){return document.getElementById(id).value;}
@@ -556,15 +577,8 @@ window.renderWeekoverzicht = async function() {
   const weken = groupByWeek(jaarEntries);
   const weekMap = {};
   weken.forEach(w => { weekMap[getWeekNr(w.items[0].datum)] = w; });
-  // Saldo dat over is na alle ingevulde weken dit jaar
-  const sommeSnip = weken.reduce((acc, {items}) => {
-    const t = totals(items);
-    const tot = +(t.g||0)+ +(t.z||0)+ +(t.d||0)+ +(t.v||0);
-    const s = contract > 0 ? +(contract - tot).toFixed(1) : 0;
-    return acc + s;
-  }, 0);
-  const saldoOver = +(startsaldo + jaarsnippers - sommeSnip).toFixed(1);
-  const dagenOver = sf > 0 ? +(saldoOver / sf).toFixed(1) : 0;
+  // Saldo dat over is na alle ingevulde weken dit jaar (zelfde berekening als calcResterendDagen)
+  const { saldoOver, dagenOver } = calcResterendDagen(curNaam, curJaar);
   wkLast = { naam: curNaam, jaar: curJaar, contract, wekenperjaar, jaarsnippers, startsaldo, saldoOver, dagenOver };
   linesEl.innerHTML = `
     <div>We rekenen met een werkweek van <b>${contract} uur</b></div>
@@ -1177,24 +1191,23 @@ window.renderVakantie = async function() {
       ${namen.map(naam => {
         const u = allUsers.find(x => x.name === naam) || {};
         const vrijDagen = vakAllVrij[naam] || {};
-        const opgenomen = Object.keys(vrijDagen).filter(d => vrijDagen[d] && d.startsWith(String(curJaar))).length;
+        const aangevraagd = Object.keys(vrijDagen).filter(d => vrijDagen[d] && d.startsWith(String(curJaar))).length;
         const budget = u.snipperdagen || 0;
-        const resterend = budget ? +(budget - opgenomen).toFixed(1) : null;
-        const pct = budget ? Math.min(100, Math.round((opgenomen / budget) * 100)) : (opgenomen > 0 ? 100 : 0);
-        const overBudget = budget > 0 && opgenomen > budget;
+        const pct = budget ? Math.min(100, Math.round((aangevraagd / budget) * 100)) : (aangevraagd > 0 ? 100 : 0);
+        const overBudget = budget > 0 && aangevraagd > budget;
+        const { dagenOver, sf } = calcResterendDagen(naam, curJaar);
         return `<div class="vak-summary-card">
           <div class="vak-summary-name">${naam}</div>
-          <div class="vak-summary-row"><span>Opgenomen ${curJaar}</span><b>${opgenomen} dag${opgenomen===1?'':'en'}</b></div>
-          ${budget ? `<div class="vak-summary-row"><span>Budget/jaar</span><b>${budget} dagen</b></div>
-          <div class="vak-summary-row"><span>Resterend</span><b style="color:${overBudget?'var(--danger)':'var(--success)'}">${resterend} dagen</b></div>
-          <div class="vak-summary-bar"><div class="vak-summary-bar-fill" style="width:${pct}%;background:${overBudget?'var(--danger)':'var(--accent)'}"></div></div>`
-          : `<div class="vak-summary-row"><span style="color:var(--muted)">Geen budget ingesteld</span></div>`}
+          <div class="vak-summary-row"><span>Aangevraagd ${curJaar}</span><b>${aangevraagd} dag${aangevraagd===1?'':'en'}</b></div>
+          ${budget ? `<div class="vak-summary-row"><span>Budget/jaar</span><b>${budget} dagen</b></div>` : `<div class="vak-summary-row"><span style="color:var(--muted)">Geen budget ingesteld</span></div>`}
+          <div class="vak-summary-row"><span>Resterend</span><b style="color:${sf>0?(dagenOver>=0?'var(--success)':'var(--danger)'):'var(--muted)'}">${sf>0?`${dagenOver} dagen`:'n.v.t.'}</b></div>
+          ${budget ? `<div class="vak-summary-bar"><div class="vak-summary-bar-fill" style="width:${pct}%;background:${overBudget?'var(--danger)':'var(--accent)'}"></div></div>` : ''}
         </div>`;
       }).join('')}
     </div>`;
 
   // ---- Matrix ----
-  let html = '<div class="vak-table-scroll"><table class="uren-table" style="table-layout:auto">';
+  let html = '<div class="vak-table-scroll" id="vak-matrix-scroll"><table class="uren-table" style="table-layout:auto">';
   html += `<thead><tr><th class="left" style="min-width:150px">Week</th>`;
   namen.forEach(n => html += `<th class="left" style="padding-left:10px;min-width:150px">${n}</th>`);
   html += '</tr></thead><tbody>';
@@ -1220,7 +1233,18 @@ window.renderVakantie = async function() {
   html += '</tbody></table></div>';
   matrixEl.innerHTML = html;
   if (curJaar === huidigJaar) {
-    setTimeout(() => { const row = document.getElementById('vk-row-' + huidigWeek); if (row) row.scrollIntoView({ behavior:'smooth', block:'center' }); }, 100);
+    // Scroll alleen het matrix-blok zelf (niet de hele pagina) zodat de vorige + huidige week boven in beeld staan.
+    setTimeout(() => {
+      const container = document.getElementById('vak-matrix-scroll');
+      const row = document.getElementById('vk-row-' + huidigWeek);
+      if (container && row) {
+        const rowRect = row.getBoundingClientRect();
+        const contRect = container.getBoundingClientRect();
+        const rowHeight = rowRect.height;
+        const target = container.scrollTop + (rowRect.top - contRect.top) - rowHeight;
+        container.scrollTop = Math.max(0, target);
+      }
+    }, 50);
   }
   renderVakantieDetail();
 };
@@ -1292,7 +1316,7 @@ window.renderVakantieDetail = function() {
       vrijDezeWeek.forEach(({naam, dagen}) => {
         const rij = document.createElement('div');
         rij.style.cssText = 'display:flex;align-items:center;gap:5px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;flex-wrap:nowrap;overflow-x:auto';
-        const tags = dagen.map(({dag, datum}) => `<span class="tag-day">${dag} ${fmtDateShort(datum)}</span>`).join('');
+        const tags = dagen.map(({dag, datum}) => `<span class="tag-day${datum===todayStr()?' is-today':''}">${dag} ${fmtDateShort(datum)}</span>`).join('');
         rij.innerHTML = `<span style="font-weight:700;min-width:70px;flex-shrink:0">${naam}</span>${tags}`;
         body.appendChild(rij);
       });
