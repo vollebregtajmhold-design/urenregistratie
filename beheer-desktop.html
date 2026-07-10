@@ -15,7 +15,6 @@
   body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.5;min-height:100vh}
   .screen{display:none}
   .screen.active{display:block}
-
   /* ---------- Login ---------- */
   #screen-login{min-height:100vh;display:flex;align-items:center;justify-content:center}
   .login-box{width:380px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem}
@@ -36,7 +35,6 @@
   .btn-danger{color:var(--danger)}
   .error{font-size:13px;color:var(--danger);margin-top:.6rem}
   .success-msg{font-size:13px;color:var(--success);margin-top:.6rem;font-weight:600}
-
   /* ---------- App layout ---------- */
   #app{display:flex;min-height:100vh}
   .sidebar{width:250px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:fixed;top:0;bottom:0;left:0;overflow-y:auto;display:flex;flex-direction:column}
@@ -52,22 +50,20 @@
   .sidebar-user{font-size:13px;color:var(--muted);margin-bottom:.6rem}
   .logout{background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);font-family:var(--font);padding:0;text-decoration:underline}
   .logout:hover{color:var(--text)}
-
   .main{margin-left:250px;flex:1;padding:2.2rem 2.75rem 4rem;max-width:1700px}
   .page{display:none}
   .page.active{display:block}
   .page-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.5rem;gap:1rem;flex-wrap:wrap}
   .page-title{font-size:26px;font-weight:700}
   .page-hint{font-size:13px;color:var(--muted);margin-top:4px}
-
   .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem}
   .filter-row{display:flex;gap:14px;margin-bottom:1.25rem;align-items:flex-end;flex-wrap:wrap}
   .filter-row .field{min-width:220px}
   .filter-row label{margin:0 0 .3rem}
   .filter-row select,.filter-row input{margin:0}
   .actions-row{display:flex;gap:10px}
-
   .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:1rem}
+  .vak-week-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
   .week-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1rem;overflow:hidden}
   .week-header{padding:12px 18px;background:var(--accent-light);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
   .week-title{font-weight:700;font-size:15px;color:var(--accent)}
@@ -83,7 +79,6 @@
   .stat{background:var(--accent-light);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center}
   .stat-val{font-size:24px;font-weight:700;color:var(--accent)}
   .stat-lbl{font-size:12px;color:var(--muted);margin-top:2px}
-
   .uren-table-wrap{width:100%;overflow-x:auto}
   .uren-table{width:100%;border-collapse:collapse}
   .uren-table th{background:var(--accent-light);color:var(--accent);font-weight:700;font-size:12px;padding:9px 8px;text-align:right;white-space:nowrap;border-bottom:2px solid var(--border)}
@@ -98,18 +93,16 @@
   .row5{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px}
   .chk-row{display:flex;align-items:center;gap:8px;text-transform:none;font-weight:400;font-size:14px;color:var(--text);margin-top:0}
   .chk-row input{width:auto;margin:0}
-  .tag-day{display:inline-block;background:var(--accent-light);color:var(--accent);border-radius:4px;padding:3px 8px;font-size:12px;margin-right:4px}
+  .tag-day{display:inline-block;background:var(--accent-light);color:var(--accent);border-radius:4px;padding:2px 5px;font-size:11px;margin-right:2px;white-space:nowrap}
   .entry-row{padding:12px 0;border-bottom:1px solid var(--border)}
   .entry-row:last-child{border-bottom:none}
   .mini-lbl{margin:0 0 3px;font-size:11px}
   .mini-input{margin:0;padding:6px 8px;font-size:13px}
-
   /* Weekoverzicht spreadsheet stijl */
   .wk-table thead th{background:var(--accent-light);color:var(--accent)}
   .vak-table-scroll{max-height:68vh;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
   .vak-table-scroll table{border-collapse:separate;border-spacing:0}
   .vak-table-scroll thead th{position:sticky;top:0;z-index:3;box-shadow:0 1px 0 var(--border);background:var(--accent-light)}
-
   /* Compacte weekoverzicht-header */
   .wk-header{display:flex;align-items:center;gap:1.75rem;flex-wrap:wrap;padding:1rem 1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.25rem}
   .wk-header-left{display:flex;flex-direction:column;gap:.55rem}
@@ -133,10 +126,23 @@
   .wk-table .totalenrow td{font-weight:700;background:#EFF6FC}
   .wk-table td.weeknr{font-weight:700;color:var(--accent);text-align:left}
   .wk-table td.opm-cell{text-align:left;color:var(--muted);font-style:italic;white-space:normal}
+  /* Vakantie overzicht */
+  .vak-legend{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted);margin-bottom:1rem}
+  .vak-legend-item{display:flex;align-items:center;gap:6px}
+  .vak-legend-swatch{display:inline-block;width:16px;height:16px;border-radius:4px;flex-shrink:0}
+  .vak-summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+  .vak-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+  .vak-summary-name{font-weight:700;font-size:14px;margin-bottom:6px}
+  .vak-summary-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);padding:2px 0}
+  .vak-summary-row b{color:var(--text);font-size:13px}
+  .vak-summary-bar{height:6px;border-radius:3px;background:var(--bg);margin-top:6px;overflow:hidden}
+  .vak-summary-bar-fill{height:100%;border-radius:3px}
+  .vak-day{cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;margin:1.5px;font-size:11px;font-weight:600;border:1px solid var(--border);color:var(--muted);background:var(--surface)}
+  .vak-day.is-vrij{background:var(--success);border-color:var(--success);color:#fff}
+  .vak-day.is-today{box-shadow:0 0 0 2px var(--warn)}
 </style>
 </head>
 <body>
-
 <!-- LOADING -->
 <div id="screen-loading" class="screen active">
   <div style="padding-top:6rem;text-align:center">
@@ -144,7 +150,6 @@
     <p style="margin-top:1rem;color:var(--muted)">Verbinden...</p>
   </div>
 </div>
-
 <!-- LOGIN -->
 <div id="screen-login" class="screen">
   <div class="login-box">
@@ -160,7 +165,6 @@
     <p style="font-size:12px;color:var(--muted);margin-top:1rem;text-align:center">Alleen voor beheerders. Medewerkers vullen hun uren in via de mobiele app.</p>
   </div>
 </div>
-
 <!-- APP -->
 <div id="app" style="display:none">
   <div class="sidebar">
@@ -185,9 +189,7 @@
       <button class="logout" onclick="doLogout()">Uitloggen</button>
     </div>
   </div>
-
   <div class="main">
-
     <!-- WEEKOVERZICHT -->
     <div class="page active" id="page-weekoverzicht">
       <div class="wk-header">
@@ -208,7 +210,6 @@
       </div>
       <div class="card" id="wk-table-wrap"><div class="loading">Laden...</div></div>
     </div>
-
     <!-- LOSSE KRACHTEN -->
     <div class="page" id="page-lossekrachten">
       <div class="page-head">
@@ -219,7 +220,6 @@
       </div>
       <div id="lk-week-list"><div class="loading">Laden...</div></div>
     </div>
-
     <!-- JAAROVERZICHT -->
     <div class="page" id="page-jaaroverzicht">
       <div class="page-head">
@@ -235,7 +235,6 @@
       </div>
       <div class="cards-grid" id="jaar-list"></div>
     </div>
-
     <!-- TEELTEN -->
     <div class="page" id="page-teelten">
       <div class="page-head">
@@ -246,7 +245,6 @@
       </div>
       <div class="card" id="teelten-list"><div class="loading">Laden...</div></div>
     </div>
-
     <!-- DETAILS -->
     <div class="page" id="page-details">
       <div class="page-head">
@@ -258,7 +256,6 @@
       </div>
       <div id="admin-list"></div>
     </div>
-
     <!-- MEDEWERKERS -->
     <div class="page" id="page-mensen">
       <div class="page-head">
@@ -266,7 +263,6 @@
         <button class="btn btn-secondary btn-sm" onclick="downloadBackup()">💾 Backup downloaden (alle data)</button>
       </div>
       <div class="cards-grid" id="admin-users-list"></div>
-
       <div class="card" style="margin-top:1.5rem;max-width:640px">
         <div style="font-weight:700;margin-bottom:1rem;font-size:16px">Medewerker toevoegen</div>
         <label>Naam</label>
@@ -292,7 +288,6 @@
         <div id="new-err" class="error" style="display:none"></div>
         <button class="btn btn-primary btn-block" onclick="addUser()">Toevoegen</button>
       </div>
-
       <div class="card" style="margin-top:1rem;max-width:640px">
         <div style="font-weight:700;margin-bottom:.75rem;font-size:16px">Naam corrigeren in registraties</div>
         <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Heb je een medewerker verwijderd en opnieuw aangemaakt met een andere spelling? Hiermee verplaats je alle oude registraties naar de juiste medewerker.</p>
@@ -305,7 +300,6 @@
         <button class="btn btn-primary btn-block" onclick="fixNaam()">Corrigeren</button>
       </div>
     </div>
-
     <!-- WEEKCHECK -->
     <div class="page" id="page-weekcheck">
       <div class="page-head">
@@ -316,7 +310,6 @@
       </div>
       <div class="card" id="weekcheck-list"></div>
     </div>
-
     <!-- VAKANTIE -->
     <div class="page" id="page-vakantie">
       <div class="page-head">
@@ -324,16 +317,18 @@
       </div>
       <div class="filter-row">
         <div class="field"><label>Jaar</label><select id="f-vak-jaar" onchange="renderVakantie()"></select></div>
+        <div class="field"><label>Week (details)</label><select id="f-vak-week" onchange="renderVakantieDetail()"><option value="aankomend" selected>Deze week + 5 volgende weken</option></select></div>
+      </div>
+      <div style="margin-bottom:1.5rem">
+        <div id="vakantie-list"></div>
       </div>
       <div class="card" style="margin-bottom:1.5rem;overflow-x:auto">
         <div id="vakantie-matrix"><div class="loading">Laden...</div></div>
       </div>
-      <div class="filter-row">
-        <div class="field"><label>Week (details)</label><select id="f-vak-week" onchange="renderVakantieDetail()"><option value="">Alle weken</option></select></div>
+      <div class="card">
+        <div id="vakantie-summary"><div class="loading">Laden...</div></div>
       </div>
-      <div id="vakantie-list"></div>
     </div>
-
     <!-- OPMERKINGEN -->
     <div class="page" id="page-opmerkingen">
       <div class="page-head">
@@ -349,7 +344,6 @@
       </div>
       <div id="opmerkingen-list"></div>
     </div>
-
     <!-- WACHTWOORD -->
     <div class="page" id="page-wachtwoord">
       <div class="page-head">
@@ -367,15 +361,12 @@
         <button class="btn btn-primary btn-block" onclick="changeAdminPassword()">Wachtwoord wijzigen</button>
       </div>
     </div>
-
   </div>
 </div>
-
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyDha05hLJuL1O-4cjcCOdutdQmbUPXGN4Q",
   authDomain: "urenregistratie-416e5.firebaseapp.com",
@@ -386,13 +377,11 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
 let me = null;
 let allEntries = [];
 let allUsers = [];
 let allNotes = [];
 const TEELTEN = ['Jonge planten','Hortensia','Micro','Mini','Cyclamen','Algemeen'];
-
 // ---------- Init ----------
 async function init() {
   try {
@@ -415,7 +404,6 @@ async function init() {
 async function loadUsers() { const snap = await getDocs(collection(db, 'users')); allUsers = snap.docs.map(d => d.data()); }
 async function loadEntries() { const snap = await getDocs(query(collection(db, 'entries'), orderBy('datum', 'desc'))); allEntries = snap.docs.map(d => d.data()); }
 async function loadNotes() { const snap = await getDocs(collection(db, 'notes')); allNotes = snap.docs.map(d => ({ id: d.id, ...d.data() })); }
-
 // ---------- Auth ----------
 window.doLogin = async function() {
   const n = val('login-name').trim().toLowerCase();
@@ -437,7 +425,6 @@ window.doLogout = function() {
   setVal('login-name',''); setVal('login-pass','');
   show('screen-login');
 };
-
 // ---------- Navigatie ----------
 function goToPage(name) {
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.page === name));
@@ -459,7 +446,6 @@ document.addEventListener('click', e => {
   const item = e.target.closest('.nav-item');
   if (item) goToPage(item.dataset.page);
 });
-
 // ---------- Helpers ----------
 function todayStr(){return new Date().toISOString().split('T')[0];}
 function getWeekNr(datum){const d=new Date(datum);const thu=new Date(d);thu.setDate(d.getDate()-((d.getDay()+6)%7)+3);const jan4=new Date(thu.getFullYear(),0,4);return Math.round((thu-jan4)/604800000)+1;}
@@ -510,7 +496,6 @@ window.show = function(id){
 };
 window.toggleWeek = function(h){const b=h.nextElementSibling;b.style.display=b.style.display==='none'?'grid':'none';};
 window.togglePerson = function(h){const b=h.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none';};
-
 function weekTable(items) {
   const tot = totals(items);
   const fmt = v => (v && v > 0) ? v : '<span class="zero">–</span>';
@@ -534,7 +519,6 @@ function weekTable(items) {
     </tr></tfoot>
   </table></div>`;
 }
-
 // ---------- Weekoverzicht (per medewerker, spreadsheet-stijl) ----------
 let wkLast = null;
 window.renderWeekoverzicht = async function() {
@@ -543,21 +527,17 @@ window.renderWeekoverzicht = async function() {
   const namen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
   const curNaam = naamSel.value || namen[0] || '';
   naamSel.innerHTML = namen.map(n => `<option ${n===curNaam?'selected':''} value="${n}">${n}</option>`).join('');
-
   const huidigJaar = new Date().getFullYear();
   const jarenSet = new Set(allEntries.map(e => e.datum.substring(0,4)));
   jarenSet.add(String(huidigJaar));
   const jaren = [...jarenSet].sort().reverse();
   const curJaar = jaarSel.value || String(huidigJaar);
   jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
-
   const linesEl = document.getElementById('wk-lines');
   const statsEl = document.getElementById('wk-stats');
   const tableEl = document.getElementById('wk-table-wrap');
   const vrijeDagenEl = document.getElementById('wk-vrije-dagen');
-
   if (!curNaam) { linesEl.innerHTML=''; statsEl.innerHTML=''; tableEl.innerHTML = '<div class="empty">Nog geen medewerkers</div>'; return; }
-
   vrijeDagenEl.textContent = 'Vrije dagen laden...';
   try {
     const key = curNaam.toLowerCase().replace(/\s+/g,'-');
@@ -566,19 +546,16 @@ window.renderWeekoverzicht = async function() {
     const datumsDitJaar = Object.keys(dagenObj).filter(d => dagenObj[d] && d.startsWith(curJaar)).sort();
     vrijeDagenEl.textContent = vrijeDagenSamenvatting(datumsDitJaar);
   } catch(e) { vrijeDagenEl.textContent = 'Vrije dagen niet beschikbaar'; }
-
   const u = allUsers.find(x => x.name === curNaam) || {};
   const contract = u.contracturen || 0;
   const wekenperjaar = u.wekenperjaar || 52;
   const jaarsnippers = u.jaarsnippers || 0;
   const startsaldo = u.startsaldo || 0;
   const sf = snipFactor(u);
-
   const jaarEntries = allEntries.filter(e => e.naam === curNaam && e.datum.startsWith(curJaar));
   const weken = groupByWeek(jaarEntries);
   const weekMap = {};
   weken.forEach(w => { weekMap[getWeekNr(w.items[0].datum)] = w; });
-
   // Saldo dat over is na alle ingevulde weken dit jaar
   const sommeSnip = weken.reduce((acc, {items}) => {
     const t = totals(items);
@@ -588,22 +565,16 @@ window.renderWeekoverzicht = async function() {
   }, 0);
   const saldoOver = +(startsaldo + jaarsnippers - sommeSnip).toFixed(1);
   const dagenOver = sf > 0 ? +(saldoOver / sf).toFixed(1) : 0;
-
   wkLast = { naam: curNaam, jaar: curJaar, contract, wekenperjaar, jaarsnippers, startsaldo, saldoOver, dagenOver };
-
   linesEl.innerHTML = `
     <div>We rekenen met een werkweek van <b>${contract} uur</b></div>
     <div><b>${curJaar}</b> heeft <b>${wekenperjaar}</b> weken</div>`;
-
   document.getElementById('wk-dagen').innerHTML = `Dit zijn nog <b>${dagenOver}</b> dagen over`;
-
   statsEl.innerHTML = `
     <div class="wk-stat"><div class="lbl">Saldo 1 jan</div><div class="val">${startsaldo}</div></div>
     <div class="wk-stat"><div class="lbl">Op te bouwen</div><div class="val">${jaarsnippers}</div></div>
     <div class="wk-stat" style="background:${saldoOver>=0?'#DDF3E6':'#F8DEDA'}"><div class="lbl">Tot 31 dec</div><div class="val" style="color:${saldoOver>=0?'var(--success)':'var(--danger)'}">${saldoOver}</div></div>`;
-
   const maxWeek = curJaar === String(huidigJaar) ? Math.max(getWeekNr(todayStr()), ...Object.keys(weekMap).map(Number), 1) : (Object.keys(weekMap).length ? Math.max(...Object.keys(weekMap).map(Number)) : wekenperjaar);
-
   let totContract=0, totGew=0, totZiek=0, totVrij=0, totDok=0, totSnip=0, gevuldeWeken=0;
   let rows = '';
   for (let w = 1; w <= maxWeek; w++) {
@@ -634,7 +605,6 @@ window.renderWeekoverzicht = async function() {
       </tr>`;
     }
   }
-
   tableEl.innerHTML = `<div class="wk-table-scroll"><table class="uren-table wk-table">
     <thead>
       <tr class="headrow">
@@ -655,16 +625,13 @@ window.renderWeekoverzicht = async function() {
       ${rows}
     </tbody>
   </table></div>`;
-
   const targetRow = document.getElementById('wkrow-' + maxWeek);
   if (targetRow) setTimeout(() => targetRow.scrollIntoView({ block: 'center' }), 50);
 };
-
 window.toggleWkDag = function(w) {
   const el = document.getElementById('wkdag-' + w);
   if (el) el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
 };
-
 // ---------- Weekoverzicht printen (1 A4) ----------
 window.printWeekoverzicht = async function() {
   if (!wkLast) return;
@@ -675,7 +642,6 @@ window.printWeekoverzicht = async function() {
   let rowsHtml = '';
   bodyRows.forEach(tr => rowsHtml += tr.outerHTML);
   rowsHtml = rowsHtml.replace(/ ▾/g, '').replace(/ onclick="[^"]*"/g, '').replace(/ style="cursor:pointer"/g, '');
-
   let logoUrl = '';
   try {
     const resp = await fetch('logo.png');
@@ -684,7 +650,6 @@ window.printWeekoverzicht = async function() {
       logoUrl = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
     }
   } catch(e) { /* logo.png niet gevonden, print gaat door zonder logo */ }
-
   const win = window.open('', '_blank');
   win.document.write(`<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8">
     <title>Weekoverzicht ${naam} ${jaar}</title>
@@ -730,7 +695,6 @@ window.printWeekoverzicht = async function() {
   win.document.close();
   win.print();
 };
-
 // ---------- Losse krachten ----------
 window.renderLosseKrachten = function() {
   const losseKrachten = allUsers.filter(u => u.role !== 'admin' && u.losseKracht).map(u => u.name).sort();
@@ -775,7 +739,6 @@ window.renderLosseKrachten = function() {
   });
   el.innerHTML = html || '<div class="empty">Geen registraties gevonden</div>';
 };
-
 // ---------- Jaaroverzicht ----------
 window.renderJaaroverzicht = function() {
   const jaren = [...new Set(allEntries.map(e => e.datum.substring(0,4)))].sort().reverse();
@@ -864,7 +827,6 @@ window.renderJaaroverzicht = function() {
     </div>`;
   }).join('');
 };
-
 // ---------- Teelten ----------
 window.renderTeelten = function() {
   const weeks = [...new Set(allEntries.map(e => weekKey(e.datum)))].sort().reverse();
@@ -905,7 +867,6 @@ window.renderTeelten = function() {
   html += `<p style="font-size:12px;color:var(--muted);margin-top:.75rem">* Uren worden evenredig verdeeld als meerdere teelten zijn aangevinkt.</p>`;
   document.getElementById('teelten-list').innerHTML = html;
 };
-
 // ---------- Details ----------
 window.renderDetails = function() {
   fillCommonFilters();
@@ -990,7 +951,6 @@ window.deleteEntry = async function(id) {
   await loadEntries();
   renderDetails();
 };
-
 // ---------- Medewerkers ----------
 window.renderMedewerkers = function() {
   fillCommonFilters();
@@ -1150,7 +1110,6 @@ window.fixNaam = async function() {
   ok.style.display = 'block';
   setTimeout(() => ok.style.display = 'none', 5000);
 };
-
 // ---------- Weekcheck ----------
 window.renderWeekcheck = function() {
   const jaren = [...new Set(allEntries.map(e => e.datum.substring(0,4)))].sort().reverse();
@@ -1183,7 +1142,6 @@ window.renderWeekcheck = function() {
       </table>
     </div>`;
 };
-
 // ---------- Vakantie ----------
 let vakAllVrij = null;
 async function laadVrijeDagen() {
@@ -1193,51 +1151,77 @@ async function laadVrijeDagen() {
 }
 window.renderVakantie = async function() {
   const matrixEl = document.getElementById('vakantie-matrix');
+  const summaryEl = document.getElementById('vakantie-summary');
   matrixEl.innerHTML = '<div class="loading">Laden...</div>';
+  summaryEl.innerHTML = '<div class="loading">Laden...</div>';
   await laadVrijeDagen();
-
   const huidigJaar = new Date().getFullYear();
   const jaarSel = document.getElementById('f-vak-jaar');
   const jaren = [huidigJaar-1, huidigJaar, huidigJaar+1].map(String);
   const curJaar = parseInt(jaarSel.value || huidigJaar);
   jaarSel.innerHTML = jaren.map(j => `<option ${+j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
-
   const namen = allUsers.filter(u => u.role !== 'admin' && !u.losseKracht).map(u => u.name).sort();
-  if (!namen.length) { matrixEl.innerHTML = '<div class="empty">Nog geen medewerkers</div>'; return; }
-
+  if (!namen.length) { matrixEl.innerHTML = '<div class="empty">Nog geen medewerkers</div>'; summaryEl.innerHTML = ''; return; }
   const dagen = ['Ma','Di','Wo','Do','Vr'];
   const huidigWeek = getWeekNr(todayStr());
 
-  let html = `<div style="font-size:13px;color:var(--muted);margin-bottom:.9rem">🟩 = vrije dag &nbsp;·&nbsp; huidige week is gemarkeerd &nbsp;·&nbsp; klik op een blokje om vrij/werk om te zetten</div>`;
-  html += '<div class="vak-table-scroll"><table class="uren-table" style="table-layout:auto">';
-  html += `<thead><tr><th class="left" style="min-width:130px">Week</th>`;
-  namen.forEach(n => html += `<th class="left" style="padding-left:10px">${n}</th>`);
-  html += '</tr></thead><tbody>';
+  // ---- Samenvatting per medewerker (totaal opgenomen / budget / resterend) ----
+  summaryEl.innerHTML = `
+    <div class="vak-legend">
+      <div class="vak-legend-item"><span class="vak-legend-swatch" style="background:var(--success)"></span>Vrije dag</div>
+      <div class="vak-legend-item"><span class="vak-legend-swatch" style="background:var(--surface);border:1px solid var(--border)"></span>Werkdag</div>
+      <div class="vak-legend-item"><span class="vak-legend-swatch" style="background:var(--surface);border:1px solid var(--warn);box-shadow:0 0 0 2px var(--warn) inset"></span>Huidige week</div>
+      <div style="margin-left:auto;font-size:12px">Klik op een blokje in de matrix om vrij/werk om te zetten</div>
+    </div>
+    <div class="vak-summary-grid">
+      ${namen.map(naam => {
+        const u = allUsers.find(x => x.name === naam) || {};
+        const vrijDagen = vakAllVrij[naam] || {};
+        const opgenomen = Object.keys(vrijDagen).filter(d => vrijDagen[d] && d.startsWith(String(curJaar))).length;
+        const budget = u.snipperdagen || 0;
+        const resterend = budget ? +(budget - opgenomen).toFixed(1) : null;
+        const pct = budget ? Math.min(100, Math.round((opgenomen / budget) * 100)) : (opgenomen > 0 ? 100 : 0);
+        const overBudget = budget > 0 && opgenomen > budget;
+        return `<div class="vak-summary-card">
+          <div class="vak-summary-name">${naam}</div>
+          <div class="vak-summary-row"><span>Opgenomen ${curJaar}</span><b>${opgenomen} dag${opgenomen===1?'':'en'}</b></div>
+          ${budget ? `<div class="vak-summary-row"><span>Budget/jaar</span><b>${budget} dagen</b></div>
+          <div class="vak-summary-row"><span>Resterend</span><b style="color:${overBudget?'var(--danger)':'var(--success)'}">${resterend} dagen</b></div>
+          <div class="vak-summary-bar"><div class="vak-summary-bar-fill" style="width:${pct}%;background:${overBudget?'var(--danger)':'var(--accent)'}"></div></div>`
+          : `<div class="vak-summary-row"><span style="color:var(--muted)">Geen budget ingesteld</span></div>`}
+        </div>`;
+      }).join('')}
+    </div>`;
 
+  // ---- Matrix ----
+  let html = '<div class="vak-table-scroll"><table class="uren-table" style="table-layout:auto">';
+  html += `<thead><tr><th class="left" style="min-width:150px">Week</th>`;
+  namen.forEach(n => html += `<th class="left" style="padding-left:10px;min-width:150px">${n}</th>`);
+  html += '</tr></thead><tbody>';
   for (let w = 1; w <= 53; w++) {
     const isHuidig = w === huidigWeek && curJaar === huidigJaar;
     const ma = datumVanWeekdag(curJaar, w, 0);
     const vr = datumVanWeekdag(curJaar, w, 4);
     html += `<tr id="vk-row-${w}" style="${isHuidig?'background:var(--warn-bg)':''}">`;
-    html += `<td class="left" style="font-weight:${isHuidig?'700':'400'};white-space:nowrap">W${w} <span style="font-size:11px;color:var(--muted)">${fmtDateShort(ma)}–${fmtDateShort(vr)}</span></td>`;
+    html += `<td class="left" style="font-weight:${isHuidig?'700':'400'};white-space:nowrap">W${w}${isHuidig?' 👉':''} <span style="font-size:11px;color:var(--muted)">${fmtDateShort(ma)}–${fmtDateShort(vr)}</span></td>`;
     namen.forEach(naam => {
       const vrijDagen = vakAllVrij[naam] || {};
       const blokjes = dagen.map((dag, i) => {
         const datum = datumVanWeekdag(curJaar, w, i);
         const isVrij = !!vrijDagen[datum];
-        return `<span title="${naam} · ${dag} ${fmtDateShort(datum)}" onclick="toggleVakDag('${naam}','${datum}',${w})" style="cursor:pointer;display:inline-block;width:13px;height:13px;border-radius:3px;background:${isVrij?'var(--success)':'var(--border)'};margin:1px"></span>`;
+        const isToday = datum === todayStr();
+        const dagNr = datum.split('-')[2];
+        return `<span class="vak-day${isVrij?' is-vrij':''}${isToday?' is-today':''}" title="${naam} · ${dag} ${fmtDateShort(datum)}${isVrij?' — vrij':''}" onclick="toggleVakDag('${naam}','${datum}',${w})">${dagNr}</span>`;
       }).join('');
-      html += `<td style="padding:6px 10px 6px 0">${blokjes}</td>`;
+      html += `<td style="padding:4px 10px 4px 0">${blokjes}</td>`;
     });
     html += '</tr>';
   }
   html += '</tbody></table></div>';
   matrixEl.innerHTML = html;
-
   if (curJaar === huidigJaar) {
     setTimeout(() => { const row = document.getElementById('vk-row-' + huidigWeek); if (row) row.scrollIntoView({ behavior:'smooth', block:'center' }); }, 100);
   }
-
   renderVakantieDetail();
 };
 window.toggleVakDag = async function(naam, datum, week) {
@@ -1255,27 +1239,37 @@ window.renderVakantieDetail = function() {
   const alleWeken = new Set();
   namen.forEach(naam => { Object.keys(vakAllVrij[naam] || {}).forEach(datum => { if (vakAllVrij[naam][datum]) alleWeken.add(weekKey(datum)); }); });
   const wekenSorted = [...alleWeken].sort();
+  // Deze week + 5 volgende weken (chronologisch, over jaargrens heen)
+  const upcomingWeken = [];
+  for (let i = 0; i < 6; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() + i * 7);
+    upcomingWeken.push(weekKey(d.toISOString().split('T')[0]));
+  }
   const sel = document.getElementById('f-vak-week');
-  const curWeek = sel.value;
+  const curWeek = sel.value || 'aankomend';
   const huidigSel = curWeek;
-  sel.innerHTML = '<option value="">Alle weken</option>' + wekenSorted.map(w => {
-    const weekNr = parseInt(w.split('-W')[1]);
-    const jaar = parseInt(w.split('-W')[0]);
-    const ma = datumVanWeekdag(jaar, weekNr, 0);
-    const vr = datumVanWeekdag(jaar, weekNr, 4);
-    return `<option ${w===huidigSel?'selected':''} value="${w}">Week ${weekNr} (${fmtDateShort(ma)}–${fmtDateShort(vr)})</option>`;
-  }).join('');
+  sel.innerHTML = `<option value="aankomend" ${huidigSel==='aankomend'?'selected':''}>Deze week + 5 volgende weken</option>` +
+    wekenSorted.map(w => {
+      const weekNr = parseInt(w.split('-W')[1]);
+      const jaar = parseInt(w.split('-W')[0]);
+      const ma = datumVanWeekdag(jaar, weekNr, 0);
+      const vr = datumVanWeekdag(jaar, weekNr, 4);
+      return `<option ${w===huidigSel?'selected':''} value="${w}">Week ${weekNr} (${fmtDateShort(ma)}–${fmtDateShort(vr)})</option>`;
+    }).join('');
   el.innerHTML = '';
   const dagNamen = ['Ma','Di','Wo','Do','Vr'];
-  const teTonenWeken = curWeek ? [curWeek] : wekenSorted;
+  const isAankomend = curWeek === 'aankomend';
+  const teTonenWeken = isAankomend ? upcomingWeken : [curWeek];
   if (!teTonenWeken.length) { el.innerHTML = '<div class="empty">Geen vakantiedagen aangevraagd</div>'; return; }
   const grid = document.createElement('div');
-  grid.className = 'cards-grid';
+  grid.className = 'vak-week-grid';
   teTonenWeken.forEach(wk => {
     const weekNr = parseInt(wk.split('-W')[1]);
     const jaar = parseInt(wk.split('-W')[0]);
     const ma = datumVanWeekdag(jaar, weekNr, 0);
     const vr = datumVanWeekdag(jaar, weekNr, 4);
+    const isHuidig = isAankomend && wk === upcomingWeken[0];
     const vrijDezeWeek = [];
     namen.forEach(naam => {
       const vrijDagen = vakAllVrij[naam] || {};
@@ -1283,28 +1277,32 @@ window.renderVakantieDetail = function() {
       for (let i = 0; i < 5; i++) { const datum = datumVanWeekdag(jaar, weekNr, i); if (vrijDagen[datum]) dagenDezeWeek.push({ dag: dagNamen[i], datum }); }
       if (dagenDezeWeek.length) vrijDezeWeek.push({ naam, dagen: dagenDezeWeek });
     });
-    if (!vrijDezeWeek.length) return;
+    // Bij een losse weekkeuze alleen tonen als er data is; bij de aankomende reeks ook lege weken laten zien.
+    if (!vrijDezeWeek.length && !isAankomend) return;
     const blok = document.createElement('div');
     blok.className = 'week-block';
     const header = document.createElement('div');
     header.className = 'week-header';
-    header.innerHTML = `<span class="week-title">Week ${weekNr}</span><span class="week-totals">${fmtDateShort(ma)} – ${fmtDateShort(vr)}</span>`;
+    header.innerHTML = `<span class="week-title">Week ${weekNr}${isHuidig?' · deze week':''}</span><span class="week-totals">${fmtDateShort(ma)} – ${fmtDateShort(vr)}</span>`;
     const body = document.createElement('div');
-    body.style.cssText = 'padding:12px 18px;background:var(--surface)';
-    vrijDezeWeek.forEach(({naam, dagen}) => {
-      const rij = document.createElement('div');
-      rij.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px';
-      const tags = dagen.map(({dag, datum}) => `<span class="tag-day">${dag} ${fmtDateShort(datum)}</span>`).join('');
-      rij.innerHTML = `<span style="font-weight:700;min-width:110px">${naam}</span>${tags}`;
-      body.appendChild(rij);
-    });
+    body.style.cssText = 'padding:10px 14px;background:var(--surface)';
+    if (!vrijDezeWeek.length) {
+      body.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px 0">Geen vrije dagen gepland</div>';
+    } else {
+      vrijDezeWeek.forEach(({naam, dagen}) => {
+        const rij = document.createElement('div');
+        rij.style.cssText = 'display:flex;align-items:center;gap:5px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;flex-wrap:nowrap;overflow-x:auto';
+        const tags = dagen.map(({dag, datum}) => `<span class="tag-day">${dag} ${fmtDateShort(datum)}</span>`).join('');
+        rij.innerHTML = `<span style="font-weight:700;min-width:70px;flex-shrink:0">${naam}</span>${tags}`;
+        body.appendChild(rij);
+      });
+    }
     blok.appendChild(header); blok.appendChild(body);
     grid.appendChild(blok);
   });
   el.appendChild(grid);
   if (!grid.children.length) el.innerHTML = '<div class="empty">Geen vakantiedagen voor deze week</div>';
 };
-
 // ---------- Opmerkingen ----------
 window.renderOpmerkingen = function() {
   const dInput = document.getElementById('opm-datum');
@@ -1344,7 +1342,6 @@ window.deleteOpmerking = async function(type, id) {
   }
   renderOpmerkingen();
 };
-
 // ---------- Wachtwoord ----------
 window.changeAdminPassword = async function() {
   const oud = val('apw-oud');
@@ -1366,7 +1363,6 @@ window.changeAdminPassword = async function() {
   ok.style.display = 'block';
   setTimeout(() => ok.style.display = 'none', 3000);
 };
-
 // ---------- Export & backup ----------
 window.exportExcel = function() {
   const curJaar = val('f-jaar') || new Date().getFullYear().toString();
@@ -1380,7 +1376,7 @@ window.exportExcel = function() {
     rows.push([e.naam, fmtDate(e.datum), weekLabel(e.datum), e.aanvang||'', e.einde||'', e.gewerkt||0, e.ziek||0, e.dokter||0, e.vrij||0, tot.toFixed(1)]);
   });
   const csv = rows.map(r => r.map(v => `"${v}"`).join(';')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `urenregistratie_${curJaar}${curNaam?'_'+curNaam:''}.csv`;
@@ -1430,7 +1426,6 @@ function checkWeeklyBackup() {
     localStorage.setItem(KEY, nu.toISOString());
   }
 }
-
 // ---------- Gedeelde filters ----------
 function fillCommonFilters() {
   const names = [...new Set(allEntries.map(e => e.naam))].sort();
@@ -1460,11 +1455,9 @@ function fillFixNaamSelects() {
   oudSel.innerHTML = '<option value="">Kies naam...</option>' + oudNamen.map(n => `<option ${n===curOud?'selected':''} value="${n}">${n}</option>`).join('');
   nieuwSel.innerHTML = '<option value="">Kies medewerker...</option>' + huidigeNamen.map(n => `<option ${n===curNieuw?'selected':''} value="${n}">${n}</option>`).join('');
 }
-
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('screen-login').style.display !== 'none') doLogin();
 });
-
 init();
 </script>
 </body>
