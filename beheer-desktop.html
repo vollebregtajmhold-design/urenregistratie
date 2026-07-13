@@ -47,6 +47,14 @@
   .nav-item:hover{background:var(--bg);color:var(--text)}
   .nav-item.active{color:var(--accent);background:var(--accent-light);border-left-color:var(--accent);font-weight:700}
   .nav-icon{font-size:16px;width:20px;text-align:center}
+  .nav-group-toggle{display:flex;align-items:center;gap:11px;padding:10px 1.5rem;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;border-left:3px solid transparent;white-space:nowrap}
+  .nav-group-toggle:hover{background:var(--bg);color:var(--text)}
+  .nav-group-toggle.open{color:var(--text);font-weight:700}
+  .nav-caret{margin-left:auto;font-size:11px;transition:transform .15s}
+  .nav-group-toggle.open .nav-caret{transform:rotate(180deg)}
+  .nav-subitems{display:none}
+  .nav-subitems.open{display:block}
+  .nav-subitems .nav-item{padding-left:2.5rem;font-size:13px}
   .sidebar-foot{padding:1rem 1.5rem;border-top:1px solid var(--border)}
   .sidebar-user{font-size:13px;color:var(--muted);margin-bottom:.6rem}
   .logout{background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);font-family:var(--font);padding:0;text-decoration:underline}
@@ -178,21 +186,24 @@
       <div class="sidebar-title">Beheer</div>
     </div>
     <div class="nav" id="nav">
-      <div class="nav-item active" data-page="weekoverzicht"><span class="nav-icon">📅</span>Weekoverzicht</div>
+      <div class="nav-item active" data-page="weekoverzicht"><span class="nav-icon">📅</span>Medewerkeroverzicht</div>
       <div class="nav-item" data-page="vakantie"><span class="nav-icon">🏖️</span>Vakantie<span id="nav-badge-vakantie" class="nav-badge" style="display:none"></span></div>
-      <div class="nav-item" data-page="jaaroverzicht"><span class="nav-icon">📈</span>Jaaroverzicht</div>
-      <div class="nav-item" data-page="teelten"><span class="nav-icon">🌱</span>Teelten</div>
-      <div class="nav-item" data-page="loonkosten"><span class="nav-icon">💶</span>Loonkosten</div>
-      <div class="nav-item" data-page="mensen"><span class="nav-icon">👥</span>Medewerkers</div>
+      <div class="nav-item" data-page="weekcheck"><span class="nav-icon">✅</span>Dag en Weekcheck</div>
+      <div class="nav-item" data-page="teelten"><span class="nav-icon">🌱</span>Teelten &amp; loonkosten</div>
       <div class="nav-item" data-page="lossekrachten"><span class="nav-icon">🧑‍🌾</span>Losse krachten</div>
-      <div class="nav-item" data-page="personalia"><span class="nav-icon">🪪</span>Personalia</div>
-      <div class="nav-item" data-page="details"><span class="nav-icon">🔍</span>Details</div>
-      <div class="nav-item" data-page="weekcheck"><span class="nav-icon">✅</span>Weekcheck</div>
-      <div class="nav-item" data-page="import"><span class="nav-icon">📥</span>Import</div>
+      <div class="nav-item" data-page="jaaroverzicht"><span class="nav-icon">📈</span>Jaaroverzicht</div>
       <div class="nav-item" data-page="opmerkingen"><span class="nav-icon">💬</span>Opmerkingen</div>
-      <div class="nav-item" data-page="wachtwoord"><span class="nav-icon">🔒</span>Wachtwoord</div>
+      <div class="nav-group-toggle" id="nav-instellingen-toggle"><span class="nav-icon">⚙️</span>Instellingen<span class="nav-caret">▾</span></div>
+      <div class="nav-subitems" id="nav-instellingen-sub">
+        <div class="nav-item" data-page="mensen"><span class="nav-icon">👥</span>Medewerkers</div>
+        <div class="nav-item" data-page="personalia"><span class="nav-icon">🪪</span>Personalia</div>
+        <div class="nav-item" data-page="details"><span class="nav-icon">🔍</span>Details</div>
+        <div class="nav-item" data-page="import"><span class="nav-icon">📥</span>Import</div>
+        <div class="nav-item" data-page="wachtwoord"><span class="nav-icon">🔒</span>Wachtwoord</div>
+      </div>
     </div>
     <div class="sidebar-foot">
+      <button class="btn btn-block" style="margin:0 0 .75rem" onclick="downloadBackup()" title="Downloadt direct een backup-bestand naar je downloadmap">⬇️ Backup nu</button>
       <div class="sidebar-user" id="sidebar-user">Beheerder</div>
       <button class="logout" onclick="doLogout()">Uitloggen</button>
     </div>
@@ -247,29 +258,29 @@
     <!-- TEELTEN -->
     <div class="page" id="page-teelten">
       <div class="page-head">
-        <div><div class="page-title">Teelten</div><div class="page-hint">Verdeling van gewerkte uren over de teelten.</div></div>
+        <div><div class="page-title">Teelten &amp; loonkosten</div><div class="page-hint">Uren of loonkosten per teelt — per week, per maand of heel jaar.</div></div>
       </div>
       <div class="filter-row">
-        <div class="field"><label>Week</label><select id="f-teelt-week" onchange="renderTeelten()"><option value="">Alle weken</option></select></div>
+        <div class="field"><label>Jaar</label><select id="f-tl-jaar" onchange="renderTeeltenLoonkosten()"></select></div>
+        <div class="field"><label>Weergave</label><select id="f-tl-weergave" onchange="renderTeeltenLoonkosten()">
+          <option value="uren">Uren</option>
+          <option value="bedragen">Bedragen (€)</option>
+        </select></div>
+        <div class="field"><label>Periode</label><select id="f-tl-periode" onchange="renderTeeltenLoonkosten()">
+          <option value="week">Per week</option>
+          <option value="maand">Per maand</option>
+          <option value="jaar">Heel jaar (totaal)</option>
+        </select></div>
+        <div class="field"><label>Algemeen</label><select id="f-tl-algemeen" onchange="renderTeeltenLoonkosten()">
+          <option value="excl">Excl. algemeen</option>
+          <option value="incl">Incl. algemeen</option>
+        </select></div>
       </div>
       <div class="card" id="teelten-list"><div class="loading">Laden...</div></div>
-    </div>
-    <!-- LOONKOSTEN -->
-    <div class="page" id="page-loonkosten">
-      <div class="page-head">
-        <div><div class="page-title">Loonkosten</div><div class="page-hint">Weeksalaris cumulatief, uurwaarde en loonkosten per teelt.</div></div>
-      </div>
-      <div class="filter-row">
-        <div class="field"><label>Jaar</label><select id="f-loon-jaar" onchange="renderLoonkosten()"></select></div>
-      </div>
-      <div class="card" style="margin-bottom:1.5rem;overflow-x:auto">
-        <div style="font-weight:700;margin-bottom:.75rem;font-size:16px">Per medewerker</div>
-        <div id="loon-medewerkers-list"><div class="loading">Laden...</div></div>
-      </div>
-      <div class="card" style="overflow-x:auto">
-        <div style="font-weight:700;margin-bottom:.75rem;font-size:16px">Loonkosten per teelt</div>
-        <div id="loon-teelten-list"><div class="loading">Laden...</div></div>
-      </div>
+      <details class="card" style="margin-top:1.5rem;overflow-x:auto">
+        <summary style="cursor:pointer;font-weight:700;font-size:16px;color:var(--text)">Per medewerker</summary>
+        <div id="loon-medewerkers-list" style="margin-top:.75rem"><div class="loading">Laden...</div></div>
+      </details>
     </div>
     <!-- DETAILS -->
     <div class="page" id="page-details">
@@ -287,6 +298,9 @@
       <div class="page-head">
         <div><div class="page-title">Medewerkers</div><div class="page-hint">Contracturen, snipperuren en accounts beheren.</div></div>
         <button class="btn btn-secondary btn-sm" onclick="downloadBackup()">💾 Backup downloaden (alle data)</button>
+      </div>
+      <div class="filter-row">
+        <div class="field"><label>Toon</label><select id="mens-filter" onchange="renderMedewerkers()"><option value="">Alle medewerkers</option></select></div>
       </div>
       <div class="cards-grid" id="admin-users-list"></div>
       <div class="card" style="margin-top:1.5rem;max-width:640px">
@@ -326,6 +340,17 @@
         <button class="btn btn-primary btn-block" onclick="addUser()">Toevoegen</button>
       </div>
       <div class="card" style="margin-top:1rem;max-width:640px">
+        <div style="font-weight:700;margin-bottom:.75rem;font-size:16px">Naam van medewerker wijzigen</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Bijvoorbeeld een ontbrekende hoofdletter rechtzetten. Bestaande registraties, vakantiedagen en saldo's verhuizen automatisch mee naar de nieuwe naam.</p>
+        <label>Medewerker</label>
+        <select id="rn-medewerker" onchange="setVal('rn-nieuwenaam', this.value)"><option value="">Kies medewerker...</option></select>
+        <label>Nieuwe naam</label>
+        <input type="text" id="rn-nieuwenaam" placeholder="Bijv. Arno">
+        <div id="rn-err" class="error" style="display:none"></div>
+        <div id="rn-ok" class="success-msg" style="display:none"></div>
+        <button class="btn btn-primary btn-block" onclick="wijzigMedewerkerNaam()">Naam wijzigen</button>
+      </div>
+      <div class="card" style="margin-top:1rem;max-width:640px">
         <div style="font-weight:700;margin-bottom:.75rem;font-size:16px">Naam corrigeren in registraties</div>
         <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Heb je een medewerker verwijderd en opnieuw aangemaakt met een andere spelling? Hiermee verplaats je alle oude registraties naar de juiste medewerker.</p>
         <label>Oude naam (in registraties)</label>
@@ -346,15 +371,32 @@
         <div id="personalia-list"><div class="loading">Laden...</div></div>
       </div>
     </div>
-    <!-- WEEKCHECK -->
+    <!-- WEEKCHECK & DAGOVERZICHT -->
     <div class="page" id="page-weekcheck">
       <div class="page-head">
-        <div><div class="page-title">Weekcheck</div><div class="page-hint">Wie heeft per week wel of niets ingevuld.</div></div>
+        <div><div class="page-title">Dag en Weekcheck</div><div class="page-hint">Wie heeft per week of per dag wel of niets ingevuld.</div></div>
+        <div class="filter-row" style="margin-bottom:0">
+          <div class="field"><label>Wie</label><select id="f-wc-type" onchange="renderWeekcheck(); renderDagoverzicht();">
+            <option value="vast" selected>Vaste krachten</option>
+            <option value="los">Losse krachten</option>
+            <option value="beide">Beide</option>
+          </select></div>
+        </div>
       </div>
-      <div class="filter-row">
-        <div class="field"><label>Jaar</label><select id="f-wc-jaar" onchange="renderWeekcheck()"><option value="">Huidig jaar</option></select></div>
+      <div style="display:grid;grid-template-columns:minmax(340px,420px) minmax(0,1fr);gap:1.5rem;align-items:start">
+        <div class="card" style="min-width:0">
+          <div class="filter-row" style="margin-bottom:.75rem">
+            <div class="field"><label>Datum</label><input type="date" id="f-dg-datum" onchange="renderDagoverzicht()"></div>
+          </div>
+          <div id="dagoverzicht-list"></div>
+        </div>
+        <div class="card" style="min-width:0">
+          <div class="filter-row" style="margin-bottom:.75rem">
+            <div class="field"><label>Jaar</label><select id="f-wc-jaar" onchange="renderWeekcheck()"><option value="">Huidig jaar</option></select></div>
+          </div>
+          <div id="weekcheck-list"></div>
+        </div>
       </div>
-      <div class="card" id="weekcheck-list"></div>
     </div>
     <!-- VAKANTIE -->
     <div class="page" id="page-vakantie">
@@ -462,6 +504,25 @@ let allEntries = [];
 let allUsers = [];
 let allNotes = [];
 const TEELTEN = ['Jonge planten','Hortensia','Micro','Mini','Cyclamen','Algemeen'];
+const DAGNAMEN5 = ['Ma','Di','Wo','Do','Vr'];
+const DAGNAMEN7 = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
+function dagNaamVanDatum(datum) { return ['Zo','Ma','Di','Wo','Do','Vr','Za'][new Date(datum).getDay()]; }
+// Verdeelt de waarde van de teelt 'Algemeen' evenredig (naar aandeel) over de overige teelten,
+// en zet 'Algemeen' zelf op 0. Gebruikt voor de keuze 'Incl. algemeen' bij Teelten & loonkosten.
+function verdeelAlgemeenOverTeelten(perTeelt) {
+  const algemeen = perTeelt['Algemeen'] || 0;
+  const overigeTeelten = TEELTEN.filter(t => t !== 'Algemeen');
+  const totOverig = overigeTeelten.reduce((s, t) => s + perTeelt[t], 0);
+  const resultaat = { ...perTeelt };
+  if (algemeen > 0 && totOverig > 0) {
+    overigeTeelten.forEach(t => {
+      const aandeel = perTeelt[t] / totOverig;
+      resultaat[t] = perTeelt[t] + aandeel * algemeen;
+    });
+    resultaat['Algemeen'] = 0;
+  }
+  return resultaat;
+}
 // ---------- Init ----------
 async function init() {
   try {
@@ -507,20 +568,23 @@ window.doLogout = function() {
   show('screen-login');
 };
 // ---------- Navigatie ----------
+const INSTELLINGEN_PAGINAS = ['mensen', 'personalia', 'details', 'import', 'wachtwoord'];
 function goToPage(name) {
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.page === name));
   document.querySelectorAll('.page').forEach(el => el.classList.toggle('active', el.id === 'page-' + name));
+  const inInstellingen = INSTELLINGEN_PAGINAS.includes(name);
+  document.getElementById('nav-instellingen-toggle').classList.toggle('open', inInstellingen);
+  document.getElementById('nav-instellingen-sub').classList.toggle('open', inInstellingen);
   window.scrollTo(0, 0);
   const renderers = {
     weekoverzicht: renderWeekoverzicht,
     lossekrachten: renderLosseKrachten,
     jaaroverzicht: renderJaaroverzicht,
-    teelten: renderTeelten,
-    loonkosten: renderLoonkosten,
+    teelten: renderTeeltenLoonkosten,
     details: renderDetails,
     mensen: renderMedewerkers,
     personalia: renderPersonalia,
-    weekcheck: renderWeekcheck,
+    weekcheck: () => { renderWeekcheck(); renderDagoverzicht(); },
     vakantie: renderVakantie,
     opmerkingen: renderOpmerkingen,
     import: () => {
@@ -532,8 +596,14 @@ function goToPage(name) {
   if (renderers[name]) renderers[name]();
 }
 document.addEventListener('click', e => {
+  const toggle = e.target.closest('.nav-group-toggle');
+  if (toggle) {
+    toggle.classList.toggle('open');
+    document.getElementById('nav-instellingen-sub').classList.toggle('open');
+    return;
+  }
   const item = e.target.closest('.nav-item');
-  if (item) goToPage(item.dataset.page);
+  if (item && item.dataset.page) goToPage(item.dataset.page);
 });
 // ---------- Helpers ----------
 function todayStr(){return new Date().toISOString().split('T')[0];}
@@ -550,6 +620,8 @@ function snipFactor(u){const c=u.contracturen||0;const wd=u.werkdagen||5;return 
 // Snipperdagen aanvraag/goedkeuring: 'aangevraagd' = wacht op beheerder, 'goedgekeurd' = akkoord.
 // Oude data had gewoon `true` — dat behandelen we als 'goedgekeurd' (was al zonder aanvraagstap ingevoerd).
 function vrijStatus(v) { if (v === true) return 'goedgekeurd'; return (v === 'aangevraagd' || v === 'goedgekeurd') ? v : null; }
+// Medewerkers zonder 'actief'-veld (bestaande data) worden als actief beschouwd.
+function isActief(u) { return u.actief !== false; }
 function updateAanvraagBadge() {
   let n = 0;
   Object.values(vakAllVrij || {}).forEach(dagenObj => {
@@ -659,7 +731,7 @@ let wkLast = null;
 window.renderWeekoverzicht = async function() {
   const naamSel = document.getElementById('wk-naam');
   const jaarSel = document.getElementById('wk-jaar');
-  const namen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
+  const namen = allUsers.filter(u => u.role !== 'admin' && isActief(u)).map(u => u.name).sort();
   const curNaam = naamSel.value || namen[0] || '';
   naamSel.innerHTML = namen.map(n => `<option ${n===curNaam?'selected':''} value="${n}">${n}</option>`).join('');
   const huidigJaar = new Date().getFullYear();
@@ -780,7 +852,7 @@ window.printWeekoverzicht = async function() {
   } catch(e) { /* logo.png niet gevonden, print gaat door zonder logo */ }
   const win = window.open('', '_blank');
   win.document.write(`<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8">
-    <title>Weekoverzicht ${naam} ${jaar}</title>
+    <title>Medewerkeroverzicht ${naam} ${jaar}</title>
     <style>
       @page{size:A4 portrait;margin:8mm}
       *{box-sizing:border-box}
@@ -801,7 +873,7 @@ window.printWeekoverzicht = async function() {
       tr.totalenrow td{background:#DBF0FF;font-weight:700}
       tr.headrow th{background:#DBF0FF}
     </style></head><body>
-    <div class="titelrij">${logoUrl?`<img src="${logoUrl}" alt="">`:''}<h1>Weekoverzicht — ${naam}</h1></div>
+    <div class="titelrij">${logoUrl?`<img src="${logoUrl}" alt="">`:''}<h1>Medewerkeroverzicht — ${naam}</h1></div>
     <p class="sub">Jaar ${jaar} · afgedrukt op ${new Date().toLocaleDateString('nl-NL')}</p>
     <div class="sum">
       <div class="sum-left">
@@ -825,7 +897,7 @@ window.printWeekoverzicht = async function() {
 };
 // ---------- Losse krachten ----------
 window.renderLosseKrachten = function() {
-  const losseKrachten = allUsers.filter(u => u.role !== 'admin' && u.losseKracht).map(u => u.name).sort();
+  const losseKrachten = allUsers.filter(u => u.role !== 'admin' && u.losseKracht && isActief(u)).map(u => u.name).sort();
   const sel = document.getElementById('f-lk-week');
   const el = document.getElementById('lk-week-list');
   const weeks = [...new Set(allEntries.filter(e => losseKrachten.includes(e.naam)).map(e => weekKey(e.datum)))].sort().reverse();
@@ -956,49 +1028,11 @@ window.renderJaaroverzicht = function() {
   }).join('');
 };
 // ---------- Teelten ----------
-window.renderTeelten = function() {
-  const weeks = [...new Set(allEntries.map(e => weekKey(e.datum)))].sort().reverse();
-  const sel = document.getElementById('f-teelt-week');
-  const curWeek = sel.value;
-  sel.innerHTML = '<option value="">Alle weken</option>' + weeks.map(w => {
-    const e = allEntries.find(x => weekKey(x.datum) === w);
-    return `<option ${w===curWeek?'selected':''} value="${w}">${e ? weekLabel(e.datum) : w}</option>`;
-  }).join('');
-  const filtered = curWeek ? allEntries.filter(e => weekKey(e.datum) === curWeek) : allEntries;
-  if (!filtered.length) { document.getElementById('teelten-list').innerHTML = '<div class="empty">Geen registraties gevonden</div>'; return; }
-  const weekSet = [...new Set(filtered.map(e => weekKey(e.datum)))].sort().reverse();
-  let html = `<div class="uren-table-wrap"><table class="uren-table">
-    <thead><tr><th class="left">Week</th>${TEELTEN.map(t => `<th>${t}</th>`).join('')}<th>Totaal</th></tr></thead>
-    <tbody>`;
-  let grandTotals = Object.fromEntries(TEELTEN.map(t => [t, 0]));
-  let grandTotal = 0;
-  weekSet.forEach(wk => {
-    const wkEntries = filtered.filter(e => weekKey(e.datum) === wk);
-    const label = weekLabel(wkEntries[0].datum);
-    const perTeelt = Object.fromEntries(TEELTEN.map(t => [t, 0]));
-    wkEntries.forEach(e => {
-      if (!e.teelten || !e.teelten.length || !e.gewerkt) return;
-      const aandeel = e.gewerkt / e.teelten.length;
-      e.teelten.forEach(t => { if (perTeelt[t] !== undefined) perTeelt[t] += aandeel; });
-    });
-    const weekTot = TEELTEN.reduce((s, t) => s + perTeelt[t], 0);
-    TEELTEN.forEach(t => { grandTotals[t] += perTeelt[t]; });
-    grandTotal += weekTot;
-    html += `<tr><td class="left">${label}</td>`;
-    TEELTEN.forEach(t => { const v = perTeelt[t]; html += `<td ${v===0?'class="zero"':''}>${v>0 ? v.toFixed(1) : '–'}</td>`; });
-    html += `<td><b>${weekTot>0 ? weekTot.toFixed(1) : '–'}</b></td></tr>`;
-  });
-  html += `<tr class="totaalrij"><td class="left">Totaal</td>`;
-  TEELTEN.forEach(t => { const v = grandTotals[t]; html += `<td>${v>0 ? v.toFixed(1) : '–'}</td>`; });
-  html += `<td><b>${grandTotal>0 ? grandTotal.toFixed(1) : '–'}</b></td></tr>`;
-  html += '</tbody></table></div>';
-  html += `<p style="font-size:12px;color:var(--muted);margin-top:.75rem">* Uren worden evenredig verdeeld als meerdere teelten zijn aangevinkt.</p>`;
-  document.getElementById('teelten-list').innerHTML = html;
-};
-// ---------- Loonkosten ----------
-// Weeksalaris = jaarsalaris / weken per jaar. Vanaf week 1 wordt dit elke week cumulatief opgebouwd,
-// samen met de cumulatief gewerkte uren. De uurwaarde = cumulatief loon / cumulatief gewerkte uren,
-// en wordt elke week bijgewerkt zodra er uren zijn — dat is de "laatst bekende uurwaarde".
+// ---------- Teelten & Loonkosten (samengevoegd) ----------
+// Weeksalaris = jaarsalaris / weken per jaar. Dit wordt cumulatief opgebouwd over de weken die
+// een medewerker daadwerkelijk heeft ingevuld, samen met de cumulatief gewerkte uren.
+// De uurwaarde = cumulatief loon / cumulatief gewerkte uren — de "laatst bekende uurwaarde",
+// die gebruikt wordt om gewerkte uren per teelt om te rekenen naar een bedrag.
 function calcLoonData(naam, jaar) {
   const u = allUsers.find(x => x.name === naam) || {};
   const jaarsalaris = u.jaarsalaris || 0;
@@ -1023,40 +1057,109 @@ function calcLoonData(naam, jaar) {
     maxWeek,
   };
 }
-function calcTeeltUren(naam, jaar) {
-  const entries = allEntries.filter(e => e.naam === naam && e.datum.startsWith(String(jaar)));
-  const perTeelt = Object.fromEntries(TEELTEN.map(t => [t, 0]));
-  entries.forEach(e => {
-    if (!e.teelten || !e.teelten.length || !e.gewerkt) return;
-    const aandeel = e.gewerkt / e.teelten.length;
-    e.teelten.forEach(t => { if (perTeelt[t] !== undefined) perTeelt[t] += aandeel; });
-  });
-  return perTeelt;
+function maandLabel(datum) {
+  const d = new Date(datum);
+  const naam = d.toLocaleDateString('nl-NL', { month: 'long' });
+  return naam.charAt(0).toUpperCase() + naam.slice(1) + ' ' + d.getFullYear();
 }
-window.renderLoonkosten = function() {
+window.renderTeeltenLoonkosten = function() {
   const huidigJaar = new Date().getFullYear();
   const jarenSet = new Set(allEntries.map(e => e.datum.substring(0, 4)));
   jarenSet.add(String(huidigJaar));
   const jaren = [...jarenSet].sort().reverse();
-  const jaarSel = document.getElementById('f-loon-jaar');
+  const jaarSel = document.getElementById('f-tl-jaar');
   const curJaar = jaarSel.value || String(huidigJaar);
   jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
+  const weergave = document.getElementById('f-tl-weergave').value || 'uren';
+  const periode = document.getElementById('f-tl-periode').value || 'week';
+  const algemeenMode = document.getElementById('f-tl-algemeen').value || 'excl';
+  const inclAlgemeen = algemeenMode === 'incl';
+  const isBedragen = weergave === 'bedragen';
+  const teeltEl = document.getElementById('teelten-list');
   const medEl = document.getElementById('loon-medewerkers-list');
-  const teeltEl = document.getElementById('loon-teelten-list');
-  const namen = allUsers.filter(u => u.role !== 'admin' && !u.losseKracht && (u.jaarsalaris || 0) > 0).map(u => u.name).sort();
+
+  const jaarEntries = allEntries.filter(e => e.datum.startsWith(String(curJaar)));
+  // Uurwaarde per medewerker (0 als geen jaarsalaris bekend — die uren tellen dan gewoon niet mee in de bedragen).
+  const rateCache = {};
+  const getRate = naam => { if (!(naam in rateCache)) rateCache[naam] = calcLoonData(naam, curJaar).uurwaarde; return rateCache[naam]; };
+
+  const periodKeyFn = periode === 'week' ? (d => weekKey(d)) : periode === 'maand' ? (d => d.substring(0,7)) : () => 'jaar';
+  const periodLabelFn = periode === 'week' ? (d => weekLabel(d)) : periode === 'maand' ? (d => maandLabel(d)) : () => `Heel jaar ${curJaar}`;
+
+  const buckets = {};
+  jaarEntries.forEach(e => {
+    if (!e.teelten || !e.teelten.length || !e.gewerkt) return;
+    const key = periodKeyFn(e.datum);
+    if (!buckets[key]) buckets[key] = { label: periodLabelFn(e.datum), perTeelt: Object.fromEntries(TEELTEN.map(t => [t, 0])) };
+    const aandeelUren = e.gewerkt / e.teelten.length;
+    const waarde = isBedragen ? aandeelUren * getRate(e.naam) : aandeelUren;
+    e.teelten.forEach(t => { if (buckets[key].perTeelt[t] !== undefined) buckets[key].perTeelt[t] += waarde; });
+  });
+  if (inclAlgemeen) {
+    Object.values(buckets).forEach(b => { b.perTeelt = verdeelAlgemeenOverTeelten(b.perTeelt); });
+  }
+  const periodeKeys = Object.keys(buckets).sort().reverse();
+
+  if (!periodeKeys.length) {
+    teeltEl.innerHTML = '<div class="empty">Geen registraties met een teelt gevonden voor dit jaar</div>';
+  } else if (periode === 'jaar') {
+    // Eén totaalrij per teelt.
+    const perTeelt = buckets['jaar'].perTeelt;
+    const totWaarde = TEELTEN.reduce((s, t) => s + perTeelt[t], 0);
+    const fmt = v => isBedragen ? (v > 0 ? '€ ' + v.toFixed(2) : '–') : (v > 0 ? v.toFixed(1) : '–');
+    teeltEl.innerHTML = `<div class="uren-table-wrap"><table class="uren-table">
+      <thead><tr><th class="left">Teelt</th><th>${isBedragen ? 'Loonkosten' : 'Uren'}</th></tr></thead>
+      <tbody>
+        ${TEELTEN.map(t => `<tr>
+          <td class="left">${t}</td>
+          <td>${fmt(perTeelt[t])}</td>
+        </tr>`).join('')}
+      </tbody>
+      <tfoot><tr class="totaalrij">
+        <td class="left">Totaal</td><td><b>${fmt(totWaarde)}</b></td>
+      </tr></tfoot>
+    </table></div>
+    <p style="font-size:12px;color:var(--muted);margin-top:.75rem">${isBedragen
+      ? 'Loonkosten per teelt = gewerkte uren in die teelt × de meest actuele uurwaarde van de medewerker.' + (inclAlgemeen ? ' De kosten van "Algemeen" zijn evenredig (naar aandeel) verdeeld over de overige teelten.' : '')
+      : '* Uren worden evenredig verdeeld als meerdere teelten zijn aangevinkt.' + (inclAlgemeen ? ' De uren van "Algemeen" zijn evenredig verdeeld over de overige teelten.' : '')}</p>`;
+  } else {
+    // Per week of per maand: één rij per periode.
+    const grandTotals = Object.fromEntries(TEELTEN.map(t => [t, 0]));
+    let grandTotal = 0;
+    const fmt = v => isBedragen ? (v > 0 ? '€ ' + v.toFixed(2) : '–') : (v > 0 ? v.toFixed(1) : '–');
+    let html = `<div class="uren-table-wrap"><table class="uren-table">
+      <thead><tr><th class="left">${periode === 'week' ? 'Week' : 'Maand'}</th>${TEELTEN.map(t => `<th>${t}</th>`).join('')}<th>Totaal</th></tr></thead>
+      <tbody>`;
+    periodeKeys.forEach(key => {
+      const { label, perTeelt } = buckets[key];
+      const periodeTot = TEELTEN.reduce((s, t) => s + perTeelt[t], 0);
+      TEELTEN.forEach(t => { grandTotals[t] += perTeelt[t]; });
+      grandTotal += periodeTot;
+      html += `<tr><td class="left">${label}</td>`;
+      TEELTEN.forEach(t => { html += `<td ${perTeelt[t]===0?'class="zero"':''}>${fmt(perTeelt[t])}</td>`; });
+      html += `<td><b>${fmt(periodeTot)}</b></td></tr>`;
+    });
+    html += `<tr class="totaalrij"><td class="left">Totaal</td>`;
+    TEELTEN.forEach(t => { html += `<td>${fmt(grandTotals[t])}</td>`; });
+    html += `<td><b>${fmt(grandTotal)}</b></td></tr>`;
+    html += '</tbody></table></div>';
+    html += `<p style="font-size:12px;color:var(--muted);margin-top:.75rem">${isBedragen
+      ? 'Bedrag = gewerkte uren in die teelt × de uurwaarde van de medewerker in dat jaar. Uren zonder bekend jaarsalaris tellen niet mee in de bedragen.'
+      : '* Uren worden evenredig verdeeld als meerdere teelten zijn aangevinkt.'}${inclAlgemeen ? ' De waarde van "Algemeen" is per periode evenredig verdeeld over de overige teelten.' : ''}</p>`;
+    teeltEl.innerHTML = html;
+  }
+
+  // Per medewerker (loon), ingevouwen onder de hoofdtabel.
+  const namen = allUsers.filter(u => u.role !== 'admin' && !u.losseKracht && (u.jaarsalaris || 0) > 0 && isActief(u)).map(u => u.name).sort();
   if (!namen.length) {
     medEl.innerHTML = '<div class="empty">Vul eerst een jaarsalaris in bij Medewerkers</div>';
-    teeltEl.innerHTML = '';
     return;
   }
-  const perNaam = {};
-  namen.forEach(naam => { perNaam[naam] = { loon: calcLoonData(naam, curJaar), teeltUren: calcTeeltUren(naam, curJaar) }; });
-
   medEl.innerHTML = `<div class="uren-table-wrap"><table class="uren-table">
     <thead><tr><th class="left">Naam</th><th>Weeksalaris</th><th>Ingevulde weken</th><th>Uren cumulatief</th><th>Loon cumulatief</th><th>Uurwaarde</th></tr></thead>
     <tbody>
       ${namen.map(naam => {
-        const { weeksalaris, cumUren, cumSalaris, uurwaarde, ingevuldeWeken } = perNaam[naam].loon;
+        const { weeksalaris, cumUren, cumSalaris, uurwaarde, ingevuldeWeken } = calcLoonData(naam, curJaar);
         return `<tr>
           <td class="left"><b>${naam}</b></td>
           <td>€ ${weeksalaris.toFixed(2)}</td>
@@ -1068,45 +1171,6 @@ window.renderLoonkosten = function() {
       }).join('')}
     </tbody>
   </table></div>`;
-
-  const grandUren = Object.fromEntries(TEELTEN.map(t => [t, 0]));
-  const grandKosten = Object.fromEntries(TEELTEN.map(t => [t, 0]));
-  namen.forEach(naam => {
-    const { teeltUren } = perNaam[naam];
-    const { uurwaarde } = perNaam[naam].loon;
-    TEELTEN.forEach(t => {
-      grandUren[t] += teeltUren[t] || 0;
-      grandKosten[t] += (teeltUren[t] || 0) * uurwaarde;
-    });
-  });
-  const totUren = TEELTEN.reduce((s, t) => s + grandUren[t], 0);
-  const totKosten = TEELTEN.reduce((s, t) => s + grandKosten[t], 0);
-  // 'Algemeen' zijn uren/kosten die niet aan een specifieke teelt zijn toe te wijzen.
-  // Die worden evenredig (naar aandeel gewerkte uren) verdeeld over de overige teelten.
-  const algemeenKosten = grandKosten['Algemeen'] || 0;
-  const overigeTeelten = TEELTEN.filter(t => t !== 'Algemeen');
-  const totUrenOverig = overigeTeelten.reduce((s, t) => s + grandUren[t], 0);
-  const inclAlgemeen = {};
-  overigeTeelten.forEach(t => {
-    const aandeel = totUrenOverig > 0 ? grandUren[t] / totUrenOverig : 0;
-    inclAlgemeen[t] = grandKosten[t] + aandeel * algemeenKosten;
-  });
-  const totInclAlgemeen = overigeTeelten.reduce((s, t) => s + inclAlgemeen[t], 0);
-  teeltEl.innerHTML = `<div class="uren-table-wrap"><table class="uren-table">
-    <thead><tr><th class="left">Teelt</th><th>Uren</th><th>Loonkosten</th><th>Incl. algemeen</th></tr></thead>
-    <tbody>
-      ${TEELTEN.map(t => `<tr>
-        <td class="left">${t}</td>
-        <td>${grandUren[t]>0 ? grandUren[t].toFixed(1) : '–'}</td>
-        <td>${grandKosten[t]>0 ? '€ ' + grandKosten[t].toFixed(2) : '–'}</td>
-        <td>${t === 'Algemeen' ? '–' : '€ ' + inclAlgemeen[t].toFixed(2)}</td>
-      </tr>`).join('')}
-    </tbody>
-    <tfoot><tr class="totaalrij">
-      <td class="left">Totaal</td><td>${totUren.toFixed(1)}</td><td>€ ${totKosten.toFixed(2)}</td><td>€ ${totInclAlgemeen.toFixed(2)}</td>
-    </tr></tfoot>
-  </table></div>
-  <p style="font-size:12px;color:var(--muted);margin-top:.75rem">Loonkosten per teelt = gewerkte uren in die teelt × de meest actuele uurwaarde van de medewerker (cumulatief loon t/m nu ÷ cumulatief gewerkte uren t/m nu). "Incl. algemeen" verdeelt de kosten van de teelt "Algemeen" evenredig (naar aandeel gewerkte uren) over de overige teelten.</p>`;
 };
 // ---------- Details ----------
 window.renderDetails = function() {
@@ -1196,11 +1260,17 @@ window.deleteEntry = async function(id) {
 window.renderMedewerkers = function() {
   fillCommonFilters();
   fillFixNaamSelects();
-  const nonAdmin = allUsers.filter(u => u.role !== 'admin');
+  let nonAdmin = allUsers.filter(u => u.role !== 'admin')
+    .slice().sort((a, b) => (isActief(a) === isActief(b) ? 0 : isActief(a) ? -1 : 1));
+  const filterSel = document.getElementById('mens-filter');
+  const curFilter = filterSel.value;
+  filterSel.innerHTML = '<option value="">Alle medewerkers</option>' +
+    nonAdmin.map(u => `<option ${u.name===curFilter?'selected':''} value="${u.name}">${u.name}${isActief(u)?'':' (gearchiveerd)'}</option>`).join('');
+  if (curFilter) nonAdmin = nonAdmin.filter(u => u.name === curFilter);
   document.getElementById('admin-users-list').innerHTML = nonAdmin.length
-    ? nonAdmin.map(u => `<div class="card">
+    ? nonAdmin.map(u => `<div class="card" style="${isActief(u) ? '' : 'opacity:.6'}">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
-          <span style="font-weight:700;font-size:16px">${u.name}</span>
+          <span style="font-weight:700;font-size:16px">${u.name}${isActief(u) ? '' : ' <span style="font-size:11px;font-weight:700;color:var(--muted);border:1px solid var(--border);border-radius:10px;padding:1px 8px;vertical-align:middle">Gearchiveerd</span>'}</span>
           <div style="display:flex;gap:6px">
             <button class="btn btn-secondary btn-sm" onclick="resetPassword('${u.name}')">🔑 Reset</button>
             <button class="btn btn-secondary btn-sm btn-danger" onclick="deleteUser('${u.name}')">✕ Verwijder</button>
@@ -1211,6 +1281,10 @@ window.renderMedewerkers = function() {
           <div><label class="mini-lbl">Werkdagen/week</label><input type="number" min="1" max="7" step="0.5" value="${u.werkdagen||5}" id="werkdagen-${u.name}" class="mini-input" oninput="updateSnipPreview('${u.name}')"></div>
           <div><label class="mini-lbl">Weken/jaar</label><input type="number" min="1" max="53" step="0.5" value="${u.wekenperjaar||52}" id="weken-${u.name}" class="mini-input" oninput="updateSnipPreview('${u.name}')"></div>
           <div><label class="mini-lbl">Snipdag/jaar</label><input type="number" min="0" step="0.5" value="${u.snipperdagen||0}" id="snipperdagen-${u.name}" class="mini-input" oninput="updateSnipPreview('${u.name}')"></div>
+        </div>
+        <label class="mini-lbl">Vaste werkdagen (voor Dagoverzicht — dagen die niet zijn aangevinkt tellen niet mee als 'niets ingevuld')</label>
+        <div style="display:flex;gap:.9rem;flex-wrap:wrap;margin:.3rem 0 .6rem">
+          ${DAGNAMEN7.map(d => `<label class="chk-row" style="margin-bottom:0"><input type="checkbox" class="vwd-${u.name.replace(/\s+/g,'-')}" value="${d}" ${(u.vasteWerkdagen || DAGNAMEN5).includes(d)?'checked':''}> ${d}</label>`).join('')}
         </div>
         <div id="snip-preview-${u.name}" style="background:var(--accent-light);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--accent);margin:.6rem 0">${calcSnipPreview(u)}</div>
         <label class="mini-lbl">Jaarsalaris (€)</label>
@@ -1240,8 +1314,11 @@ window.renderMedewerkers = function() {
           <option value="en" ${u.taal==='en'?'selected':''}>🇬🇧 English</option>
           <option value="pl" ${u.taal==='pl'?'selected':''}>🇵🇱 Polski</option>
         </select>
-        <label class="chk-row" style="margin-bottom:.75rem">
+        <label class="chk-row" style="margin-bottom:.5rem">
           <input type="checkbox" id="losse-kracht-${u.name}" ${u.losseKracht?'checked':''}> Losse kracht (niet in week- en jaaroverzicht)
+        </label>
+        <label class="chk-row" style="margin-bottom:.75rem">
+          <input type="checkbox" id="actief-${u.name}" ${isActief(u)?'checked':''}> Actief (uitvinken = archiveren; verdwijnt uit alle lijsten, data blijft bewaard)
         </label>
         <button class="btn btn-primary btn-block" onclick="saveContract('${u.name}')">✓ Opslaan</button>
       </div>`).join('')
@@ -1249,7 +1326,7 @@ window.renderMedewerkers = function() {
 };
 // ---------- Personalia ----------
 window.renderPersonalia = function() {
-  const nonAdmin = allUsers.filter(u => u.role !== 'admin').slice().sort((a,b) => a.name.localeCompare(b.name));
+  const nonAdmin = allUsers.filter(u => u.role !== 'admin' && isActief(u)).slice().sort((a,b) => a.name.localeCompare(b.name));
   const el = document.getElementById('personalia-list');
   if (!nonAdmin.length) { el.innerHTML = '<div class="empty">Nog geen medewerkers</div>'; return; }
   el.innerHTML = `<div class="uren-table-wrap"><table class="uren-table">
@@ -1331,6 +1408,8 @@ window.saveContract = async function(name) {
   const notitie = (document.getElementById('notitie-' + name)?.value) || '';
   const taal = document.getElementById('taal-' + name)?.value || 'nl';
   const losseKracht = document.getElementById('losse-kracht-' + name)?.checked || false;
+  const actief = document.getElementById('actief-' + name)?.checked !== false;
+  const vasteWerkdagen = Array.from(document.querySelectorAll('.vwd-' + name.replace(/\s+/g,'-') + ':checked')).map(c => c.value);
   const geboortedatum = document.getElementById('geboortedatum-' + name)?.value || '';
   const mobiel = document.getElementById('mobiel-' + name)?.value || '';
   const adres = document.getElementById('adres-' + name)?.value || '';
@@ -1340,7 +1419,7 @@ window.saveContract = async function(name) {
   const key = name.toLowerCase().replace(/\s+/g,'-');
   const u = allUsers.find(x => x.name === name);
   if (!u) return;
-  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, notitie, taal, losseKracht, geboortedatum, mobiel, adres, postcode, woonplaats, jaarsalaris };
+  const newU = { ...u, contracturen: c, werkdagen: wd, wekenperjaar: wj, snipperdagen: sd, startsaldo: s, saldo_gew: sgew, saldo_ziek: sziek, saldo_dok: sdok, saldo_vrij: svrij, notitie, taal, losseKracht, actief, vasteWerkdagen, geboortedatum, mobiel, adres, postcode, woonplaats, jaarsalaris };
   newU.jaarsnippers = calcJaarsnippers(newU);
   await setDoc(doc(db, 'users', key), newU);
   await loadUsers();
@@ -1364,14 +1443,7 @@ window.deleteUser = async function(name) {
   await loadUsers();
   renderMedewerkers();
 };
-window.fixNaam = async function() {
-  const oud = val('fix-oud');
-  const nieuw = val('fix-nieuw');
-  const err = document.getElementById('fix-err');
-  const ok = document.getElementById('fix-ok');
-  if (!oud || !nieuw) { err.textContent = 'Kies beide namen'; err.style.display = 'block'; ok.style.display='none'; return; }
-  if (oud === nieuw) { err.textContent = 'Oude en nieuwe naam zijn gelijk'; err.style.display = 'block'; ok.style.display='none'; return; }
-  err.style.display = 'none';
+async function migreerEntriesNaam(oud, nieuw) {
   const teWijzigen = allEntries.filter(e => e.naam === oud);
   let gewijzigd = 0, overgeslagen = 0;
   for (const e of teWijzigen) {
@@ -1388,10 +1460,58 @@ window.fixNaam = async function() {
     await deleteDoc(doc(db, 'entries', oldId));
     gewijzigd++;
   }
+  return { gewijzigd, overgeslagen };
+}
+window.fixNaam = async function() {
+  const oud = val('fix-oud');
+  const nieuw = val('fix-nieuw');
+  const err = document.getElementById('fix-err');
+  const ok = document.getElementById('fix-ok');
+  if (!oud || !nieuw) { err.textContent = 'Kies beide namen'; err.style.display = 'block'; ok.style.display='none'; return; }
+  if (oud === nieuw) { err.textContent = 'Oude en nieuwe naam zijn gelijk'; err.style.display = 'block'; ok.style.display='none'; return; }
+  err.style.display = 'none';
+  const { gewijzigd, overgeslagen } = await migreerEntriesNaam(oud, nieuw);
   await loadEntries();
   renderMedewerkers();
   setVal('fix-oud',''); setVal('fix-nieuw','');
   ok.textContent = `✓ ${gewijzigd} registratie(s) overgezet naar ${nieuw}` + (overgeslagen ? ` · ${overgeslagen} overgeslagen (datum bestond al bij ${nieuw})` : '');
+  ok.style.display = 'block';
+  setTimeout(() => ok.style.display = 'none', 5000);
+};
+window.wijzigMedewerkerNaam = async function() {
+  const oudeNaam = val('rn-medewerker');
+  const nieuweNaam = val('rn-nieuwenaam').trim();
+  const err = document.getElementById('rn-err');
+  const ok = document.getElementById('rn-ok');
+  ok.style.display = 'none';
+  if (!oudeNaam) { err.textContent = 'Kies eerst een medewerker'; err.style.display = 'block'; return; }
+  if (!nieuweNaam) { err.textContent = 'Vul een nieuwe naam in'; err.style.display = 'block'; return; }
+  if (nieuweNaam === oudeNaam) { err.textContent = 'Dit is al de huidige naam'; err.style.display = 'block'; return; }
+  const oldKey = oudeNaam.toLowerCase().replace(/\s+/g,'-');
+  const newKey = nieuweNaam.toLowerCase().replace(/\s+/g,'-');
+  if (newKey !== oldKey && allUsers.some(u => u.name.toLowerCase().replace(/\s+/g,'-') === newKey)) {
+    err.textContent = 'Er bestaat al een medewerker met (bijna) deze naam'; err.style.display = 'block'; return;
+  }
+  const u = allUsers.find(x => x.name === oudeNaam);
+  if (!u) { err.textContent = 'Medewerker niet gevonden, ververs de pagina'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  // Medewerker-account zelf hernoemen (doc-id blijft gelijk bij een pure hoofdletter-/spatiewijziging).
+  const nieuweData = { ...u, name: nieuweNaam };
+  await setDoc(doc(db, 'users', newKey), nieuweData);
+  if (newKey !== oldKey) await deleteDoc(doc(db, 'users', oldKey));
+  // Vakantie/vrije dagen meeverhuizen.
+  const vrijSnap = await getDoc(doc(db, 'vrije_dagen', oldKey));
+  if (vrijSnap.exists()) {
+    await setDoc(doc(db, 'vrije_dagen', newKey), { ...vrijSnap.data(), naam: nieuweNaam });
+    if (newKey !== oldKey) await deleteDoc(doc(db, 'vrije_dagen', oldKey));
+  }
+  // Bestaande registraties meeverhuizen naar de nieuwe naam.
+  const { gewijzigd } = await migreerEntriesNaam(oudeNaam, nieuweNaam);
+  await loadUsers();
+  await loadEntries();
+  renderMedewerkers();
+  setVal('rn-medewerker', ''); setVal('rn-nieuwenaam', '');
+  ok.textContent = `✓ "${oudeNaam}" is hernoemd naar "${nieuweNaam}"` + (gewijzigd ? ` · ${gewijzigd} registratie(s) meeverhuisd` : '');
   ok.style.display = 'block';
   setTimeout(() => ok.style.display = 'none', 5000);
 };
@@ -1403,8 +1523,10 @@ window.renderWeekcheck = function() {
   const jaarSel = document.getElementById('f-wc-jaar');
   const curJaar = jaarSel.value || huidigJaar;
   jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
-  const namen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
-  if (!namen.length) { document.getElementById('weekcheck-list').innerHTML = '<div class="empty">Nog geen medewerkers</div>'; return; }
+  const typeSel = document.getElementById('f-wc-type');
+  const type = typeSel.value || 'beide';
+  const namen = allUsers.filter(u => u.role !== 'admin' && isActief(u) && (type === 'beide' || (type === 'vast' && !u.losseKracht) || (type === 'los' && u.losseKracht))).map(u => u.name).sort();
+  if (!namen.length) { document.getElementById('weekcheck-list').innerHTML = '<div class="empty">Geen medewerkers gevonden voor deze keuze</div>'; return; }
   let maxWeek = 53;
   if (curJaar === huidigJaar) maxWeek = getWeekNr(todayStr());
   const ingevuld = new Set();
@@ -1420,9 +1542,95 @@ window.renderWeekcheck = function() {
   }
   document.getElementById('weekcheck-list').innerHTML = `
     <div style="font-size:13px;color:var(--muted);margin-bottom:.75rem">✓ = minstens 1 dag ingevuld die week &nbsp;·&nbsp; ✕ = niets ingevuld</div>
-    <div class="uren-table-wrap">
-      <table class="uren-table">
-        <thead><tr><th class="left">Week</th>${namen.map(n=>`<th style="font-size:11px">${n}</th>`).join('')}</tr></thead>
+    <div class="vak-table-scroll" id="weekcheck-scroll" style="overflow-x:auto">
+      <table class="uren-table" style="min-width:100%">
+        <thead><tr><th class="left" style="width:44px">Week</th>${namen.map(n=>`<th style="width:44px;font-size:11px;padding-left:3px;padding-right:3px">${n}</th>`).join('')}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  // Opent altijd bij de laatst ingevoerde/huidige weken onderaan, in plaats van week 1.
+  // Hoogte wordt berekend zodat er precies 14 weekrijen zichtbaar zijn (i.p.v. een vaste vh-waarde).
+  const scrollEl = document.getElementById('weekcheck-scroll');
+  requestAnimationFrame(() => {
+    const headerRow = scrollEl.querySelector('thead tr');
+    const bodyRow = scrollEl.querySelector('tbody tr');
+    if (headerRow && bodyRow) {
+      const headH = headerRow.getBoundingClientRect().height;
+      const rowH = bodyRow.getBoundingClientRect().height;
+      scrollEl.style.maxHeight = Math.round(headH + rowH * 14) + 'px';
+    }
+    scrollEl.scrollTop = scrollEl.scrollHeight;
+  });
+};
+// ---------- Dagoverzicht ----------
+window.renderDagoverzicht = async function() {
+  const datumInput = document.getElementById('f-dg-datum');
+  if (!datumInput.value) datumInput.value = todayStr();
+  const datum = datumInput.value;
+  const typeSel = document.getElementById('f-wc-type');
+  const type = typeSel.value || 'beide';
+  const el = document.getElementById('dagoverzicht-list');
+  el.innerHTML = '<div class="loading">Laden...</div>';
+  if (!vakAllVrij) await laadVrijeDagen();
+  const namen = allUsers.filter(u => u.role !== 'admin' && isActief(u) && (type === 'beide' || (type === 'vast' && !u.losseKracht) || (type === 'los' && u.losseKracht))).map(u => u.name).sort();
+  if (!namen.length) { el.innerHTML = '<div class="empty">Geen medewerkers gevonden voor deze keuze</div>'; return; }
+  const dagNaam = dagNaamVanDatum(datum);
+  let ontbrekend = 0;
+  const items = namen.map(naam => {
+    const gebruiker = allUsers.find(x => x.name === naam);
+    const isWerkdag = (gebruiker?.vasteWerkdagen || DAGNAMEN5).includes(dagNaam);
+    const e = allEntries.find(x => x.naam === naam && x.datum === datum);
+    const vrijStat = vrijStatus((vakAllVrij[naam] || {})[datum]);
+    const gewerkt = +(e && e.gewerkt) || 0;
+    const ziek = +(e && e.ziek) || 0;
+    const dokter = +(e && e.dokter) || 0;
+    const vrijBetaald = +(e && e.vrij) || 0;
+    const heeftIets = gewerkt || ziek || dokter || vrijBetaald;
+    let statusHtml, rowStyle = '', rank;
+    if (heeftIets) {
+      statusHtml = '<span style="color:#155C36;font-weight:700">✓ Ingevuld</span>';
+      rank = 1;
+    } else if (vrijStat) {
+      statusHtml = vrijStat === 'goedgekeurd'
+        ? '<span style="color:#1F5E8C;font-weight:700">🏖️ Vrije dag</span>'
+        : '<span style="color:#6FA8DC;font-weight:700">🏖️ Vrije dag (aangevraagd)</span>';
+      rank = 2;
+    } else if (!isWerkdag) {
+      statusHtml = '<span style="color:var(--muted);font-weight:700;white-space:nowrap">Geen werkdag</span>';
+      rank = 3;
+    } else {
+      statusHtml = '<span style="color:#A6362A;font-weight:700">✕ Niets ingevuld</span>';
+      rowStyle = 'background:#FBE2DE';
+      rank = 0;
+      ontbrekend++;
+    }
+    return { naam, gewerkt, ziek, dokter, vrijBetaald, statusHtml, rowStyle, rank };
+  });
+  // Sortering: Niets ingevuld, Ingevuld, Vrije dag, Geen werkdag.
+  items.sort((a, b) => a.rank - b.rank || a.naam.localeCompare(b.naam));
+  const rows = items.map(({naam, gewerkt, ziek, dokter, vrijBetaald, statusHtml, rowStyle}) => `<tr style="${rowStyle}">
+      <td class="left"><b>${naam}</b></td>
+      <td>${gewerkt>0?gewerkt.toFixed(1):'–'}</td>
+      <td>${ziek>0?ziek.toFixed(1):'–'}</td>
+      <td>${dokter>0?dokter.toFixed(1):'–'}</td>
+      <td>${vrijBetaald>0?vrijBetaald.toFixed(1):'–'}</td>
+      <td class="left">${statusHtml}</td>
+    </tr>`).join('');
+  const dagLabelRaw = new Date(datum).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const dagLabel = dagLabelRaw.charAt(0).toUpperCase() + dagLabelRaw.slice(1);
+  el.innerHTML = `
+    <div style="font-size:14px;font-weight:700;margin-bottom:.5rem">${dagLabel}</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:.75rem">${ontbrekend>0 ? `⚠️ ${ontbrekend} medewerker(s) hebben nog niets ingevuld voor deze dag` : '✓ Iedereen heeft iets ingevuld, had vrij, of werkt vandaag niet'}</div>
+    <div class="vak-table-scroll" style="overflow-x:hidden">
+      <table class="uren-table" style="table-layout:fixed;width:100%">
+        <thead><tr>
+          <th class="left" style="width:20%">Naam</th>
+          <th style="width:10%;font-size:11px" title="Gewerkt">Gew.</th>
+          <th style="width:10%;font-size:11px" title="Ziek">Ziek</th>
+          <th style="width:10%;font-size:11px" title="Dokter">Dokt.</th>
+          <th style="width:12%;font-size:11px" title="Vrij (betaald)">Vrij</th>
+          <th class="left" style="width:38%">Status</th>
+        </tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
@@ -1446,7 +1654,7 @@ window.renderVakantie = async function() {
   const jaren = [huidigJaar-1, huidigJaar, huidigJaar+1].map(String);
   const curJaar = parseInt(jaarSel.value || huidigJaar);
   jaarSel.innerHTML = jaren.map(j => `<option ${+j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
-  const namen = allUsers.filter(u => u.role !== 'admin' && !u.losseKracht).map(u => u.name).sort();
+  const namen = allUsers.filter(u => u.role !== 'admin' && !u.losseKracht && isActief(u)).map(u => u.name).sort();
   if (!namen.length) { matrixEl.innerHTML = '<div class="empty">Nog geen medewerkers</div>'; summaryEl.innerHTML = ''; return; }
   const dagen = ['Ma','Di','Wo','Do','Vr'];
   const huidigWeek = getWeekNr(todayStr());
@@ -1549,7 +1757,7 @@ window.approveFromList = async function(naam, datum) {
 window.renderVakantieDetail = function() {
   const el = document.getElementById('vakantie-list');
   if (!vakAllVrij) { el.innerHTML = ''; return; }
-  const namen = allUsers.filter(u => u.role !== 'admin' && !u.losseKracht).map(u => u.name).sort();
+  const namen = allUsers.filter(u => u.role !== 'admin' && !u.losseKracht && isActief(u)).map(u => u.name).sort();
   const alleWeken = new Set();
   namen.forEach(naam => { Object.keys(vakAllVrij[naam] || {}).forEach(datum => { if (vakAllVrij[naam][datum]) alleWeken.add(weekKey(datum)); }); });
   const wekenSorted = [...alleWeken].sort();
@@ -1638,7 +1846,7 @@ window.downloadImportSjabloon = function() {
   const jaar = new Date().getFullYear();
   const huidigeWeek = getWeekNr(todayStr());
   const laatsteWeek = Math.max(1, huidigeWeek - 1);
-  const namen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
+  const namen = allUsers.filter(u => u.role !== 'admin' && isActief(u)).map(u => u.name).sort();
   // Let op: 'Contract uren' en 'Snipperuren' staan niet in dit sjabloon — die komen elders
   // automatisch uit het contract resp. de Vakantie-module. Hier alleen de werkelijk
   // gewerkte/verzuimde uren per week, net als in je eigen overzicht.
@@ -1920,13 +2128,19 @@ function fillCommonFilters() {
 function fillFixNaamSelects() {
   const oudSel = document.getElementById('fix-oud');
   const nieuwSel = document.getElementById('fix-nieuw');
-  if (!oudSel || !nieuwSel) return;
-  const oudNamen = [...new Set(allEntries.map(e => e.naam))].sort();
   const huidigeNamen = allUsers.filter(u => u.role !== 'admin').map(u => u.name).sort();
-  const curOud = oudSel.value;
-  const curNieuw = nieuwSel.value;
-  oudSel.innerHTML = '<option value="">Kies naam...</option>' + oudNamen.map(n => `<option ${n===curOud?'selected':''} value="${n}">${n}</option>`).join('');
-  nieuwSel.innerHTML = '<option value="">Kies medewerker...</option>' + huidigeNamen.map(n => `<option ${n===curNieuw?'selected':''} value="${n}">${n}</option>`).join('');
+  if (oudSel && nieuwSel) {
+    const oudNamen = [...new Set(allEntries.map(e => e.naam))].sort();
+    const curOud = oudSel.value;
+    const curNieuw = nieuwSel.value;
+    oudSel.innerHTML = '<option value="">Kies naam...</option>' + oudNamen.map(n => `<option ${n===curOud?'selected':''} value="${n}">${n}</option>`).join('');
+    nieuwSel.innerHTML = '<option value="">Kies medewerker...</option>' + huidigeNamen.map(n => `<option ${n===curNieuw?'selected':''} value="${n}">${n}</option>`).join('');
+  }
+  const rnSel = document.getElementById('rn-medewerker');
+  if (rnSel) {
+    const curRn = rnSel.value;
+    rnSel.innerHTML = '<option value="">Kies medewerker...</option>' + huidigeNamen.map(n => `<option ${n===curRn?'selected':''} value="${n}">${n}</option>`).join('');
+  }
 }
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('screen-login').style.display !== 'none') doLogin();
