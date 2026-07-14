@@ -231,6 +231,7 @@
             <select id="wk-naam" onchange="renderWeekoverzicht()"></select>
             <button class="btn btn-secondary btn-sm" onclick="stapWeekoverzichtMedewerker(1)" title="Volgende medewerker (pijl rechts)">▶</button>
             <select id="wk-jaar" onchange="renderWeekoverzicht()"></select>
+            <button class="btn btn-secondary btn-sm" onclick="naarDetailsVoorMedewerker()" title="Bekijk en wijzig registraties van deze medewerker in Details">🔍 Details</button>
           </div>
           <div class="wk-lines" id="wk-lines"></div>
         </div>
@@ -1448,8 +1449,19 @@ window.renderTeeltenLoonkosten = function() {
   </table></div>`;
 };
 // ---------- Details ----------
+let detailsVoorkeurNaam = null;
+window.naarDetailsVoorMedewerker = function() {
+  const naam = document.getElementById('wk-naam').value;
+  detailsVoorkeurNaam = naam;
+  goToPage('details');
+};
 window.renderDetails = function() {
   fillCommonFilters();
+  if (detailsVoorkeurNaam) {
+    const sel = document.getElementById('f-naam');
+    if (sel) sel.value = detailsVoorkeurNaam;
+    detailsVoorkeurNaam = null;
+  }
   const naam = val('f-naam');
   const week2 = val('f-week2');
   let filtered = allEntries.filter(e => {
