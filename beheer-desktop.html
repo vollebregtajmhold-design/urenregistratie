@@ -614,6 +614,7 @@ async function laadFeestdagen() {
 function isFeestdag(datum) { return allFeestdagen.some(f => f.datum === datum); }
 function berekenEntriesMetFeestdagen() {
   if (!allFeestdagen.length || !allUsers.length) return allEntries;
+  const vandaag = todayStr();
   const extraMap = {};
   allUsers.filter(u => u.role !== 'admin' && isActief(u) && !u.losseKracht).forEach(u => {
     const werkdagen = u.vasteWerkdagen || DAGNAMEN5;
@@ -621,6 +622,7 @@ function berekenEntriesMetFeestdagen() {
     const dagUren = werkdagen.length > 0 ? +(contract / werkdagen.length).toFixed(2) : 0;
     if (dagUren <= 0) return;
     allFeestdagen.forEach(({datum}) => {
+      if (datum > vandaag) return; // toekomstige feestdagen tellen pas mee zodra ze geweest zijn
       const dagNaam = dagNaamVanDatum(datum);
       if (!werkdagen.includes(dagNaam)) return;
       const bestaand = allEntries.find(e => e.naam === u.name && e.datum === datum);
