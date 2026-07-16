@@ -118,6 +118,10 @@
   .vak-table-scroll table{border-collapse:separate;border-spacing:0}
   .vak-table-scroll thead th{position:sticky;top:0;z-index:3;box-shadow:0 1px 0 var(--border);background:var(--accent-light)}
   /* Compacte weekoverzicht-header */
+  .wk-body{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:1.25rem;align-items:start}
+  .wk-main{min-width:0}
+  .wk-dashboard{padding:1.1rem 1.25rem;position:sticky;top:0}
+  @media (max-width:1180px){.wk-body{grid-template-columns:1fr}.wk-dashboard{position:static}}
   .wk-header{display:flex;align-items:center;gap:1.75rem;flex-wrap:wrap;padding:1rem 1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.25rem}
   .wk-header-left{display:flex;flex-direction:column;gap:.55rem}
   .wk-selects{display:flex;gap:8px}
@@ -223,26 +227,31 @@
     <div id="global-aanvraag-banner" style="display:none;margin-bottom:1.25rem"></div>
     <!-- WEEKOVERZICHT -->
     <div class="page active" id="page-weekoverzicht">
-      <div class="wk-header">
-        <div class="wk-header-left">
-          <div class="wk-vrije-dagen" id="wk-vrije-dagen"></div>
-          <div class="wk-selects">
-            <button class="btn btn-secondary btn-sm" onclick="stapWeekoverzichtMedewerker(-1)" title="Vorige medewerker (pijl links)">◀</button>
-            <select id="wk-naam" onchange="renderWeekoverzicht()"></select>
-            <button class="btn btn-secondary btn-sm" onclick="stapWeekoverzichtMedewerker(1)" title="Volgende medewerker (pijl rechts)">▶</button>
-            <select id="wk-jaar" onchange="renderWeekoverzicht()"></select>
-            <button class="btn btn-secondary btn-sm" onclick="naarDetailsVoorMedewerker()" title="Bekijk en wijzig registraties van deze medewerker in Details">🔍 Details</button>
+      <div class="wk-body">
+        <div class="wk-main">
+          <div class="wk-header">
+            <div class="wk-header-left">
+              <div class="wk-vrije-dagen" id="wk-vrije-dagen"></div>
+              <div class="wk-selects">
+                <button class="btn btn-secondary btn-sm" onclick="stapWeekoverzichtMedewerker(-1)" title="Vorige medewerker (pijl links)">◀</button>
+                <select id="wk-naam" onchange="renderWeekoverzicht()"></select>
+                <button class="btn btn-secondary btn-sm" onclick="stapWeekoverzichtMedewerker(1)" title="Volgende medewerker (pijl rechts)">▶</button>
+                <select id="wk-jaar" onchange="renderWeekoverzicht()"></select>
+                <button class="btn btn-secondary btn-sm" onclick="naarDetailsVoorMedewerker()" title="Bekijk en wijzig registraties van deze medewerker in Details">🔍 Details</button>
+              </div>
+              <div class="wk-lines" id="wk-lines"></div>
+            </div>
+            <div class="wk-stats-wrap">
+              <div class="wk-stats-title">Snipperuren</div>
+              <div class="wk-stats" id="wk-stats"></div>
+              <div class="wk-stats-sub" id="wk-dagen"></div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="printWeekoverzicht()">🖨️ Afdrukken (1 A4)</button>
           </div>
-          <div class="wk-lines" id="wk-lines"></div>
+          <div class="card" id="wk-table-wrap"><div class="loading">Laden...</div></div>
         </div>
-        <div class="wk-stats-wrap">
-          <div class="wk-stats-title">Snipperuren</div>
-          <div class="wk-stats" id="wk-stats"></div>
-          <div class="wk-stats-sub" id="wk-dagen"></div>
-        </div>
-        <button class="btn btn-secondary btn-sm" onclick="printWeekoverzicht()">🖨️ Afdrukken (1 A4)</button>
+        <div class="wk-dashboard card" id="wk-dashboard"></div>
       </div>
-      <div class="card" id="wk-table-wrap"><div class="loading">Laden...</div></div>
     </div>
     <!-- LOSSE KRACHTEN -->
     <div class="page" id="page-lossekrachten">
@@ -332,7 +341,11 @@
     <div class="page" id="page-mensen">
       <div class="page-head">
         <div><div class="page-title">Medewerkers</div><div class="page-hint">Contracturen, snipperuren en accounts beheren.</div></div>
-        <button class="btn btn-secondary btn-sm" onclick="downloadBackup()">💾 Backup downloaden (alle data)</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="downloadBackup()">💾 Backup downloaden (alle data)</button>
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('restore-file').click()">📤 Backup herstellen</button>
+          <input type="file" id="restore-file" accept="application/json" style="display:none" onchange="verwerkRestoreFile(event)">
+        </div>
       </div>
       <div class="filter-row">
         <div class="field"><label>Toon</label><select id="mens-filter" onchange="renderMedewerkers()"><option value="">Alle medewerkers</option></select></div>
@@ -562,7 +575,10 @@ let allNotes = [];
 const TEELTEN = ['Jonge planten','Hortensia','Micro','Mini','Cyclamen','Algemeen'];
 const DAGNAMEN5 = ['Ma','Di','Wo','Do','Vr'];
 const DAGNAMEN7 = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
-function dagNaamVanDatum(datum) { return ['Zo','Ma','Di','Wo','Do','Vr','Za'][new Date(datum).getDay()]; }
+// Let op: gebruikt getUTCDay(), niet getDay() — een datum-string zoals "2026-07-16" wordt door
+// new Date() als UTC-middernacht geparsed. Met getDay() (lokale tijdzone) kan dit, afhankelijk van
+// de tijdzone van de browser/server, een dag vroeg uitkomen (bug: maandag leek dan geen werkdag).
+function dagNaamVanDatum(datum) { return ['Zo','Ma','Di','Wo','Do','Vr','Za'][new Date(datum).getUTCDay()]; }
 // Verdeelt de waarde van de teelt 'Algemeen' evenredig (naar aandeel) over de overige teelten,
 // en zet 'Algemeen' zelf op 0. Gebruikt voor de keuze 'Incl. algemeen' bij Teelten & loonkosten.
 function verdeelAlgemeenOverTeelten(perTeelt) {
@@ -967,10 +983,11 @@ window.renderWeekoverzicht = async function() {
   const vrijeDagenEl = document.getElementById('wk-vrije-dagen');
   if (!curNaam) { linesEl.innerHTML=''; statsEl.innerHTML=''; tableEl.innerHTML = '<div class="empty">Nog geen medewerkers</div>'; return; }
   vrijeDagenEl.textContent = 'Vrije dagen laden...';
+  let dagenObj = {};
   try {
     const key = curNaam.toLowerCase().replace(/\s+/g,'-');
     const snap = await getDoc(doc(db, 'vrije_dagen', key));
-    const dagenObj = snap.exists() ? (snap.data().dagen || {}) : {};
+    dagenObj = snap.exists() ? (snap.data().dagen || {}) : {};
     const datumsDitJaar = Object.keys(dagenObj).filter(d => dagenObj[d] && d.startsWith(curJaar)).sort();
     vrijeDagenEl.textContent = vrijeDagenSamenvatting(datumsDitJaar);
   } catch(e) { vrijeDagenEl.textContent = 'Vrije dagen niet beschikbaar'; }
@@ -1047,7 +1064,130 @@ window.renderWeekoverzicht = async function() {
     </tbody>
   </table></div>`;
   setTimeout(() => markeerWeekActief(maxWeek, { block: 'center' }), 50);
+  renderWeekoverzichtDashboard(curNaam, curJaar, u, dagenObj);
 };
+// Rechterkolom-dashboard van de geselecteerde medewerker (verjaardag, vrije dagen, niet ingevulde dagen).
+// Bewust niet meegenomen in printWeekoverzicht().
+// Bouwt een compact weekraster: per rij het weeknummer + 5 dagcellen (Ma t/m Vr) van de laatste 4 weken.
+function renderNietIngevuldWeekGrid(naam, dagenObj) {
+  const vandaag = todayStr();
+  const DAG_MS = 86400000;
+  // Puur UTC/epoch-rekenwerk (geen new Date(str+'T00:00:00') of lokale .getDate()/.setDate())
+  // om te voorkomen dat een tijdzone-offset de datum een dag laat verschuiven.
+  const vandaagMs = new Date(vandaag).getTime();
+  const dowVandaag = new Date(vandaag).getUTCDay() || 7; // 1=Ma..7=Zo
+  const maandagHuidigMs = vandaagMs - (dowVandaag - 1) * DAG_MS;
+  const u = allUsers.find(x => x.name === naam) || {};
+  const werkdagen = u.vasteWerkdagen || DAGNAMEN5;
+  const dagKort = ['Ma','Di','Wo','Do','Vr'];
+  const naamEsc = naam.replace(/'/g, "\\'");
+  let totMissend = 0;
+  let rows = '';
+  for (let w = 3; w >= 0; w--) {
+    const maandagMs = maandagHuidigMs - w * 7 * DAG_MS;
+    const maandagStr = new Date(maandagMs).toISOString().split('T')[0];
+    const weekNr = getWeekNr(maandagStr);
+    let cellen = '';
+    for (let i = 0; i < 5; i++) {
+      const datum = new Date(maandagMs + i * DAG_MS).toISOString().split('T')[0];
+      const dagNr = +datum.split('-')[2];
+      const dagNaam = dagNaamVanDatum(datum);
+      let stijl = 'background:#F5F5F5;color:#CCC', klik = '', titel = dagKort[i];
+      if (datum > vandaag) {
+        // toekomstige dag: neutraal, nog niets te verwachten
+      } else if (!werkdagen.includes(dagNaam)) {
+        stijl = 'background:#EEF2F5;color:#BBB'; titel += ' · geen werkdag';
+      } else if (isFeestdag(datum)) {
+        stijl = 'background:#EFE3F5;color:#7A4FA3'; titel += ' · feestdag';
+      } else if (vrijStatus(dagenObj[datum])) {
+        stijl = 'background:#DCEBF7;color:#1F5E8C'; titel += ' · vrij';
+      } else {
+        const e = allEntries.find(x => x.naam === naam && x.datum === datum);
+        const heeftIets = e && (+(e.gewerkt||0) || +(e.ziek||0) || +(e.dokter||0) || +(e.vrij||0));
+        if (heeftIets) {
+          stijl = 'background:#DDF3E6;color:#155C36'; titel += ' · ingevuld';
+        } else {
+          stijl = 'background:#F8DEDA;color:#A6362A;cursor:pointer'; titel += ' · niet ingevuld, klik om in te vullen';
+          klik = ` onclick="naarNieuweEntryVoorDag('${naamEsc}','${datum}')"`;
+          totMissend++;
+        }
+      }
+      cellen += `<div${klik} title="${titel}" style="${stijl};border-radius:5px;padding:4px 0;text-align:center;font-size:11px;font-weight:700">${dagNr}</div>`;
+    }
+    rows += `<div style="display:grid;grid-template-columns:34px repeat(5,1fr);gap:4px;align-items:center;margin-bottom:3px">
+      <div style="font-size:11px;color:var(--muted);font-weight:700">Wk${weekNr}</div>${cellen}
+    </div>`;
+  }
+  const header = `<div style="display:grid;grid-template-columns:34px repeat(5,1fr);gap:4px;margin-bottom:3px">
+    <div></div>${dagKort.map(d => `<div style="font-size:10px;color:var(--muted);text-align:center">${d}</div>`).join('')}
+  </div>`;
+  return { html: header + rows, totMissend };
+}
+// Groepeert een lijst datums per ISO-weeknummer, met "Wk{nr}" ervoor — gebruikt voor de vrije-dagenlijsten.
+function groepeerPerWeek(datums) {
+  const groepen = {};
+  datums.forEach(d => {
+    const wk = getWeekNr(d);
+    if (!groepen[wk]) groepen[wk] = [];
+    groepen[wk].push(d);
+  });
+  return Object.keys(groepen).map(Number).sort((a, b) => a - b).map(wk => ({ wk, datums: groepen[wk] }));
+}
+window.naarNieuweEntryVoorDag = function(naam, datum) {
+  goToPage('details');
+  toonNieuweEntry();
+  document.getElementById('ne-naam').value = naam;
+  document.getElementById('ne-datum').value = datum;
+};
+function renderWeekoverzichtDashboard(naam, jaar, u, dagenObj) {
+  const el = document.getElementById('wk-dashboard');
+  if (!el) return;
+  const fmtDag = d => new Date(d).toLocaleDateString('nl-NL', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' });
+  const badges = (lijst, kleur) => {
+    if (!lijst.length) return '<div style="color:var(--muted);font-size:13px;margin-top:2px">Geen</div>';
+    return groepeerPerWeek(lijst).map(({wk, datums}) => `
+      <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+        <span style="font-size:11px;color:var(--muted);font-weight:700;width:34px;flex-shrink:0">Wk${wk}</span>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">${datums.map(d => `<span style="background:${kleur}22;color:${kleur};border-radius:5px;padding:2px 6px;font-size:12px;white-space:nowrap">${fmtDag(d)}</span>`).join('')}</div>
+      </div>`).join('');
+  };
+  let verjaardagHtml = '<span style="color:var(--muted);font-size:13px">Niet ingevuld</span>';
+  if (u.geboortedatum) {
+    const delen = u.geboortedatum.split('-').map(Number);
+    const dagLabel = new Date(Date.UTC(2000, delen[1]-1, delen[2])).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' });
+    const vandaagD = new Date(todayStr());
+    let diffDagen = null;
+    for (const offset of [0, 1]) {
+      const jr = vandaagD.getUTCFullYear() + offset;
+      const verj = new Date(Date.UTC(jr, delen[1]-1, delen[2]));
+      const diff = Math.round((verj - vandaagD) / 86400000);
+      if (diff >= 0) { diffDagen = diff; break; }
+    }
+    const extra = diffDagen === 0 ? ' · vandaag! 🎉' : (diffDagen !== null && diffDagen <= 5 ? ` · over ${diffDagen} dagen` : '');
+    verjaardagHtml = `<b>${dagLabel}</b>${extra}`;
+  }
+  const goedgekeurd = Object.keys(dagenObj).filter(d => d.startsWith(jaar) && vrijStatus(dagenObj[d]) === 'goedgekeurd').sort();
+  const aangevraagd = Object.keys(dagenObj).filter(d => d.startsWith(jaar) && vrijStatus(dagenObj[d]) === 'aangevraagd').sort();
+  const { html: missendHtml, totMissend } = renderNietIngevuldWeekGrid(naam, dagenObj);
+  el.innerHTML = `
+    <div style="font-weight:700;font-size:15px;margin-bottom:.9rem">Dashboard ${naam}</div>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em">🎂 Verjaardag</div>
+      <div style="margin-top:2px">${verjaardagHtml}</div>
+    </div>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em">🏖️ Vrije dagen goedgekeurd (${goedgekeurd.length})</div>
+      ${badges(goedgekeurd, '#1F5E8C')}
+    </div>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em">🏖️ Vrije dagen aangevraagd (${aangevraagd.length})</div>
+      ${badges(aangevraagd, '#6FA8DC')}
+    </div>
+    <div>
+      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em">⚠️ Niet ingevuld (laatste 4 weken) (${totMissend})</div>
+      <div style="margin-top:4px">${missendHtml}</div>
+    </div>`;
+}
 window.markeerWeekActief = function(w, opts) {
   opts = opts || {};
   document.querySelectorAll('#wk-table-wrap tr.wk-actief-week').forEach(tr => tr.classList.remove('wk-actief-week'));
@@ -2437,14 +2577,97 @@ window.printOverzicht = function() {
   win.document.close();
   win.print();
 };
-window.downloadBackup = function() {
-  const data = { exportDatum: new Date().toISOString(), users: allUsers, entries: allEntries, notes: allNotes };
+window.downloadBackup = async function() {
+  const [usersSnap, entriesSnap, notesSnap, vrijSnap, feestSnap] = await Promise.all([
+    getDocs(collection(db, 'users')),
+    getDocs(collection(db, 'entries')),
+    getDocs(collection(db, 'notes')),
+    getDocs(collection(db, 'vrije_dagen')),
+    getDocs(collection(db, 'feestdagen')),
+  ]);
+  const data = {
+    exportDatum: new Date().toISOString(),
+    users: usersSnap.docs.map(d => d.data()),
+    entries: entriesSnap.docs.map(d => d.data()),
+    notes: notesSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+    vrije_dagen: vrijSnap.docs.map(d => d.data()),
+    feestdagen: feestSnap.docs.map(d => d.data()),
+  };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `urenregistratie_backup_${todayStr()}.json`;
   a.click(); URL.revokeObjectURL(url);
 };
+// ---------- Backup terugzetten ----------
+window.verwerkRestoreFile = async function(event) {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  let data;
+  try {
+    data = JSON.parse(await file.text());
+  } catch(e) {
+    alert('Kon het bestand niet lezen. Is dit een geldig backup-bestand (.json)?');
+    return;
+  }
+  if (!data || !Array.isArray(data.users) || !Array.isArray(data.entries)) {
+    alert('Dit lijkt geen geldig backup-bestand van deze app.');
+    return;
+  }
+  const datumTekst = data.exportDatum ? new Date(data.exportDatum).toLocaleString('nl-NL') : 'onbekend';
+  const stap1 = confirm(
+    `Backup van ${datumTekst} terugzetten?\n\n` +
+    `${data.users.length} medewerkers, ${data.entries.length} registraties, ${(data.notes||[]).length} opmerkingen` +
+    ((data.vrije_dagen||[]).length ? `, ${(data.vrije_dagen||[]).length} vrije-dagenlijsten` : '') +
+    ((data.feestdagen||[]).length ? `, ${(data.feestdagen||[]).length} feestdagen` : '') + '.\n\n' +
+    'Dit VERVANGT alle huidige data door deze backup. Alles wat na deze backup is toegevoegd of gewijzigd, gaat verloren. Doorgaan?'
+  );
+  if (!stap1) return;
+  const stap2 = confirm('Weet je het echt zeker? Dit kan niet ongedaan worden gemaakt.');
+  if (!stap2) return;
+  await herstelBackup(data);
+};
+async function herstelBackup(data) {
+  try {
+    const colNamen = ['users', 'entries', 'notes', 'vrije_dagen', 'feestdagen'];
+    const huidigeIds = {};
+    for (const col of colNamen) {
+      const snap = await getDocs(collection(db, col));
+      huidigeIds[col] = snap.docs.map(d => d.id);
+    }
+    const nieuw = {
+      users: (data.users||[]).map(u => ({ id: u.name.toLowerCase().replace(/\s+/g,'-'), data: u })),
+      entries: (data.entries||[]).map(e => ({ id: e.naam.toLowerCase().replace(/\s+/g,'-') + '_' + e.datum, data: e })),
+      notes: (data.notes||[]).map(n => { const { id, ...rest } = n; return { id: null, data: rest }; }),
+      vrije_dagen: (data.vrije_dagen||[]).map(v => ({ id: v.naam.toLowerCase().replace(/\s+/g,'-'), data: v })),
+      feestdagen: (data.feestdagen||[]).map(f => ({ id: f.datum, data: f })),
+    };
+    // Verwijder wat niet meer in de backup zit (notes: altijd alles vervangen, ids zijn niet stabiel).
+    for (const col of colNamen) {
+      const nieuweIds = new Set(nieuw[col].filter(x => x.id).map(x => x.id));
+      for (const id of huidigeIds[col]) {
+        if (col === 'notes' || !nieuweIds.has(id)) await deleteDoc(doc(db, col, id));
+      }
+    }
+    // Schrijf de backup terug.
+    for (const col of colNamen) {
+      for (const item of nieuw[col]) {
+        if (item.id) await setDoc(doc(db, col, item.id), item.data);
+        else await setDoc(doc(collection(db, col)), item.data);
+      }
+    }
+    await loadUsers();
+    await loadEntries();
+    await loadNotes();
+    await laadVrijeDagen();
+    await laadFeestdagen();
+    renderMedewerkers();
+    alert('Backup is teruggezet.');
+  } catch(err) {
+    alert('Er ging iets mis bij het terugzetten: ' + err.message);
+  }
+}
 function checkWeeklyBackup() {
   const KEY = 'ur_laatste_backup';
   const last = localStorage.getItem(KEY);
