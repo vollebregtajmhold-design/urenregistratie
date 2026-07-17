@@ -118,7 +118,7 @@
   .vak-table-scroll table{border-collapse:separate;border-spacing:0}
   .vak-table-scroll thead th{position:sticky;top:0;z-index:3;box-shadow:0 1px 0 var(--border);background:var(--accent-light)}
   /* Compacte weekoverzicht-header */
-  .wk-body{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:1.25rem;align-items:start}
+  .wk-body{display:grid;grid-template-columns:minmax(0,1fr) 480px;gap:1.25rem;align-items:start}
   .wk-main{min-width:0}
   .wk-dashboard{padding:1.1rem 1.25rem;position:sticky;top:0}
   @media (max-width:1180px){.wk-body{grid-template-columns:1fr}.wk-dashboard{position:static}}
@@ -345,6 +345,8 @@
           <button class="btn btn-secondary btn-sm" onclick="downloadBackup()">💾 Backup downloaden (alle data)</button>
           <button class="btn btn-secondary btn-sm" onclick="document.getElementById('restore-file').click()">📤 Backup herstellen</button>
           <input type="file" id="restore-file" accept="application/json" style="display:none" onchange="verwerkRestoreFile(event)">
+          <button class="btn btn-secondary btn-sm" onclick="kiesDriveBackupMap()" title="Kies een map (bijv. je Google Drive-synchronisatiemap) waar elke backup automatisch ook naartoe geschreven wordt">🗂️ Drive-map instellen</button>
+          <span id="drive-backup-status" style="font-size:12px;color:var(--muted);align-self:center">Geen map gekozen</span>
         </div>
       </div>
       <div class="filter-row">
@@ -465,6 +467,10 @@
       <div style="margin-bottom:1.5rem">
         <div id="vakantie-list"></div>
       </div>
+      <div class="card" style="margin-bottom:1.5rem;padding:1rem 1.25rem">
+        <div style="font-weight:700;margin-bottom:.75rem;font-size:15px">🧮 Weekplanning — beschikbare uren</div>
+        <div id="weekplanning-strook"><div class="loading">Laden...</div></div>
+      </div>
       <details class="card" style="margin-bottom:1.5rem">
         <summary style="cursor:pointer;font-weight:700;font-size:15px;color:var(--text)">📊 Matrix: heel jaar, alle medewerkers</summary>
         <div style="overflow-x:auto;margin-top:1rem">
@@ -554,10 +560,10 @@
     </div>
   </div>
 </div>
-<!-- Firebase SDK -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<!-- Firebase SDK (compat-variant: werkt ook wanneer dit bestand rechtstreeks vanaf schijf wordt geopend, file://) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyDha05hLJuL1O-4cjcCOdutdQmbUPXGN4Q",
   authDomain: "urenregistratie-416e5.firebaseapp.com",
@@ -566,8 +572,20 @@ const firebaseConfig = {
   messagingSenderId: "324133291974",
   appId: "1:324133291974:web:e185a51b03a86e15ced4c7"
 };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+// ---- Shims: laten de rest van de code (geschreven voor de modulaire Firestore-API) ongewijzigd werken ----
+function collection(_db, path) { return db.collection(path); }
+function doc(refOrDb, path, id) {
+  if (path === undefined) return refOrDb.doc();
+  return db.collection(path).doc(id);
+}
+function getDoc(ref) { return ref.get(); }
+function getDocs(ref) { return ref.get(); }
+function setDoc(ref, data) { return ref.set(data); }
+function deleteDoc(ref) { return ref.delete(); }
+function orderBy(field, direction) { return (q) => q.orderBy(field, direction); }
+function query(base, ...constraints) { return constraints.reduce((q, c) => c(q), base); }
 let me = null;
 let allEntries = [];
 let allUsers = [];
@@ -694,6 +712,7 @@ window.doLogin = async function() {
   await loadNotes();
   await laadFeestdagen();
   checkWeeklyBackup();
+  loadDriveHandle().then(updateDriveBackupStatus);
   document.getElementById('sidebar-user').textContent = me.name;
   show('screen-app');
   goToPage('weekoverzicht');
@@ -1112,16 +1131,14 @@ function renderNietIngevuldWeekGrid(naam, dagenObj) {
           totMissend++;
         }
       }
-      cellen += `<div${klik} title="${titel}" style="${stijl};border-radius:5px;padding:4px 0;text-align:center;font-size:11px;font-weight:700">${dagNr}</div>`;
+      const label = new Date(datum).toLocaleDateString('nl-NL', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' });
+      cellen += `<div${klik} title="${titel}" style="${stijl};border-radius:5px;padding:4px 2px;text-align:center;font-size:10px;font-weight:700;line-height:1.3;white-space:nowrap">${label}</div>`;
     }
     rows += `<div style="display:grid;grid-template-columns:34px repeat(5,1fr);gap:4px;align-items:center;margin-bottom:3px">
       <div style="font-size:11px;color:var(--muted);font-weight:700">Wk${weekNr}</div>${cellen}
     </div>`;
   }
-  const header = `<div style="display:grid;grid-template-columns:34px repeat(5,1fr);gap:4px;margin-bottom:3px">
-    <div></div>${dagKort.map(d => `<div style="font-size:10px;color:var(--muted);text-align:center">${d}</div>`).join('')}
-  </div>`;
-  return { html: header + rows, totMissend };
+  return { html: rows, totMissend };
 }
 // Groepeert een lijst datums per ISO-weeknummer, met "Wk{nr}" ervoor — gebruikt voor de vrije-dagenlijsten.
 function groepeerPerWeek(datums) {
@@ -2132,6 +2149,7 @@ window.renderVakantie = async function() {
   summaryEl.innerHTML = '<div class="loading">Laden...</div>';
   await laadVrijeDagen();
   updateAanvraagBadge();
+  renderWeekplanning();
   const huidigJaar = new Date().getFullYear();
   const jaarSel = document.getElementById('f-vak-jaar');
   const jaren = [huidigJaar-1, huidigJaar, huidigJaar+1].map(String);
@@ -2323,6 +2341,64 @@ window.renderVakantieDetail = function() {
     el.style.maxHeight = '';
     el.style.overflowY = '';
   }
+};
+// ---------- Weekplanning: beschikbare uren per week, horizontaal (contract min feestdagen en vrije dagen) ----------
+window.renderWeekplanning = async function() {
+  const el = document.getElementById('weekplanning-strook');
+  if (!el) return;
+  el.innerHTML = '<div class="loading">Laden...</div>';
+  await Promise.all([laadFeestdagen(), laadVrijeDagen()]);
+  const vasteMedewerkers = allUsers.filter(u => u.role !== 'admin' && !u.losseKracht && isActief(u) && (u.contracturen || 0) > 0);
+  if (!vasteMedewerkers.length) { el.innerHTML = '<div class="empty">Nog geen vaste medewerkers met contracturen</div>'; return; }
+  const dagIdx = { Ma: 0, Di: 1, Wo: 2, Do: 3, Vr: 4 };
+  const huidigJaar = new Date().getFullYear();
+  const huidigWeek = getWeekNr(todayStr());
+  const startWeek = Math.max(1, huidigWeek - 1);
+  const weken = [];
+  for (let w = startWeek; w <= 53; w++) {
+    const ma = datumVanWeekdag(huidigJaar, w, 0);
+    if (new Date(ma).getUTCFullYear() > huidigJaar) break;
+    let bruto = 0, feestUren = 0, verlofUren = 0;
+    vasteMedewerkers.forEach(u => {
+      const werkdagen = (u.vasteWerkdagen || DAGNAMEN5).filter(d => dagIdx[d] !== undefined);
+      const contract = u.contracturen || 0;
+      if (!werkdagen.length) return;
+      const dagUren = contract / werkdagen.length;
+      bruto += contract;
+      const vrijDagenUser = vakAllVrij[u.name] || {};
+      werkdagen.forEach(dagNaam => {
+        const datum = datumVanWeekdag(huidigJaar, w, dagIdx[dagNaam]);
+        if (isFeestdag(datum)) feestUren += dagUren;
+        else if (vrijStatus(vrijDagenUser[datum])) verlofUren += dagUren;
+      });
+    });
+    const netto = +(bruto - feestUren - verlofUren).toFixed(1);
+    const pct = bruto > 0 ? (netto / bruto) * 100 : 100;
+    weken.push({ w, ma, bruto, feestUren, verlofUren, netto, pct, isHuidig: w === huidigWeek });
+  }
+  const stickyCol = 'position:sticky;left:0;z-index:1';
+  const head = `<th class="left" style="${stickyCol};background:var(--accent-light);min-width:150px">Week</th>` +
+    weken.map(x => `<th style="min-width:64px;text-align:center;${x.isHuidig ? 'background:var(--warn-bg)' : ''}">W${x.w}<div style="font-weight:400;font-size:10px;color:var(--muted)">${fmtDateShort(x.ma)}</div></th>`).join('');
+  const nettoVeldje = x => {
+    const kleur = x.pct >= 90 ? { bg: '#DDF3E6', fg: '#155C36' } : x.pct >= 80 ? { bg: '#FBEBD0', fg: '#8A5A00' } : { bg: '#F8DEDA', fg: '#A6362A' };
+    return `<span style="display:inline-block;min-width:46px;padding:4px 8px;border-radius:6px;font-weight:700;background:${kleur.bg};color:${kleur.fg}">${x.netto.toFixed(1)}</span>`;
+  };
+  const rij = (label, opts) => `<tr>
+    <td class="left" style="${stickyCol};background:var(--surface);${opts.bold ? 'font-weight:700' : ''};${opts.top ? 'border-top:2px solid var(--border)' : ''}">${label}</td>
+    ${weken.map(x => `<td style="text-align:center;padding:6px 4px;${!opts.veldje && opts.bold ? 'font-weight:700;color:var(--accent)' : (!opts.veldje ? 'color:var(--muted)' : '')};${x.isHuidig ? 'background:var(--warn-bg)' : ''};${opts.top ? 'border-top:2px solid var(--border)' : ''}">${opts.fmt(x)}</td>`).join('')}
+  </tr>`;
+  const rows = [
+    rij('Bruto beschikbaar', { fmt: x => x.bruto.toFixed(1) }),
+    rij('Snipperuren', { fmt: x => x.verlofUren ? '-' + x.verlofUren.toFixed(1) : '–' }),
+    rij('Feestvrij', { fmt: x => x.feestUren ? '-' + x.feestUren.toFixed(1) : '–' }),
+    rij('Netto beschikbaar', { bold: true, top: true, veldje: true, fmt: nettoVeldje }),
+  ].join('');
+  el.innerHTML = `<div style="overflow-x:auto">
+    <table class="wk-table" style="border-collapse:separate;border-spacing:0;width:max-content">
+      <thead><tr>${head}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
 };
 // ---------- Import voorliggende weken ----------
 function csvSplitLine(line, delim) {
@@ -2598,7 +2674,76 @@ window.downloadBackup = async function() {
   const a = document.createElement('a');
   a.href = url; a.download = `urenregistratie_backup_${todayStr()}.json`;
   a.click(); URL.revokeObjectURL(url);
+  schrijfBackupNaarDrive(data);
 };
+// ---------- Extra kopie van de backup in een zelf gekozen map (bijv. Google Drive-synchronisatiemap) ----------
+function openDriveHandleDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('ur_drive_backup', 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('handles');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function saveDriveHandle(handle) {
+  const idb = await openDriveHandleDB();
+  await new Promise((res, rej) => {
+    const tx = idb.transaction('handles', 'readwrite');
+    tx.objectStore('handles').put(handle, 'map');
+    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+  });
+}
+async function loadDriveHandle() {
+  try {
+    const idb = await openDriveHandleDB();
+    return await new Promise((res, rej) => {
+      const tx = idb.transaction('handles', 'readonly');
+      const req = tx.objectStore('handles').get('map');
+      req.onsuccess = () => res(req.result || null);
+      req.onerror = () => rej(req.error);
+    });
+  } catch { return null; }
+}
+function updateDriveBackupStatus(handle) {
+  const el = document.getElementById('drive-backup-status');
+  if (!el) return;
+  el.textContent = handle ? `📁 ${handle.name}` : 'Geen map gekozen';
+}
+window.kiesDriveBackupMap = async function() {
+  if (!window.showDirectoryPicker) { alert('Je browser ondersteunt dit niet. Gebruik Chrome of Edge, en kies de map die je met Google Drive synchroniseert.'); return; }
+  try {
+    const handle = await window.showDirectoryPicker();
+    const perm = await handle.requestPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') { alert('Geen schrijftoegang verleend.'); return; }
+    await saveDriveHandle(handle);
+    updateDriveBackupStatus(handle);
+    alert(`Map "${handle.name}" gekozen. Elke backup (handmatig en de wekelijkse automatische) wordt hier voortaan ook in gezet.`);
+  } catch(e) {
+    if (e.name !== 'AbortError') alert('Kon geen map kiezen: ' + e.message);
+  }
+};
+async function getGrantedDriveHandle() {
+  const handle = await loadDriveHandle();
+  if (!handle) return null;
+  try {
+    const perm = await handle.queryPermission({ mode: 'readwrite' });
+    return perm === 'granted' ? handle : null;
+  } catch { return null; }
+}
+async function schrijfBackupNaarDrive(data) {
+  const handle = await getGrantedDriveHandle();
+  if (!handle) return false;
+  try {
+    const fileHandle = await handle.getFileHandle(`urenregistratie_backup_${todayStr()}.json`, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(JSON.stringify(data, null, 2));
+    await writable.close();
+    return true;
+  } catch(e) {
+    console.warn('Extra backup-kopie naar gekozen map mislukt:', e);
+    return false;
+  }
+}
 // ---------- Backup terugzetten ----------
 window.verwerkRestoreFile = async function(event) {
   const file = event.target.files[0];
