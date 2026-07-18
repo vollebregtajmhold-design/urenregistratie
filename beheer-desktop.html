@@ -205,7 +205,7 @@
       <div class="nav-subitems" id="nav-instellingen-sub">
         <div class="nav-item" data-page="mensen"><span class="nav-icon">👥</span>Medewerkers</div>
         <div class="nav-item" data-page="personalia"><span class="nav-icon">🪪</span>Personalia</div>
-        <div class="nav-item" data-page="details"><span class="nav-icon">🔍</span>Details</div>
+        <div class="nav-item" data-page="details"><span class="nav-icon">🔍</span>Correctie</div>
         <div class="nav-item" data-page="import"><span class="nav-icon">📥</span>Import</div>
         <div class="nav-item" data-page="feestdagen"><span class="nav-icon">🎉</span>Feestdagen</div>
         <div class="nav-item" data-page="wachtwoord"><span class="nav-icon">🔒</span>Wachtwoord</div>
@@ -237,7 +237,7 @@
                 <select id="wk-naam" onchange="renderWeekoverzicht()"></select>
                 <button class="btn btn-secondary btn-sm" onclick="stapWeekoverzichtMedewerker(1)" title="Volgende medewerker (pijl rechts)">▶</button>
                 <select id="wk-jaar" onchange="renderWeekoverzicht()"></select>
-                <button class="btn btn-secondary btn-sm" onclick="naarDetailsVoorMedewerker()" title="Bekijk en wijzig registraties van deze medewerker in Details">🔍 Details</button>
+                <button class="btn btn-secondary btn-sm" onclick="naarDetailsVoorMedewerker()" title="Bekijk en wijzig registraties van deze medewerker in Correctie">🔍 Correctie</button>
               </div>
               <div class="wk-lines" id="wk-lines"></div>
             </div>
@@ -308,7 +308,7 @@
     <!-- DETAILS -->
     <div class="page" id="page-details">
       <div class="page-head">
-        <div><div class="page-title">Details</div><div class="page-hint">Elke registratie los inzien, aanpassen of verwijderen.</div></div>
+        <div><div class="page-title">Correctie</div><div class="page-hint">Elke registratie los inzien, aanpassen of verwijderen.</div></div>
         <button class="btn btn-primary btn-sm" onclick="toonNieuweEntry()">➕ Nieuwe registratie</button>
       </div>
       <div class="card" id="nieuwe-entry-form" style="display:none;margin-bottom:1.25rem;max-width:640px">
@@ -317,10 +317,10 @@
           <div><label class="mini-lbl">Datum</label><input type="date" id="ne-datum"></div>
         </div>
         <div class="row4" style="margin-top:8px">
-          <div><label class="mini-lbl">Gewerkt</label><input type="number" min="0" max="24" step="0.5" id="ne-gew" value="0"></div>
-          <div><label class="mini-lbl">Ziek</label><input type="number" min="0" max="24" step="0.5" id="ne-ziek" value="0"></div>
-          <div><label class="mini-lbl">Dokter</label><input type="number" min="0" max="24" step="0.5" id="ne-dok" value="0"></div>
-          <div><label class="mini-lbl">Vrij</label><input type="number" min="0" max="24" step="0.5" id="ne-vrij" value="0"></div>
+          <div><label class="mini-lbl">Gewerkt</label><input type="number" min="0" max="24" step="0.5" id="ne-gew" value="0" onfocus="this.select()"></div>
+          <div><label class="mini-lbl">Ziek</label><input type="number" min="0" max="24" step="0.5" id="ne-ziek" value="0" onfocus="this.select()"></div>
+          <div><label class="mini-lbl">Dokter</label><input type="number" min="0" max="24" step="0.5" id="ne-dok" value="0" onfocus="this.select()"></div>
+          <div><label class="mini-lbl">Vrij</label><input type="number" min="0" max="24" step="0.5" id="ne-vrij" value="0" onfocus="this.select()"></div>
         </div>
         <label class="mini-lbl" style="margin-top:8px">Opmerking</label>
         <input type="text" id="ne-opm" placeholder="Geen opmerking">
@@ -993,6 +993,10 @@ window.renderWeekoverzicht = async function() {
   const huidigJaar = new Date().getFullYear();
   const jarenSet = new Set(allEntries.map(e => e.datum.substring(0,4)));
   jarenSet.add(String(huidigJaar));
+  if (terugTeOpenenDatum) {
+    jarenSet.add(terugTeOpenenDatum.substring(0,4));
+    jaarSel.value = terugTeOpenenDatum.substring(0,4);
+  }
   const jaren = [...jarenSet].sort().reverse();
   const curJaar = jaarSel.value || String(huidigJaar);
   jaarSel.innerHTML = jaren.map(j => `<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');
@@ -1082,7 +1086,13 @@ window.renderWeekoverzicht = async function() {
       ${rows}
     </tbody>
   </table></div>`;
-  setTimeout(() => markeerWeekActief(maxWeek, { block: 'center' }), 50);
+  if (terugTeOpenenDatum) {
+    const teOpenenWeek = getWeekNr(terugTeOpenenDatum);
+    terugTeOpenenDatum = null;
+    setTimeout(() => { markeerWeekActief(teOpenenWeek, { block: 'center' }); openWkDag(teOpenenWeek); }, 50);
+  } else {
+    setTimeout(() => markeerWeekActief(maxWeek, { block: 'center' }), 50);
+  }
   renderWeekoverzichtDashboard(curNaam, curJaar, u, dagenObj);
 };
 // Rechterkolom-dashboard van de geselecteerde medewerker (verjaardag, vrije dagen, niet ingevulde dagen).
@@ -1124,7 +1134,8 @@ function renderNietIngevuldWeekGrid(naam, dagenObj) {
         const e = allEntries.find(x => x.naam === naam && x.datum === datum);
         const heeftIets = e && (+(e.gewerkt||0) || +(e.ziek||0) || +(e.dokter||0) || +(e.vrij||0));
         if (heeftIets) {
-          stijl = 'background:#DDF3E6;color:#155C36'; titel += ' · ingevuld';
+          stijl = 'background:#DDF3E6;color:#155C36;cursor:pointer'; titel += ' · ingevuld, klik voor correctie';
+          klik = ` onclick="naarCorrectieVoorDag('${naamEsc}','${datum}')"`;
         } else {
           stijl = 'background:#F8DEDA;color:#A6362A;cursor:pointer'; titel += ' · niet ingevuld, klik om in te vullen';
           klik = ` onclick="naarNieuweEntryVoorDag('${naamEsc}','${datum}')"`;
@@ -1150,11 +1161,25 @@ function groepeerPerWeek(datums) {
   });
   return Object.keys(groepen).map(Number).sort((a, b) => a - b).map(wk => ({ wk, datums: groepen[wk] }));
 }
+let terugNaarWeekoverzichtNaOpslaan = false;
+let terugTeOpenenDatum = null;
 window.naarNieuweEntryVoorDag = function(naam, datum) {
+  terugNaarWeekoverzichtNaOpslaan = true;
+  terugTeOpenenDatum = datum;
   goToPage('details');
   toonNieuweEntry();
   document.getElementById('ne-naam').value = naam;
   document.getElementById('ne-datum').value = datum;
+};
+// Vanuit het dashboard op een al ingevulde (groene) dag klikken: eerst een veiligheidsvraag,
+// dan direct naar Correctie met die registratie open om te bewerken.
+window.naarCorrectieVoorDag = function(naam, datum) {
+  if (!confirm('Klopt het dat je een correctie gaat uitvoeren?')) return;
+  terugNaarWeekoverzichtNaOpslaan = true;
+  terugTeOpenenDatum = datum;
+  detailsVoorkeurNaam = naam;
+  detailsVoorkeurDatum = datum;
+  goToPage('details');
 };
 function renderWeekoverzichtDashboard(naam, jaar, u, dagenObj) {
   const el = document.getElementById('wk-dashboard');
@@ -1607,6 +1632,7 @@ window.renderTeeltenLoonkosten = function() {
 };
 // ---------- Details ----------
 let detailsVoorkeurNaam = null;
+let detailsVoorkeurDatum = null;
 window.naarDetailsVoorMedewerker = function() {
   const naam = document.getElementById('wk-naam').value;
   detailsVoorkeurNaam = naam;
@@ -1618,6 +1644,12 @@ window.renderDetails = function() {
     const sel = document.getElementById('f-naam');
     if (sel) sel.value = detailsVoorkeurNaam;
     detailsVoorkeurNaam = null;
+  }
+  const voorkeurDatum = detailsVoorkeurDatum;
+  detailsVoorkeurDatum = null;
+  if (voorkeurDatum) {
+    const wsel = document.getElementById('f-week2');
+    if (wsel) wsel.value = weekKey(voorkeurDatum);
   }
   const naam = val('f-naam');
   const week2 = val('f-week2');
@@ -1649,10 +1681,10 @@ window.renderDetails = function() {
               <div><label class="mini-lbl">Einde</label><input type="time" id="ea-einde-${id}" value="${e.einde||''}"></div>
             </div>
             <div class="row4" style="margin-top:8px">
-              <div><label class="mini-lbl">Gewerkt</label><input type="number" min="0" max="24" step="0.5" id="ea-gew-${id}" value="${e.gewerkt||0}"></div>
-              <div><label class="mini-lbl">Ziek</label><input type="number" min="0" max="24" step="0.5" id="ea-ziek-${id}" value="${e.ziek||0}"></div>
-              <div><label class="mini-lbl">Dokter</label><input type="number" min="0" max="24" step="0.5" id="ea-dok-${id}" value="${e.dokter||0}"></div>
-              <div><label class="mini-lbl">Vrij</label><input type="number" min="0" max="24" step="0.5" id="ea-vrij-${id}" value="${e.vrij||0}"></div>
+              <div><label class="mini-lbl">Gewerkt</label><input type="number" min="0" max="24" step="0.5" id="ea-gew-${id}" value="${e.gewerkt||0}" onfocus="this.select()"></div>
+              <div><label class="mini-lbl">Ziek</label><input type="number" min="0" max="24" step="0.5" id="ea-ziek-${id}" value="${e.ziek||0}" onfocus="this.select()"></div>
+              <div><label class="mini-lbl">Dokter</label><input type="number" min="0" max="24" step="0.5" id="ea-dok-${id}" value="${e.dokter||0}" onfocus="this.select()"></div>
+              <div><label class="mini-lbl">Vrij</label><input type="number" min="0" max="24" step="0.5" id="ea-vrij-${id}" value="${e.vrij||0}" onfocus="this.select()"></div>
             </div>
             <label class="mini-lbl" style="margin-top:8px">Opmerking</label>
             <input type="text" id="ea-opm-${id}" value="${(e.opmerking||'').replace(/"/g,'&quot;')}" placeholder="Geen opmerking">
@@ -1669,12 +1701,24 @@ window.renderDetails = function() {
         </div>`;
       }).join('') + '</div>'
     : '<div class="empty">Geen registraties gevonden</div>';
+  if (voorkeurDatum && naam) {
+    const id = naam.toLowerCase().replace(/\s+/g,'-') + '_' + voorkeurDatum;
+    if (document.getElementById('entry-edit-' + id)) {
+      editEntry(id);
+      document.getElementById('entry-view-' + id).scrollIntoView({ block: 'center' });
+    }
+  }
 };
 window.editEntry = function(id) {
   document.getElementById('entry-view-' + id).style.display = 'none';
   document.getElementById('entry-edit-' + id).style.display = 'block';
 };
 window.cancelEditEntry = function(id) {
+  if (terugNaarWeekoverzichtNaOpslaan) {
+    terugNaarWeekoverzichtNaOpslaan = false;
+    goToPage('weekoverzicht');
+    return;
+  }
   document.getElementById('entry-view-' + id).style.display = 'block';
   document.getElementById('entry-edit-' + id).style.display = 'none';
 };
@@ -1692,7 +1736,12 @@ window.saveEditEntry = async function(id, naam, datum) {
   };
   await setDoc(doc(db, 'entries', id), rec);
   await loadEntries();
-  renderDetails();
+  if (terugNaarWeekoverzichtNaOpslaan) {
+    terugNaarWeekoverzichtNaOpslaan = false;
+    goToPage('weekoverzicht');
+  } else {
+    renderDetails();
+  }
 };
 window.toonNieuweEntry = function() {
   const form = document.getElementById('nieuwe-entry-form');
@@ -1711,6 +1760,10 @@ window.toonNieuweEntry = function() {
 };
 window.verbergNieuweEntry = function() {
   document.getElementById('nieuwe-entry-form').style.display = 'none';
+  if (terugNaarWeekoverzichtNaOpslaan) {
+    terugNaarWeekoverzichtNaOpslaan = false;
+    goToPage('weekoverzicht');
+  }
 };
 window.opslaanNieuweEntry = async function() {
   const naam = document.getElementById('ne-naam').value;
@@ -1731,9 +1784,14 @@ window.opslaanNieuweEntry = async function() {
   await setDoc(doc(db, 'entries', id), rec);
   await loadEntries();
   verbergNieuweEntry();
-  renderDetails();
   updateLaatsteDagBanner();
   updateVandaagVrijBanner();
+  if (terugNaarWeekoverzichtNaOpslaan) {
+    terugNaarWeekoverzichtNaOpslaan = false;
+    goToPage('weekoverzicht');
+  } else {
+    renderDetails();
+  }
 };
 window.deleteEntry = async function(id) {
   if (!confirm('Deze registratie definitief verwijderen?')) return;
