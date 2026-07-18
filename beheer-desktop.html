@@ -1008,9 +1008,9 @@ window.renderWeekoverzicht = async function() {
   vrijeDagenEl.textContent = 'Vrije dagen laden...';
   let dagenObj = {};
   try {
-    const key = curNaam.toLowerCase().replace(/\s+/g,'-');
-    const snap = await getDoc(doc(db, 'vrije_dagen', key));
-    dagenObj = snap.exists() ? (snap.data().dagen || {}) : {};
+    const snap = await getDocs(collection(db, 'vrije_dagen'));
+    const match = snap.docs.find(d => d.data().naam === curNaam);
+    dagenObj = match ? (match.data().dagen || {}) : {};
     const datumsDitJaar = Object.keys(dagenObj).filter(d => dagenObj[d] && d.startsWith(curJaar)).sort();
     vrijeDagenEl.textContent = vrijeDagenSamenvatting(datumsDitJaar);
   } catch(e) { vrijeDagenEl.textContent = 'Vrije dagen niet beschikbaar'; }
@@ -1128,8 +1128,10 @@ function renderNietIngevuldWeekGrid(naam, dagenObj) {
         stijl = 'background:#EEF2F5;color:#BBB'; titel += ' · geen werkdag';
       } else if (isFeestdag(datum)) {
         stijl = 'background:#EFE3F5;color:#7A4FA3'; titel += ' · feestdag';
+      } else if (vrijStatus(dagenObj[datum]) === 'goedgekeurd') {
+        stijl = 'background:#FBEBD0;color:#8A5A00'; titel += ' · goedgekeurde vrije dag';
       } else if (vrijStatus(dagenObj[datum])) {
-        stijl = 'background:#DCEBF7;color:#1F5E8C'; titel += ' · vrij';
+        stijl = 'background:#DCEBF7;color:#1F5E8C'; titel += ' · vrij (aangevraagd, nog niet goedgekeurd)';
       } else {
         const e = allEntries.find(x => x.naam === naam && x.datum === datum);
         const heeftIets = e && (+(e.gewerkt||0) || +(e.ziek||0) || +(e.dokter||0) || +(e.vrij||0));
