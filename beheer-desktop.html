@@ -345,8 +345,8 @@
           <button class="btn btn-secondary btn-sm" onclick="downloadBackup()">💾 Backup downloaden (alle data)</button>
           <button class="btn btn-secondary btn-sm" onclick="document.getElementById('restore-file').click()">📤 Backup herstellen</button>
           <input type="file" id="restore-file" accept="application/json" style="display:none" onchange="verwerkRestoreFile(event)">
-          <button class="btn btn-secondary btn-sm" onclick="kiesDriveBackupMap()" title="Kies een map (bijv. je Google Drive-synchronisatiemap) waar elke backup automatisch ook naartoe geschreven wordt">🗂️ Drive-map instellen</button>
-          <span id="drive-backup-status" style="font-size:12px;color:var(--muted);align-self:center">Geen map gekozen</span>
+          <button class="btn btn-secondary btn-sm" onclick="downloadScriptBackup()" title="Downloadt een kopie van dit HTML-bestand zelf (de app-code). Je kiest zelf waar — handig als reserve naast GitHub">🧾 Backup van dit script</button>
+          <button class="btn btn-secondary btn-sm" onclick="downloadAlleScriptsZip()" title="Kies zelf een map met je app-bestanden, en daarna zelf waar de ZIP moet komen">🗜️ Download alle scripts (ZIP)</button>
         </div>
       </div>
       <div class="filter-row">
@@ -563,6 +563,7 @@
 <!-- Firebase SDK (compat-variant: werkt ook wanneer dit bestand rechtstreeks vanaf schijf wordt geopend, file://) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyDha05hLJuL1O-4cjcCOdutdQmbUPXGN4Q",
@@ -712,7 +713,6 @@ window.doLogin = async function() {
   await loadNotes();
   await laadFeestdagen();
   checkWeeklyBackup();
-  loadDriveHandle().then(updateDriveBackupStatus);
   document.getElementById('sidebar-user').textContent = me.name;
   show('screen-app');
   goToPage('weekoverzicht');
@@ -2713,7 +2713,7 @@ window.printOverzicht = function() {
   win.document.close();
   win.print();
 };
-window.downloadBackup = async function() {
+window.downloadBackup = async function(auto) {
   const [usersSnap, entriesSnap, notesSnap, vrijSnap, feestSnap] = await Promise.all([
     getDocs(collection(db, 'users')),
     getDocs(collection(db, 'entries')),
@@ -2729,81 +2729,103 @@ window.downloadBackup = async function() {
     vrije_dagen: vrijSnap.docs.map(d => d.data()),
     feestdagen: feestSnap.docs.map(d => d.data()),
   };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const jsonTekst = JSON.stringify(data, null, 2);
+  const bestandsnaam = `urenregistratie_backup_${todayStr()}.json`;
+  await opslaanMetKeuze(bestandsnaam, jsonTekst, 'application/json', auto);
+};
+// ---------- Opslaan: bij een handmatige klik altijd zelf de plek kiezen via het native "Opslaan als"-
+// venster (geen enkele toegang wordt onthouden). Bij een automatische actie (geen gebruikersklik,
+// zoals de wekelijkse backup) kan dat venster niet getoond worden — dan gaat het gewoon naar de
+// downloadmap, zoals een normale download.
+async function opslaanMetKeuze(bestandsnaam, inhoud, mimeType, auto) {
+  if (!auto && window.showSaveFilePicker) {
+    try {
+      const ext = '.' + bestandsnaam.split('.').pop();
+      const handle = await window.showSaveFilePicker({
+        suggestedName: bestandsnaam,
+        types: [{ description: ext.toUpperCase() + '-bestand', accept: { [mimeType]: [ext] } }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(inhoud);
+      await writable.close();
+      return true;
+    } catch(e) {
+      if (e.name === 'AbortError') return false; // zelf geannuleerd, niets extra doen
+      // val anders terug op een gewone download
+    }
+  }
+  const blob = new Blob([inhoud], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `urenregistratie_backup_${todayStr()}.json`;
+  a.href = url; a.download = bestandsnaam;
   a.click(); URL.revokeObjectURL(url);
-  schrijfBackupNaarDrive(data);
+  return true;
+}
+// Downloadt het huidige HTML-bestand (dit script/de app zelf) als backup, los van de data-backup.
+// Handig als reserve naast GitHub: haalt de exacte, opgeslagen bestandsinhoud op (niet de live DOM-status).
+// Je kiest zelf waar hij komt via het "Opslaan als"-venster.
+window.downloadScriptBackup = async function() {
+  try {
+    let htmlTekst = null;
+    // Werkt via file:// niet betrouwbaar (fetch van lokale bestanden wordt door Chrome geblokkeerd),
+    // dus eerst proberen, en anders de huidige pagina zelf als HTML opslaan.
+    try {
+      const resp = await fetch(location.href, { cache: 'no-store' });
+      if (resp.ok) htmlTekst = await resp.text();
+    } catch(e) { /* val terug op de live pagina hieronder */ }
+    if (!htmlTekst) {
+      htmlTekst = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    }
+    const bestandsnaam = `urenregistratie_beheer_SCRIPT_${todayStr()}.html`;
+    await opslaanMetKeuze(bestandsnaam, htmlTekst, 'text/html', false);
+  } catch(e) {
+    alert('Scriptbackup maken is niet gelukt: ' + e.message);
+  }
 };
-// ---------- Extra kopie van de backup in een zelf gekozen map (bijv. Google Drive-synchronisatiemap) ----------
-function openDriveHandleDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open('ur_drive_backup', 1);
-    req.onupgradeneeded = () => req.result.createObjectStore('handles');
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-async function saveDriveHandle(handle) {
-  const idb = await openDriveHandleDB();
-  await new Promise((res, rej) => {
-    const tx = idb.transaction('handles', 'readwrite');
-    tx.objectStore('handles').put(handle, 'map');
-    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
-  });
-}
-async function loadDriveHandle() {
+// Downloadt alle bestanden uit een zelf gekozen map als één ZIP. Zowel de bronmap als de plek waar
+// de ZIP komt, kies je elke keer opnieuw zelf — er wordt niets onthouden.
+window.downloadAlleScriptsZip = async function() {
+  if (!window.showDirectoryPicker) { alert('Je browser ondersteunt dit niet. Gebruik Chrome of Edge.'); return; }
+  if (!window.JSZip) { alert('ZIP-bibliotheek kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw.'); return; }
+  let bronMap;
   try {
-    const idb = await openDriveHandleDB();
-    return await new Promise((res, rej) => {
-      const tx = idb.transaction('handles', 'readonly');
-      const req = tx.objectStore('handles').get('map');
-      req.onsuccess = () => res(req.result || null);
-      req.onerror = () => rej(req.error);
-    });
-  } catch { return null; }
-}
-function updateDriveBackupStatus(handle) {
-  const el = document.getElementById('drive-backup-status');
-  if (!el) return;
-  el.textContent = handle ? `📁 ${handle.name}` : 'Geen map gekozen';
-}
-window.kiesDriveBackupMap = async function() {
-  if (!window.showDirectoryPicker) { alert('Je browser ondersteunt dit niet. Gebruik Chrome of Edge, en kies de map die je met Google Drive synchroniseert.'); return; }
-  try {
-    const handle = await window.showDirectoryPicker();
-    const perm = await handle.requestPermission({ mode: 'readwrite' });
-    if (perm !== 'granted') { alert('Geen schrijftoegang verleend.'); return; }
-    await saveDriveHandle(handle);
-    updateDriveBackupStatus(handle);
-    alert(`Map "${handle.name}" gekozen. Elke backup (handmatig en de wekelijkse automatische) wordt hier voortaan ook in gezet.`);
+    bronMap = await window.showDirectoryPicker();
   } catch(e) {
     if (e.name !== 'AbortError') alert('Kon geen map kiezen: ' + e.message);
+    return;
+  }
+  try {
+    const zip = new JSZip();
+    let aantal = 0;
+    for await (const [naam, entryHandle] of bronMap.entries()) {
+      if (entryHandle.kind !== 'file') continue;
+      const file = await entryHandle.getFile();
+      const buf = await file.arrayBuffer();
+      zip.file(naam, buf);
+      aantal++;
+    }
+    if (!aantal) { alert('Geen bestanden gevonden in de gekozen map.'); return; }
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const bestandsnaam = `urenregistratie_scripts_${todayStr()}.zip`;
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({ suggestedName: bestandsnaam, types: [{ description: 'ZIP-bestand', accept: { 'application/zip': ['.zip'] } }] });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return;
+      } catch(e) {
+        if (e.name === 'AbortError') return;
+      }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = bestandsnaam;
+    a.click(); URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('ZIP maken is niet gelukt: ' + e.message);
   }
 };
-async function getGrantedDriveHandle() {
-  const handle = await loadDriveHandle();
-  if (!handle) return null;
-  try {
-    const perm = await handle.queryPermission({ mode: 'readwrite' });
-    return perm === 'granted' ? handle : null;
-  } catch { return null; }
-}
-async function schrijfBackupNaarDrive(data) {
-  const handle = await getGrantedDriveHandle();
-  if (!handle) return false;
-  try {
-    const fileHandle = await handle.getFileHandle(`urenregistratie_backup_${todayStr()}.json`, { create: true });
-    const writable = await fileHandle.createWritable();
-    await writable.write(JSON.stringify(data, null, 2));
-    await writable.close();
-    return true;
-  } catch(e) {
-    console.warn('Extra backup-kopie naar gekozen map mislukt:', e);
-    return false;
-  }
-}
 // ---------- Backup terugzetten ----------
 window.verwerkRestoreFile = async function(event) {
   const file = event.target.files[0];
@@ -2878,7 +2900,7 @@ function checkWeeklyBackup() {
   const last = localStorage.getItem(KEY);
   const nu = new Date();
   if (!last || (nu - new Date(last)) >= 7*24*60*60*1000) {
-    downloadBackup();
+    downloadBackup(true);
     localStorage.setItem(KEY, nu.toISOString());
   }
 }
