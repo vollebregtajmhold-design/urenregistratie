@@ -61,6 +61,10 @@
   .sidebar-user{font-size:13px;color:var(--muted);margin-bottom:.6rem}
   .logout{background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);font-family:var(--font);padding:0;text-decoration:underline}
   .logout:hover{color:var(--text)}
+  kbd{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:12px;font-family:monospace;color:var(--text)}
+  .help-btn{width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0}
+  .help-btn:hover{color:var(--text);border-color:var(--muted)}
+  .sneltoets-groep{padding-top:12px;font-weight:700;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.03em}
   .main{margin-left:250px;flex:1;padding:2.2rem 2.75rem 4rem;max-width:1700px}
   .page{display:none}
   .page.active{display:block}
@@ -220,6 +224,7 @@
         <span class="sidebar-user" id="sidebar-user" style="margin:0">Beheerder</span>
         <span style="color:var(--border)">·</span>
         <button class="logout" onclick="doLogout()">Uitloggen</button>
+        <button class="help-btn" onclick="toonSneltoetsen()" title="Sneltoetsen">?</button>
       </div>
     </div>
   </div>
@@ -560,6 +565,30 @@
     </div>
   </div>
 </div>
+<div id="shortcuts-modal" style="display:none;position:fixed;inset:0;background:rgba(20,36,51,.45);z-index:1000;align-items:center;justify-content:center" onclick="if(event.target===this) sluitSneltoetsen()">
+  <div style="background:var(--surface);border-radius:var(--radius);padding:1.5rem;max-width:420px;width:90%;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem">
+      <div style="font-weight:700;font-size:17px">⌨️ Sneltoetsen</div>
+      <button class="btn btn-secondary btn-sm" onclick="sluitSneltoetsen()">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:1rem">Werken overal, behalve terwijl je in een tekst- of invoerveld typt.</div>
+    <table style="width:100%;font-size:14px;border-collapse:collapse">
+      <tr><td style="padding:5px 8px 5px 0;width:110px"><kbd>M</kbd></td><td>Naar Medewerkeroverzicht</td></tr>
+      <tr><td style="padding:5px 8px 5px 0"><kbd>D</kbd></td><td>Naar Dag en Weekcheck</td></tr>
+      <tr><td style="padding:5px 8px 5px 0"><kbd>V</kbd></td><td>Naar Vakantie</td></tr>
+      <tr><td colspan="2" class="sneltoets-groep">Op Medewerkeroverzicht</td></tr>
+      <tr><td style="padding:5px 8px 5px 0"><kbd>A</kbd>-<kbd>Z</kbd></td><td>Spring naar volgende medewerker met die letter</td></tr>
+      <tr><td style="padding:5px 8px 5px 0"><kbd>◀</kbd> <kbd>▶</kbd></td><td>Vorige / volgende medewerker</td></tr>
+      <tr><td style="padding:5px 8px 5px 0"><kbd>▲</kbd> <kbd>▼</kbd></td><td>Vorige / volgende week</td></tr>
+      <tr><td style="padding:5px 8px 5px 0"><kbd>Enter</kbd></td><td>Geselecteerde week openen</td></tr>
+      <tr><td style="padding:5px 8px 5px 0"><kbd>Backspace</kbd></td><td>Geselecteerde week sluiten</td></tr>
+      <tr><td colspan="2" class="sneltoets-groep">Op Dag en Weekcheck</td></tr>
+      <tr><td style="padding:5px 8px 5px 0"><kbd>◀</kbd> <kbd>▶</kbd></td><td>Vorige / volgende dag</td></tr>
+      <tr><td colspan="2" class="sneltoets-groep">Overal</td></tr>
+      <tr><td style="padding:5px 8px 5px 0"><kbd>Esc</kbd></td><td>Dit venster sluiten</td></tr>
+    </table>
+  </div>
+</div>
 <!-- Firebase SDK (compat-variant: werkt ook wanneer dit bestand rechtstreeks vanaf schijf wordt geopend, file://) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -722,6 +751,12 @@ window.doLogout = function() {
   me = null; allEntries = [];
   setVal('login-name',''); setVal('login-pass','');
   show('screen-login');
+};
+window.toonSneltoetsen = function() {
+  document.getElementById('shortcuts-modal').style.display = 'flex';
+};
+window.sluitSneltoetsen = function() {
+  document.getElementById('shortcuts-modal').style.display = 'none';
 };
 // ---------- Navigatie ----------
 const INSTELLINGEN_PAGINAS = ['mensen', 'personalia', 'details', 'import', 'feestdagen', 'wachtwoord'];
@@ -1129,9 +1164,11 @@ function renderNietIngevuldWeekGrid(naam, dagenObj) {
       } else if (isFeestdag(datum)) {
         stijl = 'background:#EFE3F5;color:#7A4FA3'; titel += ' · feestdag';
       } else if (vrijStatus(dagenObj[datum]) === 'goedgekeurd') {
-        stijl = 'background:#FBEBD0;color:#8A5A00'; titel += ' · goedgekeurde vrije dag';
+        stijl = 'background:#FBEBD0;color:#8A5A00;cursor:pointer'; titel += ' · goedgekeurde vrije dag, klik als er toch gewerkt is';
+        klik = ` onclick="naarCorrectieVanuitVrijeDag('${naamEsc}','${datum}')"`;
       } else if (vrijStatus(dagenObj[datum])) {
-        stijl = 'background:#DCEBF7;color:#1F5E8C'; titel += ' · vrij (aangevraagd, nog niet goedgekeurd)';
+        stijl = 'background:#DCEBF7;color:#1F5E8C;cursor:pointer'; titel += ' · vrij (aangevraagd, nog niet goedgekeurd), klik als er toch gewerkt is';
+        klik = ` onclick="naarCorrectieVanuitVrijeDag('${naamEsc}','${datum}')"`;
       } else {
         const e = allEntries.find(x => x.naam === naam && x.datum === datum);
         const heeftIets = e && (+(e.gewerkt||0) || +(e.ziek||0) || +(e.dokter||0) || +(e.vrij||0));
@@ -1183,6 +1220,30 @@ window.naarCorrectieVoorDag = function(naam, datum) {
   detailsVoorkeurDatum = datum;
   goToPage('details');
 };
+// Vanuit het dashboard op een vrije dag (oranje = goedgekeurd, blauw = aangevraagd) klikken terwijl
+// er niets is ingevuld: vraagt of het toch anders gelopen is. Bij ja: vrije dag weg, direct naar
+// Correctie om de uren van die dag in te voeren.
+let pendingVrijeDagVerwijdering = null;
+// Verwijdert de vrije dag pas echt bij Opslaan (zie opslaanNieuweEntry). Bij Annuleren blijft hij
+// gewoon staan (oranje/blauw), zie verbergNieuweEntry.
+window.naarCorrectieVanuitVrijeDag = function(naam, datum) {
+  if (!confirm('Dit was een vrije dag. Is het toch anders gelopen (de medewerker heeft gewerkt)?')) return;
+  pendingVrijeDagVerwijdering = { naam, datum };
+  naarNieuweEntryVoorDag(naam, datum);
+};
+async function verwijderVrijeDagVoor(naam, datum) {
+  try {
+    const snap = await getDocs(collection(db, 'vrije_dagen'));
+    const match = snap.docs.find(d => d.data().naam === naam);
+    if (!match) return;
+    const vrijDagen = { ...(match.data().dagen || {}) };
+    delete vrijDagen[datum];
+    await setDoc(doc(db, 'vrije_dagen', match.id), { naam, dagen: vrijDagen });
+    if (typeof vakAllVrij !== 'undefined' && vakAllVrij) vakAllVrij[naam] = vrijDagen;
+  } catch(e) {
+    alert('De registratie is opgeslagen, maar de vrije dag kon niet automatisch verwijderd worden: ' + e.message + '\nPas dit zo nodig handmatig aan bij Vakantie.');
+  }
+}
 function renderWeekoverzichtDashboard(naam, jaar, u, dagenObj) {
   const el = document.getElementById('wk-dashboard');
   if (!el) return;
@@ -1762,6 +1823,7 @@ window.toonNieuweEntry = function() {
 };
 window.verbergNieuweEntry = function() {
   document.getElementById('nieuwe-entry-form').style.display = 'none';
+  pendingVrijeDagVerwijdering = null; // geannuleerd: vrije dag blijft gewoon staan
   if (terugNaarWeekoverzichtNaOpslaan) {
     terugNaarWeekoverzichtNaOpslaan = false;
     goToPage('weekoverzicht');
@@ -1784,8 +1846,12 @@ window.opslaanNieuweEntry = async function() {
     teelten: Array.from(document.querySelectorAll('.ne-teelt:checked')).map(c => c.value),
   };
   await setDoc(doc(db, 'entries', id), rec);
+  if (pendingVrijeDagVerwijdering && pendingVrijeDagVerwijdering.naam === naam && pendingVrijeDagVerwijdering.datum === datum) {
+    await verwijderVrijeDagVoor(naam, datum);
+  }
+  pendingVrijeDagVerwijdering = null;
   await loadEntries();
-  verbergNieuweEntry();
+  document.getElementById('nieuwe-entry-form').style.display = 'none';
   updateLaatsteDagBanner();
   updateVandaagVrijBanner();
   if (terugNaarWeekoverzichtNaOpslaan) {
@@ -2940,6 +3006,10 @@ function fillFixNaamSelects() {
   }
 }
 document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('shortcuts-modal');
+    if (modal && modal.style.display !== 'none') { sluitSneltoetsen(); return; }
+  }
   if (e.key === 'Enter' && document.getElementById('screen-login').style.display !== 'none') doLogin();
   const ingelogd = document.getElementById('screen-login')?.style.display === 'none';
   const inVeldGlobaal = ['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName) || e.target.isContentEditable;
