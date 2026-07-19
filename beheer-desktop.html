@@ -64,6 +64,7 @@
   kbd{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:12px;font-family:monospace;color:var(--text)}
   .help-btn{width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0}
   .help-btn:hover{color:var(--text);border-color:var(--muted)}
+  .custom-tooltip{position:fixed;z-index:3000;background:#000;color:#fff;font-size:19px;line-height:1.35;padding:8px 13px;border-radius:6px;pointer-events:none;max-width:360px;box-shadow:0 4px 16px rgba(0,0,0,.4)}
   .sneltoets-groep{padding-top:12px;font-weight:700;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.03em}
   .main{margin-left:250px;flex:1;padding:2.2rem 2.75rem 4rem;max-width:1700px}
   .page{display:none}
@@ -3055,6 +3056,49 @@ document.addEventListener('keydown', e => {
     }
   }
 });
+// ---------- Grotere, zwarte tooltips i.p.v. de standaard-browsertooltip, voor alle title="..."-elementen ----------
+(function() {
+  let tipEl = null, curTarget = null;
+  function plaats(x, y) {
+    if (!tipEl) return;
+    let left = x + 16, top = y + 16;
+    const rect = tipEl.getBoundingClientRect();
+    if (left + rect.width > window.innerWidth) left = window.innerWidth - rect.width - 8;
+    if (top + rect.height > window.innerHeight) top = window.innerHeight - rect.height - 8;
+    tipEl.style.left = left + 'px';
+    tipEl.style.top = top + 'px';
+  }
+  function verberg() {
+    if (curTarget) {
+      const orig = curTarget.getAttribute('data-orig-title');
+      if (orig !== null) curTarget.setAttribute('title', orig);
+      curTarget.removeAttribute('data-orig-title');
+      curTarget = null;
+    }
+    if (tipEl) { tipEl.remove(); tipEl = null; }
+  }
+  document.addEventListener('mouseover', e => {
+    const target = e.target.closest && e.target.closest('[title]');
+    if (!target || target === curTarget) return;
+    const tekst = target.getAttribute('title');
+    if (!tekst) return;
+    verberg();
+    target.setAttribute('data-orig-title', tekst);
+    target.removeAttribute('title');
+    curTarget = target;
+    tipEl = document.createElement('div');
+    tipEl.className = 'custom-tooltip';
+    tipEl.textContent = tekst;
+    document.body.appendChild(tipEl);
+    plaats(e.clientX, e.clientY);
+  });
+  document.addEventListener('mousemove', e => { if (tipEl) plaats(e.clientX, e.clientY); });
+  document.addEventListener('mouseout', e => {
+    if (!curTarget) return;
+    if (!e.relatedTarget || !curTarget.contains(e.relatedTarget)) verberg();
+  });
+  document.addEventListener('scroll', verberg, true);
+})();
 init();
 </script>
 </body>
