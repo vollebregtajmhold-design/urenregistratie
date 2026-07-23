@@ -7,7 +7,7 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#E4EEF7;--surface:#FFFFFF;--border:#A9C9E3;--text:#142433;
+    --bg:#E4EEF7;--surface:#F3EEE2;--border:#A9C9E3;--text:#142433;
     --muted:#4F7395;--accent:#1F5E8C;--accent-light:#C9E2F5;
     --danger:#A6362A;--success:#155C36;--warn:#7A4F00;--warn-bg:#FBF0D6;
     --radius:10px;--font:'Inter',system-ui,sans-serif;
@@ -226,6 +226,7 @@
         <span style="color:var(--border)">·</span>
         <button class="logout" onclick="doLogout()">Uitloggen</button>
         <button class="help-btn" onclick="toonSneltoetsen()" title="Sneltoetsen">?</button>
+        <button class="help-btn" onclick="toggleFullscreen()" title="Volledig scherm aan/uit" id="fullscreen-btn">⛶</button>
       </div>
     </div>
   </div>
@@ -731,7 +732,19 @@ window.verwijderFeestdag = async function(datum) {
   renderFeestdagen();
 };
 // ---------- Auth ----------
+window.toggleFullscreen = function() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+};
+document.addEventListener('fullscreenchange', function() {
+  const btn = document.getElementById('fullscreen-btn');
+  if (btn) btn.title = document.fullscreenElement ? 'Verlaat volledig scherm' : 'Volledig scherm aan/uit';
+});
 window.doLogin = async function() {
+  if (!document.fullscreenElement) { try { document.documentElement.requestFullscreen().catch(() => {}); } catch (e) {} }
   const n = val('login-name').trim().toLowerCase();
   const p = val('login-pass');
   const u = allUsers.find(x => x.name.toLowerCase() === n && x.pass === p);
