@@ -112,7 +112,7 @@
   .tag-day{display:inline-block;background:var(--accent-light);color:var(--accent);border-radius:4px;padding:2px 5px;font-size:11px;margin-right:2px;white-space:nowrap;border:1px solid transparent;cursor:pointer}
   .tag-day.is-today{border-color:var(--danger);font-weight:700}
   .tag-day.status-aangevraagd{background:#DCEAF6;color:var(--accent);border-color:var(--accent)}
-  .tag-day.status-goedgekeurd{background:#DDF3E6;color:var(--success);border-color:var(--success)}
+  .tag-day.status-goedgekeurd{background:#BEEBD2;color:var(--success);border-color:var(--success)}
   .entry-row{padding:12px 0;border-bottom:1px solid var(--border)}
   .entry-row:last-child{border-bottom:none}
   .mini-lbl{margin:0 0 3px;font-size:11px}
@@ -148,7 +148,7 @@
   .wk-table thead tr.totalenrow td{position:sticky;top:37px;z-index:2;box-shadow:0 1px 0 var(--border)}
   .wk-table .totalenrow td{font-weight:700;background:#EFF6FC}
   .wk-table td.weeknr{font-weight:700;color:var(--accent);text-align:left}
-  .wk-table tbody tr.wk-actief-week > td{background:#DDF3E6}
+  .wk-table tbody tr.wk-actief-week > td{background:#BEEBD2}
   .wk-table td.opm-cell{text-align:left;color:var(--muted);font-style:italic;white-space:normal}
   /* Vakantie overzicht */
   .vak-legend{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted);margin-bottom:1rem}
@@ -680,7 +680,7 @@ async function laadFeestdagen() {
 }
 function isFeestdag(datum) { return allFeestdagen.some(f => f.datum === datum); }
 function berekenEntriesMetFeestdagen() {
-  if (!allFeestdagen.length || !allUsers.length) return allEntries;
+  if (!allUsers.length) return allEntries;
   const vandaag = todayStr();
   const extraMap = {};
   allUsers.filter(u => u.role !== 'admin' && isActief(u) && !u.losseKracht).forEach(u => {
@@ -696,6 +696,21 @@ function berekenEntriesMetFeestdagen() {
       if (bestaand && (+(bestaand.ziek||0) || +(bestaand.dokter||0) || +(bestaand.vrij||0))) return;
       const basis = bestaand || { naam: u.name, datum, gewerkt: 0, ziek: 0, dokter: 0, vrij: 0, opmerking: '', teelten: [] };
       extraMap[u.name + '_' + datum] = { ...basis, vrij: +((+(basis.vrij||0)) + dagUren).toFixed(2), __feestdag: true };
+    });
+    // Goedgekeurde vrije dagen (persoonlijk verlof) tellen automatisch als opgenomen Snipperuren, NIET als
+    // Doorbetaald vrij. Daarom hier geen uren bij 'vrij' optellen: de dag krijgt alleen een lege plaatshouder
+    // zodat de week meetelt in het overzicht (anders sloeg een volledig oningevulde verlofweek helemaal over).
+    // Het gat tussen contract en ingevulde uren wordt vanzelf via de kolom Snipperuren verrekend.
+    const vrijDagenObj = (typeof vakAllVrij !== 'undefined' && vakAllVrij && vakAllVrij[u.name]) || {};
+    Object.keys(vrijDagenObj).forEach(datum => {
+      if (datum > vandaag) return;
+      if (vrijStatus(vrijDagenObj[datum]) !== 'goedgekeurd') return;
+      const dagNaam = dagNaamVanDatum(datum);
+      if (!werkdagen.includes(dagNaam)) return;
+      const key = u.name + '_' + datum;
+      if (extraMap[key]) return; // al verwerkt (bv. als feestdag)
+      if (allEntries.find(e => e.naam === u.name && e.datum === datum)) return; // al iets geregistreerd, niet overschrijven
+      extraMap[key] = { naam: u.name, datum, gewerkt: 0, ziek: 0, dokter: 0, vrij: 0, opmerking: '', teelten: [], __vrijedag: true };
     });
   });
   const vervangenKeys = new Set(Object.keys(extraMap));
@@ -752,6 +767,7 @@ window.doLogin = async function() {
   if (u.role !== 'admin') { showErr('login-err', 'Dit is de beheeromgeving. Log als medewerker in via de mobiele app.'); return; }
   hideEl('login-err');
   me = u;
+  await laadVrijeDagen();
   await loadEntries();
   await loadNotes();
   await laadFeestdagen();
@@ -1083,7 +1099,7 @@ window.renderWeekoverzicht = async function() {
   statsEl.innerHTML = `
     <div class="wk-stat"><div class="lbl">Saldo 1 jan</div><div class="val">${startsaldo}</div></div>
     <div class="wk-stat"><div class="lbl">Op te bouwen</div><div class="val">${jaarsnippers}</div></div>
-    <div class="wk-stat" style="background:${saldoOver>=0?'#DDF3E6':'#F8DEDA'}"><div class="lbl">Tot 31 dec</div><div class="val" style="color:${saldoOver>=0?'var(--success)':'var(--danger)'}">${saldoOver}</div></div>`;
+    <div class="wk-stat" style="background:${saldoOver>=0?'#BEEBD2':'#F8DEDA'}"><div class="lbl">Tot 31 dec</div><div class="val" style="color:${saldoOver>=0?'var(--success)':'var(--danger)'}">${saldoOver}</div></div>`;
   const maxWeek = curJaar === String(huidigJaar) ? Math.max(getWeekNr(todayStr()), ...Object.keys(weekMap).map(Number), 1) : (Object.keys(weekMap).length ? Math.max(...Object.keys(weekMap).map(Number)) : wekenperjaar);
   let totContract=0, totGew=0, totZiek=0, totVrij=0, totDok=0, totSnip=0, gevuldeWeken=0;
   let rows = '';
@@ -1187,7 +1203,7 @@ function renderNietIngevuldWeekGrid(naam, dagenObj) {
         const e = allEntries.find(x => x.naam === naam && x.datum === datum);
         const heeftIets = e && (+(e.gewerkt||0) || +(e.ziek||0) || +(e.dokter||0) || +(e.vrij||0));
         if (heeftIets) {
-          stijl = 'background:#DDF3E6;color:#155C36;cursor:pointer'; titel += ' · ingevuld, klik voor correctie';
+          stijl = 'background:#BEEBD2;color:#155C36;cursor:pointer'; titel += ' · ingevuld, klik voor correctie';
           klik = ` onclick="naarCorrectieVoorDag('${naamEsc}','${datum}')"`;
         } else {
           stijl = 'background:#F8DEDA;color:#A6362A;cursor:pointer'; titel += ' · niet ingevuld, klik om in te vullen';
@@ -1254,6 +1270,7 @@ async function verwijderVrijeDagVoor(naam, datum) {
     delete vrijDagen[datum];
     await setDoc(doc(db, 'vrije_dagen', match.id), { naam, dagen: vrijDagen });
     if (typeof vakAllVrij !== 'undefined' && vakAllVrij) vakAllVrij[naam] = vrijDagen;
+    herberekenFeestdagEntries();
   } catch(e) {
     alert('De registratie is opgeslagen, maar de vrije dag kon niet automatisch verwijderd worden: ' + e.message + '\nPas dit zo nodig handmatig aan bij Vakantie.');
   }
@@ -2382,6 +2399,7 @@ window.toggleVakDag = async function(naam, datum, week) {
   else vrijDagen[datum] = 'goedgekeurd';
   await setDoc(doc(db, 'vrije_dagen', key), { naam, dagen: vrijDagen });
   vakAllVrij[naam] = vrijDagen;
+  herberekenFeestdagEntries();
   renderVakantie();
   updateVandaagVrijBanner();
   updateLaatsteDagBanner();
@@ -2395,6 +2413,7 @@ window.approveFromList = async function(naam, datum) {
   vrijDagen[datum] = 'goedgekeurd';
   await setDoc(doc(db, 'vrije_dagen', key), { naam, dagen: vrijDagen });
   vakAllVrij[naam] = vrijDagen;
+  herberekenFeestdagEntries();
   renderVakantie();
   updateVandaagVrijBanner();
   updateLaatsteDagBanner();
@@ -2520,7 +2539,7 @@ window.renderWeekplanning = async function() {
   const head = `<th class="left" style="${stickyCol};background:var(--accent-light);min-width:150px">Week</th>` +
     weken.map(x => `<th style="min-width:64px;text-align:center;${x.isHuidig ? 'background:var(--warn-bg)' : ''}">W${x.w}<div style="font-weight:400;font-size:10px;color:var(--muted)">${fmtDateShort(x.ma)}</div></th>`).join('');
   const nettoVeldje = x => {
-    const kleur = x.pct >= 90 ? { bg: '#DDF3E6', fg: '#155C36' } : x.pct >= 80 ? { bg: '#FBEBD0', fg: '#8A5A00' } : { bg: '#F8DEDA', fg: '#A6362A' };
+    const kleur = x.pct >= 90 ? { bg: '#BEEBD2', fg: '#155C36' } : x.pct >= 80 ? { bg: '#FBEBD0', fg: '#8A5A00' } : { bg: '#F8DEDA', fg: '#A6362A' };
     return `<span style="display:inline-block;min-width:46px;padding:4px 8px;border-radius:6px;font-weight:700;background:${kleur.bg};color:${kleur.fg}">${x.netto.toFixed(1)}</span>`;
   };
   const rij = (label, opts) => `<tr>
