@@ -69,14 +69,14 @@
   .stat{background:var(--accent-light);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem;text-align:center}
   .stat-val{font-size:21px;font-weight:600;color:var(--accent)}
   .stat-lbl{font-size:12px;color:var(--muted);margin-top:2px}
-  .uren-table-wrap{width:100%;overflow:hidden}
+  .uren-table-wrap{width:100%;overflow:hidden;background:#F8F5EC;border-radius:8px;border:1px solid #CCC}
   .uren-table{width:100%;border-collapse:collapse;table-layout:fixed}
   .uren-table col.c-datum{width:22%}
   .uren-table col.c-tijd{width:19%}
   .uren-table col.c-num{width:11.8%}
   .uren-table th{background:var(--accent-light);color:var(--accent);font-weight:600;font-size:10px;padding:6px 3px;text-align:right;white-space:nowrap;border-bottom:2px solid var(--border);overflow:hidden}
   .uren-table th.left{text-align:left;padding-left:6px}
-  .uren-table td{font-size:11px;padding:6px 3px;border-bottom:1px solid var(--border);text-align:right;overflow:hidden;white-space:nowrap}
+  .uren-table td{font-size:11px;padding:6px 3px;border-bottom:1px solid #DDD;text-align:right;overflow:hidden;white-space:nowrap;color:#142433;background:#F8F5EC}
   .uren-table td.left{text-align:left;padding-left:6px}
   .uren-table tr:last-child td{border-bottom:none}
   .uren-table tr.totaalrij td{font-weight:700;font-size:11px;background:var(--accent-light);color:var(--accent);border-top:2px solid var(--border);border-bottom:none;padding:6px 3px}
@@ -394,7 +394,7 @@ function t(key){return(LANG[curLang]&&LANG[curLang][key])||LANG.nl[key]||key;}
 function applyUserLang(){
   document.querySelectorAll('#screen-user [data-i18n]').forEach(el=>{el.textContent=t(el.getAttribute('data-i18n'));});
 }
-let allEntries=[];let allUsers=[];let allNotes=[];
+let allEntries=[];let allUsers=[];let mijnVrijeDagen={};let allNotes=[];
 async function init(){
   try{const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),10000));await Promise.race([loadUsers(),timeout]);}
   catch(e){document.getElementById('screen-loading').innerHTML=`<div style="padding-top:4rem;text-align:center"><div class="logo" style="justify-content:center;display:block">Urenregistratie</div><p style="margin-top:1rem;color:var(--danger)">\u26A0\uFE0F Kan geen verbinding maken.<br>Controleer je internet en probeer opnieuw.</p><button onclick="location.reload()" style="margin-top:1.5rem;padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer">Opnieuw proberen</button></div>`;return;}
@@ -410,7 +410,9 @@ window.doLogin=async function(){
   if(!u){showErr('login-err','Naam of wachtwoord onjuist');return;}
   hideEl('login-err');me=u;await loadEntries();
   if(u.role==='admin'){await loadNotes();show('screen-admin');fillFilters();renderAdmin();}
-  else{curLang=u.taal||'nl';document.getElementById('user-name-label').textContent=u.name;initEntryForm(todayStr());show('screen-user');applyUserLang();resetUserTabs();showSnipperBanner();checkVergeten();showNotitieBanner();setupReminder();}
+  else{curLang=u.taal||'nl';document.getElementById('user-name-label').textContent=u.name;initEntryForm(todayStr());show('screen-user');applyUserLang();resetUserTabs();showSnipperBanner();// Laad eigen vrije dagen
+  try{const key=me.name.toLowerCase().replace(/\s+/g,'-');const snap=await getDoc(doc(db,'vrije_dagen',key));if(snap.exists())mijnVrijeDagen=snap.data().dagen||{};}catch(e){mijnVrijeDagen={};}
+  checkVergeten();showNotitieBanner();setupReminder();}
 };
 window.doRegister=async function(){
   const n=val('reg-name').trim();const p=val('reg-pass');
@@ -560,6 +562,7 @@ window.saveReminder=async function(){
   me={...me,reminderAan:aan,reminderTijd:tijd};await setDoc(doc(db,'users',key),me);await loadUsers();startReminderCheck();
   ok.textContent=t('rem_ok');ok.style.display='block';setTimeout(()=>ok.style.display='none',3000);
 };
+function vrijStatus(v){if(v===true)return 'goedgekeurd';return(v==='aangevraagd'||v==='goedgekeurd')?v:null;}
 function isFeestdag(d){
   const y=d.getFullYear();const md=(m,day)=>d.getMonth()===m&&d.getDate()===day;
   if(md(0,1)||md(11,25)||md(11,26))return true;
@@ -610,7 +613,7 @@ function checkVergeten(){
     const dw=dag.getDay();
     if(dw===0||dw===6)continue;
     const ds=dag.toISOString().split('T')[0];
-    if(isFeestdag(new Date(ds+'T12:00:00')))continue;
+    try{if(isFeestdag(new Date(ds+'T12:00:00')))continue;}catch(e){}
     if(!allEntries.find(e=>e.naam===me.name&&e.datum===ds)){
       ontbrekend.push(ds);
     }
@@ -709,7 +712,7 @@ window.toggleVrijeDagenWeek=function(w){const body=document.getElementById('vd-b
 window.saveDag=async function(key,datum,checked){
   let vrijeDagen={};try{const snap=await getDoc(doc(db,'vrije_dagen',key));if(snap.exists())vrijeDagen=snap.data().dagen||{};}catch(e){}
   if(checked)vrijeDagen[datum]=true;else delete vrijeDagen[datum];
-  await setDoc(doc(db,'vrije_dagen',key),{naam:me.name,dagen:vrijeDagen});
+  await setDoc(doc(db,'vrije_dagen',key),{naam:me.name,dagen:vrijeDagen});mijnVrijeDagen=vrijeDagen;
   const jaar=new Date().getFullYear();const week=getWeekNr(datum);const countEl=document.getElementById('vd-count-'+week);
   if(countEl)countEl.textContent=countVrijeDagen(vrijeDagen,jaar,week)+' dag(en) vrij';
 };
@@ -971,7 +974,40 @@ window.switchTab=function(scope,tab,btn){
   document.querySelectorAll(`#screen-${scope} .tab`).forEach(t=>t.classList.remove('active'));
   document.getElementById(`${scope}-${tab}`).classList.add('active');btn.classList.add('active');
   if(scope==='user'&&tab==='weekoverzicht')renderUserWeek();
-  if(scope==='user'&&tab==='vrijevdagen')renderVrijeDagen();
+  window.renderVrijeDagen=async function(){
+  const el=document.getElementById('vrije-dagen-list');
+  if(!el)return;
+  el.innerHTML='<div class="loading">Laden...</div>';
+  // Laad vrije dagen van deze gebruiker
+  try{
+    const key=me.name.toLowerCase().replace(/\s+/g,'-');
+    const snap=await getDoc(doc(db,'vrije_dagen',key));
+    const dagen=snap.exists()?snap.data().dagen||{}:{};
+    mijnVrijeDagen=dagen;
+    const entries=Object.entries(dagen)
+      .filter(([_,v])=>v==='aangevraagd'||v==='goedgekeurd'||v===true)
+      .sort(([a],[b])=>a.localeCompare(b));
+    if(!entries.length){
+      el.innerHTML='<div class="empty" style="color:#888;padding:1rem">Geen vrije dagen aangevraagd of goedgekeurd.</div>';
+      return;
+    }
+    const rows=entries.map(([datum,status])=>{
+      const lbl=new Date(datum+'T12:00:00').toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
+      const st=vrijStatus(status);
+      const kleur=st==='goedgekeurd'?'#155C36':'#1F5E8C';
+      const icon=st==='goedgekeurd'?'✓':'⏳';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #E0E0E0">
+        <span style="font-size:13px">${lbl}</span>
+        <span style="font-size:12px;font-weight:700;color:${kleur}">${icon} ${st==='goedgekeurd'?'Goedgekeurd':'Aangevraagd'}</span>
+      </div>`;
+    }).join('');
+    el.innerHTML=`<div style="background:#F8F5EC;border-radius:8px;border:1px solid #CCC;padding:.75rem">${rows}</div>`;
+  }catch(e){
+    el.innerHTML='<div style="color:#A6362A;padding:1rem">Fout bij laden: '+e.message+'</div>';
+  }
+};
+
+if(scope==='user'&&tab==='vrijevdagen')renderVrijeDagen();
   if(scope==='admin'&&tab==='jaaroverzicht')renderJaaroverzicht();
   if(scope==='admin'&&tab==='weekcheck')renderWeekcheck();
   if(scope==='admin'&&tab==='opmerkingen')renderOpmerkingen();
@@ -993,7 +1029,7 @@ window.updateSnipdagMelding=function(datum){
   const el=document.getElementById('snipdag-melding');
   if(!el||!datum)return;
   const vrijEntry=allEntries&&allEntries.find(e=>e.naam===me.name&&e.datum===datum&&+(e.vrij||0)>0);
-  const vakStatus=vakAllVrij&&vakAllVrij[me.name]&&vakAllVrij[me.name][datum];
+  const vakStatus=mijnVrijeDagen&&mijnVrijeDagen[datum];
   const status=vrijStatus(vakStatus);
   if(vrijEntry||status){
     const u=allUsers&&allUsers.find(x=>x.name===me.name);
@@ -1018,6 +1054,76 @@ function resetUserTabs(){
   document.querySelectorAll('#screen-user .tab').forEach((t,i)=>t.classList.toggle('active',i===0));
   document.getElementById('user-invullen').classList.add('active');document.getElementById('user-weekoverzicht').classList.remove('active');
 }
+window.renderUserWeek=function(){
+  const mine=allEntries.filter(e=>e.naam===me.name);
+  const el=document.getElementById('user-week-list');
+  const summary=document.getElementById('user-snipper-summary');
+  const contract=me.contracturen||0;
+  const jaarsnippers=calcJaarsnippers?calcJaarsnippers(me):(me.jaarsnippers||0);
+  const startsaldo=me.startsaldo||0;
+  const sf=me.contracturen&&me.werkdagen?(me.contracturen/me.werkdagen):0;
+  const curYear=new Date().getFullYear().toString();
+
+  // Snipper saldo
+  if(contract>0||jaarsnippers>0){
+    const mine2=allEntries.filter(e=>e.naam===me.name&&e.datum.startsWith(curYear));
+    const opgenomen=mine2.reduce((s,e)=>s+(+(e.snip||0)),0);
+    const snipperSaldo=+(startsaldo+jaarsnippers-opgenomen).toFixed(1);
+    const dagen=sf>0?+(snipperSaldo/sf).toFixed(1):null;
+    const kleur=snipperSaldo>=0?'#155C36':'#A6362A';
+    summary.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:.75rem;flex-wrap:wrap">
+      ${contract>0?`<div class="stat" style="flex:1"><div class="stat-val">${contract}u</div><div class="stat-lbl">Contract/week</div></div>`:''}
+      ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val">${jaarsnippers}u</div><div class="stat-lbl">Snipperuren/jaar</div></div>`:''}
+      ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val" style="color:${kleur}">${snipperSaldo}u</div><div class="stat-lbl" style="color:${kleur};font-weight:600">${dagen!==null?'≈'+dagen+' dagen over':''}</div></div>`:''}
+    </div>`;
+  } else { summary.innerHTML=''; }
+
+  if(!mine.length){el.innerHTML='<div class="empty">Nog geen uren ingevuld</div>';return;}
+  const weken=groupByWeek(mine);
+  const rows=weken.map(({key,label,items})=>{
+    const tot=totals(items);
+    const totaal=+(tot.g+tot.z+tot.d+tot.v).toFixed(1);
+    const snipVal=contract>0?+(contract-totaal).toFixed(1):null;
+    const kleur2=snipVal!==null?(snipVal>=0?'var(--success)':'var(--danger)'):'';
+    const weekNr=key.split('-W')[1]||key;
+    return `<tr>
+      <td class="left col_week" style="cursor:pointer" onclick="toonWkDetails('${key}')">Week ${weekNr} ▾</td>
+      <td>${tot.g>0?tot.g.toFixed(1):'—'}</td>
+      <td>${tot.z>0?tot.z.toFixed(1):'—'}</td>
+      <td>${tot.d>0?tot.d.toFixed(1):'—'}</td>
+      <td>${tot.v>0?tot.v.toFixed(1):'—'}</td>
+      <td><b>${totaal>0?totaal:'—'}</b></td>
+      ${contract>0?`<td style="color:${kleur2};font-weight:600">${snipVal!==null?snipVal:'—'}</td>`:''}
+    </tr>
+    <tr id="wkdet-${key}" style="display:none"><td colspan="7" style="padding:0">
+      ${weekTable(items)}
+    </td></tr>`;
+  }).join('');
+  const hasContract=contract>0;
+  el.innerHTML=`<div class="uren-table-wrap"><table class="uren-table">
+    <thead><tr>
+      <th class="left">Week</th>
+      <th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th>
+      ${hasContract?'<th>Snip.</th>':''}
+    </tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr class="totaalrij">
+      <td class="left">Totalen →</td>
+      <td>${weken.reduce((s,{items})=>s+totals(items).g,0).toFixed(1)}</td>
+      <td>${weken.reduce((s,{items})=>s+totals(items).z,0).toFixed(1)||'—'}</td>
+      <td>${weken.reduce((s,{items})=>s+totals(items).d,0).toFixed(1)||'—'}</td>
+      <td>${weken.reduce((s,{items})=>s+totals(items).v,0).toFixed(1)||'—'}</td>
+      <td><b>${weken.reduce((s,{items})=>{const t=totals(items);return s+t.g+t.z+t.d+t.v;},0).toFixed(1)}</b></td>
+      ${hasContract?'<td></td>':''}
+    </tr></tfoot>
+  </table></div>`;
+};
+
+window.toonWkDetails=function(key){
+  const el=document.getElementById('wkdet-'+key);
+  if(el)el.style.display=el.style.display==='none'?'table-row':'none';
+};
+
 function weekTable(items){
   const tot=totals(items);const fmt=v=>(v&&v>0)?v:'<span class="zero">\u2013</span>';
   const rows=items.slice().sort((a,b)=>a.datum.localeCompare(b.datum)).map(e=>{
