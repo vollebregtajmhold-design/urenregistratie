@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie</title>
+<title>Urenregistratie | v2026-09-24 18:29 Mobiel</title>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -200,8 +200,18 @@
       <div id="u-ok" class="success-msg" style="display:none"></div>
       </div>
 <button class="btn btn-primary" id="btn-opslaan" onclick="saveEntry()" data-i18n="btn_opslaan">Opslaan</button>
-      <p style="font-size:12px;color:#4F7395;background:#EAF4FC;border-radius:6px;padding:4px 8px;margin-top:.5rem;text-align:center">ℹ️ Snipperuren worden niet ingevuld — deze worden automatisch berekend.</p>
-      <p style="font-size:12px;color:#4F7395;background:#EAF4FC;border-radius:6px;padding:4px 8px;margin-top:.4rem;text-align:center">🗓️ Feestdagen worden automatisch ingevuld.</p>
+      <div style="background:#F8F5EC;border:1px solid #CCC;border-radius:8px;padding:10px 14px;margin-top:.75rem;font-size:12px;color:#4F7395;line-height:1.7">
+        <b style="color:#1F5E8C">Vergeten in te vullen:</b><br>
+        Dan krijg je meldingen per dag (gele balk) waar je op kunt klikken.<br>
+        Vul deze in, incl de teelt, en sla op.<br>
+        Bij ziekte invoeren en opslaan.<br>
+        Bij snipperdag (niet aangemeld) klik je op het veld onder de datum en sla op.<br><br>
+        Een feestdag wordt automatisch ingevuld.<br>
+        Idem bij een aangemelde snipperdag.<br><br>
+        <b style="color:#1F5E8C">Snipperuren dus niet invullen:</b><br>
+        Bij eerder stoppen wordt berekend:<br>
+        de contracturen - gewerkt = snipperuren.
+      </div>
     </div>
   </div>
   <div id="user-weekoverzicht" class="tabpanel" style="display:none">
@@ -1216,5 +1226,6 @@ function updateVrijeDagSnel(datum){
 
 init();
 </script>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-09-24 18:29 Mobiel</div>
 </body>
 </html>
