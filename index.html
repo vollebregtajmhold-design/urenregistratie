@@ -63,8 +63,8 @@
   .person-name{font-weight:600;font-size:15px}
   .person-toggle{font-size:13px;color:var(--muted)}
   .person-body{padding:0}
-  .tabpanel{display:none}
-  .tabpanel.active{display:block}
+  .tabpanel{display:none!important}
+  .tabpanel.active{display:block!important}
   .loading{text-align:center;padding:2rem;color:var(--muted);font-size:14px}
   .stat{background:var(--accent-light);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem;text-align:center}
   .stat-val{font-size:21px;font-weight:600;color:var(--accent)}
@@ -153,11 +153,10 @@
     <button class="tab" onclick="switchTab('user','weekoverzicht',this)" data-i18n="tab_weekoverzicht">Weekoverzicht</button>
     <button class="tab" onclick="switchTab('user','vrijevdagen',this)">Vrije dagen</button>
     <button class="tab" onclick="switchTab('user','wachtwoord',this)" data-i18n="tab_wachtwoord">Wachtwoord</button>
-    <button class="tab" onclick="switchTab('user','herinnering',this)" data-i18n="tab_herinnering">Herinnering</button>
+    
   </div>
   <div id="user-invullen" class="tabpanel active">
     <div id="notitie-banner" style="display:none"></div>
-    <div id="snipper-banner" style="display:none"></div>
     <div id="vergeten-banner" style="display:none"></div>
     <div id="lock-notice" class="lock-notice" style="display:none" data-i18n="lock_msg">&#128274; Deze dag is definitief en kan niet meer worden aangepast.</div>
     <div class="card card-compact">
@@ -165,7 +164,7 @@
       <input type="date" id="u-datum" onchange="onDatumChange()">
       <div id="vd-snel-wrap" style="margin-top:4px;margin-bottom:4px">
         <div id="vd-snel" onclick="toggleVrijeDagSnel()" style="display:flex;align-items:center;gap:6px;border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #A9C9E3;background:#EAF4FC;color:#1F5E8C;user-select:none">
-          Snipperdag aanvragen voor deze datum
+          Maak van deze dag een snipperdag
         </div>
       </div>
       <div id="uren-velden">
@@ -188,12 +187,12 @@
         <p style="font-size:11px;color:var(--muted);margin-top:.25rem;margin-bottom:.5rem">Vul hier uren in bij vrije dag of snipperdag. Feestdagen worden automatisch herkend.</p>
         <label data-i18n="lbl_teelt">Vink de teelt aan waarin je het meest gewerkt hebt</label>
         <div class="row2" id="teelt-keuze" style="grid-template-columns:1fr 1fr;gap:6px 12px">
-          <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400"><input type="checkbox" class="u-teelt" value="Jonge planten" style="width:auto;margin:0"> Jonge planten</label>
-          <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400"><input type="checkbox" class="u-teelt" value="Hortensia" style="width:auto;margin:0"> Hortensia</label>
-          <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400"><input type="checkbox" class="u-teelt" value="Micro" style="width:auto;margin:0"> Micro</label>
-          <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400"><input type="checkbox" class="u-teelt" value="Mini" style="width:auto;margin:0"> Mini</label>
-          <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400"><input type="checkbox" class="u-teelt" value="Cyclamen" style="width:auto;margin:0"> Cyclamen</label>
-          <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400"><input type="checkbox" class="u-teelt" value="Algemeen" style="width:auto;margin:0"> Algemeen</label>
+          <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Jonge planten" style="width:auto;margin:0"> Jonge planten</label>
+          <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Hortensia" style="width:auto;margin:0"> Hortensia</label>
+          <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Micro" style="width:auto;margin:0"> Micro</label>
+          <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Mini" style="width:auto;margin:0"> Mini</label>
+          <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Cyclamen" style="width:auto;margin:0"> Cyclamen</label>
+          <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Algemeen" style="width:auto;margin:0"> Algemeen</label>
         </div>
         <label data-i18n="lbl_opmerking">Opmerking (optioneel)</label>
         <input type="text" id="u-opmerking">
@@ -206,6 +205,7 @@
     </div>
   </div>
   <div id="user-weekoverzicht" class="tabpanel">
+    <div id="snipper-banner" style="display:none"></div>
     <div id="user-snipper-summary"></div>
     <div id="user-week-list"><div class="loading" data-i18n="loading">Laden...</div></div>
   </div>
@@ -227,9 +227,6 @@
       <button class="btn btn-primary" onclick="changePassword()" data-i18n="pw_btn">Wachtwoord wijzigen</button>
     </div>
   </div>
-  <div id="user-herinnering" class="tabpanel">
-    <div class="card">
-      <div style="font-weight:600;margin-bottom:.5rem" data-i18n="rem_title">Dagelijkse herinnering</div>
       <p class="hint" style="margin-bottom:.75rem" data-i18n="rem_hint">Krijg een melding op dit toestel als je vandaag nog geen uren hebt ingevuld.</p>
       <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;font-weight:500;color:var(--text)">
         <input type="checkbox" id="rem-aan" style="width:auto;margin:0" onchange="toggleReminder()"> <span data-i18n="rem_aan">Herinnering inschakelen</span>
@@ -422,7 +419,7 @@ window.doLogin=async function(){
   if(!u){showErr('login-err','Naam of wachtwoord onjuist');return;}
   hideEl('login-err');me=u;await loadEntries();
   if(u.role==='admin'){await loadNotes();show('screen-admin');fillFilters();renderAdmin();}
-  else{curLang=u.taal||'nl';document.getElementById('user-name-label').textContent=u.name;initEntryForm(todayStr());show('screen-user');applyUserLang();resetUserTabs();showSnipperBanner();// Laad eigen vrije dagen
+  else{curLang=u.taal||'nl';document.getElementById('user-name-label').textContent=u.name;initEntryForm(todayStr());show('screen-user');applyUserLang();resetUserTabs();// Laad eigen vrije dagen
   try{const key=me.name.toLowerCase().replace(/\s+/g,'-');const snap=await getDoc(doc(db,'vrije_dagen',key));if(snap.exists())mijnVrijeDagen=snap.data().dagen||{};}catch(e){mijnVrijeDagen={};}
   checkVergeten();showNotitieBanner();setupReminder();}
 };
@@ -645,21 +642,15 @@ function checkVergeten(){
   banner.style.display='block';
 }
 window.alsnog=function(datum){
-  // Zet de datum in het invoerveld
   const inp=document.getElementById('u-datum');
   if(inp){
     inp.value=datum;
-    // Scroll naar invullen tab
     const invullenTab=document.querySelector('.tab[onclick*="invullen"]');
     if(invullenTab&&!invullenTab.classList.contains('active')) invullenTab.click();
-    // Roep de datum change handler direct aan
     if(typeof window.onDatumChange==='function') window.onDatumChange();
     inp.focus();
   }
-  // Laat banner staan - wordt bijgewerkt door checkVergeten na opslaan
-  // Toon snelmenu voor vrije dag registratie
-  toonAlsnogOpties(datum);
-}
+};
 
 window.toonAlsnogOpties=function(datum){
   const lbl=new Date(datum+'T12:00:00').toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});
@@ -986,11 +977,22 @@ window.renderTeelten=function(){
   document.getElementById('teelten-list').innerHTML=html;
 };
 window.switchTab=function(scope,tab,btn){
-  document.querySelectorAll(`#screen-${scope} .tabpanel`).forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll(`#screen-${scope} .tabpanel`).forEach(p=>{p.classList.remove('active');p.style.display='none';});
   document.querySelectorAll(`#screen-${scope} .tab`).forEach(t=>t.classList.remove('active'));
-  document.getElementById(`${scope}-${tab}`).classList.add('active');btn.classList.add('active');
+  const actief=document.getElementById(`${scope}-${tab}`);
+  if(actief){actief.classList.add('active');actief.style.display='block';}
+  btn.classList.add('active');
   if(scope==='user'&&tab==='weekoverzicht')renderUserWeek();
-  window.renderVrijeDagen=async function(){
+  if(scope==='user'&&tab==='vrijevdagen')renderVrijeDagen();
+  if(scope==='admin'&&tab==='jaaroverzicht')renderJaaroverzicht();
+  if(scope==='admin'&&tab==='weekcheck')renderWeekcheck();
+  if(scope==='admin'&&tab==='opmerkingen')renderOpmerkingen();
+  if(scope==='admin'&&tab==='vakantie')renderVakantie();
+  if(scope==='admin'&&tab==='teelten')renderTeelten();
+  if(scope==='admin'&&tab==='lossekrachten')renderLosseKrachten();
+  if(scope==='admin'&&!['jaaroverzicht','weekcheck','wachtwoord','opmerkingen','teelten','vakantie','lossekrachten'].includes(tab))renderAdmin();
+};
+window.renderVrijeDagen=async function(){
   const el=document.getElementById('vrije-dagen-list');
   if(!el)return;
   el.innerHTML='<div class="loading">Laden...</div>';
@@ -1040,17 +1042,7 @@ window.switchTab=function(scope,tab,btn){
   }catch(e){
     el.innerHTML='<div style="color:#A6362A;padding:1rem">Fout: '+e.message+'</div>';
   }
-};
-
-if(scope==='user'&&tab==='vrijevdagen')renderVrijeDagen();
-  if(scope==='admin'&&tab==='jaaroverzicht')renderJaaroverzicht();
-  if(scope==='admin'&&tab==='weekcheck')renderWeekcheck();
-  if(scope==='admin'&&tab==='opmerkingen')renderOpmerkingen();
-  if(scope==='admin'&&tab==='vakantie')renderVakantie();
-  if(scope==='admin'&&tab==='teelten')renderTeelten();
-  if(scope==='admin'&&tab==='lossekrachten')renderLosseKrachten();
-  if(scope==='admin'&&!['jaaroverzicht','weekcheck','wachtwoord','opmerkingen','teelten','vakantie','lossekrachten'].includes(tab))renderAdmin();
-};
+};;
 window.onDatumChange=function(){
   const datum=val('u-datum');const locked=isLocked(datum);
   document.getElementById('lock-notice').style.display=locked?'block':'none';
@@ -1090,6 +1082,7 @@ function resetUserTabs(){
   document.getElementById('user-invullen').classList.add('active');document.getElementById('user-weekoverzicht').classList.remove('active');
 }
 window.renderUserWeek=function(){
+  showSnipperBanner();
   const mine=allEntries.filter(e=>e.naam===me.name);
   const el=document.getElementById('user-week-list');
   const summary=document.getElementById('user-snipper-summary');
@@ -1217,11 +1210,11 @@ function updateVrijeDagSnel(datum){
     if(velden)velden.style.display='none';
   } else if(status==='aangevraagd'){
     el.style.background='#C9E2F5';el.style.color='#1F5E8C';el.style.borderColor='#1F5E8C';
-    el.textContent='Snipperdag aangevraagd — klik om te verwijderen';
+    el.textContent='Snipperdag — klik om te wijzigen';
     if(velden)velden.style.display='none';
   } else {
     el.style.background='#EAF4FC';el.style.color='#4F7395';el.style.borderColor='#A9C9E3';
-    el.textContent='Snipperdag aanvragen voor deze datum';
+    el.textContent='Maak van deze dag een snipperdag';
     if(velden)velden.style.display='';
   }
 }
