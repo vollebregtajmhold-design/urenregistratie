@@ -201,45 +201,20 @@
       <div id="u-ok" class="success-msg" style="display:none"></div>
       </div>
 <button class="btn btn-primary" id="btn-opslaan" onclick="saveEntry()" data-i18n="btn_opslaan">Opslaan</button>
-      <p style="font-size:12px;color:var(--muted);margin-top:.5rem;text-align:center">ℹ️ Snipperuren worden niet ingevuld — deze worden automatisch berekend.</p>
+      <p style="font-size:12px;color:#4F7395;background:#EAF4FC;border-radius:6px;padding:4px 8px;margin-top:.5rem;text-align:center">ℹ️ Snipperuren worden niet ingevuld — deze worden automatisch berekend.</p>
     </div>
   </div>
-  <div id="user-weekoverzicht" class="tabpanel">
+  <div id="user-weekoverzicht" class="tabpanel" style="display:none">
     <div id="snipper-banner" style="display:none"></div>
     <div id="user-snipper-summary"></div>
     <div id="user-week-list"><div class="loading" data-i18n="loading">Laden...</div></div>
   </div>
-  <div id="user-vrijevdagen" class="tabpanel">
+  <div id="user-vrijevdagen" class="tabpanel" style="display:none">
     <div style="background:var(--accent-light);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:1rem;font-size:14px;font-weight:600;color:var(--accent)">&#128197; Aangevraagde en goedgekeurde vakantiedagen</div>
     <div id="vrije-dagen-list"><div class="loading">Laden...</div></div>
   </div>
   <div id="user-wachtwoord" class="tabpanel">
-    <div class="card">
-      <div style="font-weight:600;margin-bottom:.75rem" data-i18n="pw_title">Wachtwoord wijzigen</div>
-      <label data-i18n="pw_lbl_oud">Huidig wachtwoord</label>
-      <input type="password" id="pw-oud" placeholder="Huidig wachtwoord">
-      <label data-i18n="pw_lbl_nieuw">Nieuw wachtwoord</label>
-      <input type="password" id="pw-nieuw" placeholder="Nieuw wachtwoord">
-      <label data-i18n="pw_lbl_herhaal">Nieuw wachtwoord herhalen</label>
-      <input type="password" id="pw-herhaal" placeholder="Herhaal nieuw wachtwoord">
-      <div id="pw-err" class="error" style="display:none"></div>
-      <div id="pw-ok" class="success-msg" style="display:none"></div>
-      <button class="btn btn-primary" onclick="changePassword()" data-i18n="pw_btn">Wachtwoord wijzigen</button>
-    </div>
-  </div>
-      <p class="hint" style="margin-bottom:.75rem" data-i18n="rem_hint">Krijg een melding op dit toestel als je vandaag nog geen uren hebt ingevuld.</p>
-      <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:14px;font-weight:500;color:var(--text)">
-        <input type="checkbox" id="rem-aan" style="width:auto;margin:0" onchange="toggleReminder()"> <span data-i18n="rem_aan">Herinnering inschakelen</span>
-      </label>
-      <label data-i18n="rem_tijd_lbl">Tijdstip</label>
-      <input type="time" id="rem-tijd" value="17:00">
-      <div id="rem-err" class="error" style="display:none"></div>
-      <div id="rem-ok" class="success-msg" style="display:none"></div>
-      <button class="btn btn-primary" onclick="saveReminder()" data-i18n="btn_opslaan">Opslaan</button>
-    </div>
-  </div>
-</div>
-<!-- ADMIN -->
+    <!-- ADMIN -->
 <div id="screen-admin" class="screen">
   <div class="topbar">
     <div>
@@ -421,7 +396,7 @@ window.doLogin=async function(){
   if(u.role==='admin'){await loadNotes();show('screen-admin');fillFilters();renderAdmin();}
   else{curLang=u.taal||'nl';document.getElementById('user-name-label').textContent=u.name;initEntryForm(todayStr());show('screen-user');applyUserLang();resetUserTabs();// Laad eigen vrije dagen
   try{const key=me.name.toLowerCase().replace(/\s+/g,'-');const snap=await getDoc(doc(db,'vrije_dagen',key));if(snap.exists())mijnVrijeDagen=snap.data().dagen||{};}catch(e){mijnVrijeDagen={};}
-  checkVergeten();showNotitieBanner();setupReminder();}
+  checkVergeten();showNotitieBanner();}
 };
 window.doRegister=async function(){
   const n=val('reg-name').trim();const p=val('reg-pass');
@@ -977,13 +952,33 @@ window.renderTeelten=function(){
   document.getElementById('teelten-list').innerHTML=html;
 };
 window.switchTab=function(scope,tab,btn){
+  // Wis weekoverzicht content als we weggaan
+  if(scope==='user'&&tab!=='weekoverzicht'){
+    const wl=document.getElementById('user-week-list');
+    const ws=document.getElementById('user-snipper-summary');
+    const sb=document.getElementById('snipper-banner');
+    if(wl)wl.innerHTML='';
+    if(ws)ws.innerHTML='';
+    if(sb)sb.style.display='none';
+  }
   document.querySelectorAll(`#screen-${scope} .tabpanel`).forEach(p=>{p.classList.remove('active');p.style.display='none';});
   document.querySelectorAll(`#screen-${scope} .tab`).forEach(t=>t.classList.remove('active'));
   const actief=document.getElementById(`${scope}-${tab}`);
   if(actief){actief.classList.add('active');actief.style.display='block';}
   btn.classList.add('active');
-  if(scope==='user'&&tab==='weekoverzicht')renderUserWeek();
-  if(scope==='user'&&tab==='vrijevdagen')renderVrijeDagen();
+  if(scope==='user'&&tab==='weekoverzicht'){
+    const vdList=document.getElementById('vrije-dagen-list');
+    if(vdList)vdList.innerHTML='<div class="loading">Laden...</div>';
+    renderUserWeek();
+  }
+  if(scope==='user'&&tab==='vrijevdagen'){
+    // Zorg dat weekoverzicht content weg is
+    const wkList=document.getElementById('user-week-list');
+    const wkSum=document.getElementById('user-snipper-summary');
+    if(wkList)wkList.innerHTML='';
+    if(wkSum)wkSum.innerHTML='';
+    renderVrijeDagen();
+  }
   if(scope==='admin'&&tab==='jaaroverzicht')renderJaaroverzicht();
   if(scope==='admin'&&tab==='weekcheck')renderWeekcheck();
   if(scope==='admin'&&tab==='opmerkingen')renderOpmerkingen();
