@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Urenregistratie — Beheer</title>
+<title>Urenregistratie — Beheer | v2026-09-24 18:07 Beheer</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -238,8 +238,6 @@
   #mx-slider-wrap input[type=range]::-moz-range-thumb{pointer-events:all;width:14px;height:14px;border-radius:50%;background:var(--success);border:2px solid #fff;cursor:ew-resize}
   #mx-slider-wrap::before{content:'';position:absolute;top:50%;transform:translateY(-50%);left:0;right:0;height:6px;background:var(--border);border-radius:3px}
 
-
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
 </style>
 </head>
 <body>
@@ -307,11 +305,10 @@
       <button class="tb-btn" onclick="downloadBackup()" title="Backup downloaden">⬇️ Backup</button>
       <span class="tb-user" id="sidebar-user">admin</span>
       <button class="tb-btn" onclick="doLogout()">Uitloggen</button>
-      <button class="tb-btn" onclick="toonSneltoetsen()" title="Sneltoetsen" style="padding:5px 7px">?</button>
+      
       <button class="tb-btn" onclick="toggleFullscreen()" title="Volledig scherm" style="padding:5px 7px">⛶</button>
     </div>
   </div>
-<div id="verjaardag-balk" style="display:none;background:#3B3D40;padding:6px 20px;text-align:center"></div>
 <div id="app" style="display:none">
   
   <div class="main">
@@ -350,7 +347,7 @@
         <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
           <div>
             <div class="page-title" style="color:#fff">START</div>
-            <div class="page-hint" style="color:#ddd">Totaal uren per medewerker per week. Klik op een cel om te bewerken.</div>
+            
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px">
           <select id="mx-jaar" onchange="renderMatrix()" style="width:auto;margin:0;font-size:13px;padding:6px 10px;background:#EAF4FC;color:#142433;border:1px solid #A9C9E3"></select>
@@ -700,7 +697,7 @@ async function init() {
   }
   show('screen-login');
 }
-async function loadUsers() { const snap = await getDocs(collection(db, 'users')); allUsers = snap.docs.map(d => d.data()); updateVerjaardagBanner(); }
+async function loadUsers() { const snap = await getDocs(collection(db, 'users')); allUsers = snap.docs.map(d => d.data()); updateVerjaardagBanner(); checkVerjaardagen(); const _tv=document.getElementById('verjaardag-kader');if(_tv&&!_tv.innerHTML){_tv.style.display='block';_tv.innerHTML='Test: geen jarige gevonden in allUsers ('+allUsers.length+')';}  }
 async function loadEntries() { const snap = await getDocs(query(collection(db, 'entries'), orderBy('datum', 'desc'))); allEntries = snap.docs.map(d => d.data()); herberekenFeestdagEntries(); }
 async function loadNotes() { const snap = await getDocs(collection(db, 'notes')); allNotes = snap.docs.map(d => ({ id: d.id, ...d.data() })); }
 let allFeestdagen = [];
@@ -1575,6 +1572,7 @@ window.renderMatrix = async function() {
         </table>
       </div>
       <div id="mx-weekblok" style="display:none;background:#fff;border-radius:12px;padding:0;width:auto;font-size:13px;flex-shrink:0;overflow:hidden;margin-top:0;border-top:10px solid #1B5EBE;border-right:10px solid #7AB648;border-bottom:10px solid #E8007D;border-left:10px solid #7AB648;box-shadow:0 4px 16px rgba(0,0,0,.12)"></div>
+      <div id="verjaardag-kader" style="display:none;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;margin-top:1.5rem;font-size:15px;font-weight:700;color:#142433;line-height:2;max-width:420px"></div>
     </div>`;
 
   // Initialiseer schuifbalk: standaard 12 weken venster rond huidige week
@@ -1681,6 +1679,7 @@ window.sluitMatrixPopup = function() {
 window.opslaanMatrixPopup = async function() {
   if (!matrixPopupState) return;
   const { naam, weekNr, jaar, dagen, entries } = matrixPopupState;
+  if (!confirm(`Uren opslaan voor ${naam} — week ${weekNr}?`)) return;
   const naamKey = naam.toLowerCase().replace(/\s+/g,'-');
   const TYPEN = ['gew','ziek','dok','snip'];
   const VELDEN = ['gewerkt','ziek','dokter','snip'];
@@ -2006,6 +2005,36 @@ window.opslaanTeeltWeek = async function(gi) {
 
 // ===== BANNER / BADGE FUNCTIES =====
 function updateVerjaardagBanner() {}
+function checkVerjaardagen(){
+  const el=document.getElementById('verjaardag-kader');
+  if(!el||!allUsers||!allUsers.length){if(el)el.style.display='none';return;}
+  const vandaag=new Date();
+  const jarigen=[];
+  allUsers.forEach(u=>{
+    if(!u.geboortedatum||u.name==='admin')return;
+    const delen=u.geboortedatum.split('-');
+    if(delen.length<3)return;
+    const m=parseInt(delen[1]),d=parseInt(delen[2]),y=parseInt(delen[0]);
+    if(!m||!d||!y)return;
+    for(let i=0;i<=7;i++){
+      const check=new Date(vandaag);
+      check.setDate(vandaag.getDate()+i);
+      if(check.getMonth()+1===m&&check.getDate()===d){
+        const leeftijd=check.getFullYear()-y;
+        jarigen.push({naam:u.name,dag:i,leeftijd,isVandaag:i===0});
+        break;
+      }
+    }
+  });
+  if(!jarigen.length){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML=jarigen.map(j=>{
+    if(j.isVandaag)return `<b>${j.naam}</b> is vandaag ${j.leeftijd} jaar!`;
+    if(j.dag===1)return `<b>${j.naam}</b> is morgen jarig (${j.leeftijd})`;
+    return `<b>${j.naam}</b> is over ${j.dag} dagen jarig (${j.leeftijd})`;
+  }).join('<br>');
+}
+
 function updateVandaagVrijBanner() {}
 function updateLaatsteDagBanner() {}
 
@@ -2027,7 +2056,7 @@ function updateAanvraagBadge() {
 
 async function refreshAanvraagBadge() {
   await laadVrijeDagen();
-  updateAanvraagBadge();checkVerjaardagen();
+  updateAanvraagBadge();
 }
 
 
@@ -2189,40 +2218,6 @@ window.approveFromList = async function(naam, datum) {
 };
 
 
-function checkVerjaardagen(){
-  const banner=document.getElementById('verjaardag-banner');
-  if(!banner||!allUsers)return;
-  const vandaag=new Date();
-  const jarigen=[];
-  allUsers.forEach(u=>{
-    if(!u.geboortedatum||u.name==='admin')return;
-    const [y,m,d]=u.geboortedatum.split('-').map(Number);
-    if(!m||!d)return;
-    // Check: is de verjaardag binnen 7 dagen of vandaag?
-    for(let i=0;i<=7;i++){
-      const check=new Date(vandaag);check.setDate(vandaag.getDate()+i);
-      if(check.getMonth()+1===m&&check.getDate()===d){
-        const leeftijd=check.getFullYear()-y;
-        const isVandaag=i===0;
-        jarigen.push({naam:u.name,dag:i,leeftijd,isVandaag});
-        break;
-      }
-    }
-  });
-  if(!jarigen.length){banner.style.display='none';return;}
-  const tekst=jarigen.map(j=>{
-    if(j.isVandaag)return `🎂 <b>${j.naam}</b> is vandaag ${j.leeftijd} jaar!`;
-    if(j.dag===1)return `🎁 <b>${j.naam}</b> is morgen jarig (${j.leeftijd} jaar)`;
-    return `🎁 <b>${j.naam}</b> is over ${j.dag} dagen jarig (${j.leeftijd} jaar)`;
-  }).join(' &nbsp;|&nbsp; ');
-  const balk=document.getElementById('verjaardag-balk');
-  if(balk){
-    balk.innerHTML=`<span style="font-size:15px;font-weight:700;color:#fff;border:3px solid #E8007D;border-left:6px solid #7AB648;border-right:6px solid #1B5EBE;border-radius:8px;padding:4px 18px;display:inline-block;animation:pulse 2s infinite">${tekst}</span>`;
-    balk.style.display='block';
-  }
-  banner.style.display='none';
-}
-
 // Vang alle onbehandelde fouten op
 window.addEventListener('error', function(e) {
   console.error('Fout:', e.message, 'in', e.filename, 'regel', e.lineno);
@@ -2298,5 +2293,7 @@ window.renderDagoverzicht=async function(){
 
 
 </script>
+<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-09-24 18:07 Beheer</div>
+<div id="verjaardag-kader" style="display:none;position:fixed;bottom:20px;left:20px;z-index:200;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;font-size:15px;font-weight:700;color:#142433;line-height:2;max-width:380px;box-shadow:0 4px 16px rgba(0,0,0,.2)"></div>
 </body>
 </html>
