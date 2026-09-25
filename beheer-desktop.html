@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Urenregistratie — Beheer | v2026-09-25 10:45 Beheer</title>
+<title>Urenregistratie — Beheer | v2026-09-25 11:40 Beheer</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -279,6 +279,7 @@
           <div class="nav-dropdown-item" data-page="opmerkingen"><span>💬</span> Opmerkingen</div>
           <div class="nav-dropdown-item" data-page="import"><span>📥</span> Import</div>
           <div class="nav-dropdown-item" data-page="feestdagen"><span>🎉</span> Feestdagen</div>
+          <div class="nav-dropdown-item" data-page="pauzes"><span>☕</span> Pauzes</div>
           <div class="nav-dropdown-item" data-page="wachtwoord"><span>🔒</span> Wachtwoord</div>
         </div>
       </div>
@@ -604,6 +605,21 @@
       <div id="feestdagen-list"></div>
     </div>
     <!-- WACHTWOORD -->
+    <div class="page" id="page-pauzes">
+      <div class="page-head"><div><div class="page-title">Pauzes</div><div class="page-hint">Vaste pauzes voor iedereen. De mobiele app trekt ze automatisch af van de gewerkte uren.</div></div></div>
+      <div class="card" style="max-width:720px">
+        <div id="pauzes-lijst"></div>
+        <button class="btn btn-secondary btn-sm" onclick="pauzeToevoegen()" style="margin-top:.5rem">+ Pauze toevoegen</button>
+        <div id="pauzes-ok" class="success-msg" style="display:none"></div>
+        <button class="btn btn-primary btn-block" onclick="savePauzes()" style="margin-top:1rem">Opslaan</button>
+        <div style="font-size:12px;color:var(--muted);margin-top:.75rem;line-height:1.5">
+          Voorbeeld: werkt iemand 07:00–16:00, dan telt alle pauze (1 uur) mee → 8 uur.<br>
+          Begint iemand om 12:15? Dan telt alleen het deel van de pauze dat binnen de werktijd valt.<br>
+          <b>Vervalt bij stop t/m</b>: stopt iemand op of vóór deze tijd, dan vervalt deze pauze. Leeg = pauze geldt altijd.<br>
+          Voorbeeld middagpauze (t/m 15:00): 07:15–15:00 = 7 uur · 07:15–16:00 = 7,75 uur.
+        </div>
+      </div>
+    </div>
     <div class="page" id="page-wachtwoord">
       <div class="page-head"><div><div class="page-title">Wachtwoord</div><div class="page-hint">Je eigen beheerder-wachtwoord wijzigen.</div></div></div>
       <div class="card" style="max-width:480px">
@@ -841,7 +857,37 @@ window.toonHandleiding = function() { document.getElementById('handleiding-modal
 window.sluitHandleiding = function() { document.getElementById('handleiding-modal').style.display = 'none'; };
 window.toonSneltoetsen = function() { document.getElementById('shortcuts-modal').style.display = 'flex'; };
 window.sluitSneltoetsen = function() { document.getElementById('shortcuts-modal').style.display = 'none'; };
-const INSTELLINGEN_PAGINAS = ['mensen', 'import', 'feestdagen', 'wachtwoord', 'lossekrachten', 'opmerkingen'];
+const INSTELLINGEN_PAGINAS = ['mensen', 'import', 'feestdagen', 'pauzes', 'wachtwoord', 'lossekrachten', 'opmerkingen'];
+const STANDAARD_PAUZES = [{naam:'Ochtendpauze',van:'10:00',tot:'10:15'},{naam:'Lunchpauze',van:'12:00',tot:'12:30'},{naam:'Middagpauze',van:'14:30',tot:'14:45',vervaltTm:'15:00'}];
+let pauzesLijst = null;
+function pauzeRijen() {
+  const el = document.getElementById('pauzes-lijst');
+  el.innerHTML = pauzesLijst.map((p, i) => `<div style="display:grid;grid-template-columns:1fr 115px 115px 130px 36px;gap:8px;align-items:end;margin-bottom:6px">
+    <div><label class="mini-lbl">Naam</label><input type="text" value="${(p.naam||'').replace(/"/g,'&quot;')}" oninput="pauzesLijst[${i}].naam=this.value" style="margin:0"></div>
+    <div><label class="mini-lbl">Van</label><input type="time" value="${p.van||''}" oninput="pauzesLijst[${i}].van=this.value" style="margin:0"></div>
+    <div><label class="mini-lbl">Tot</label><input type="time" value="${p.tot||''}" oninput="pauzesLijst[${i}].tot=this.value" style="margin:0"></div>
+    <div><label class="mini-lbl" title="Leeg = geldt altijd">Vervalt bij stop t/m</label><input type="time" value="${p.vervaltTm||''}" oninput="pauzesLijst[${i}].vervaltTm=this.value" style="margin:0"></div>
+    <button class="btn btn-secondary btn-sm btn-danger" onclick="pauzesLijst.splice(${i},1);pauzeRijen()" title="Verwijderen" style="height:36px">✕</button>
+  </div>`).join('') || '<div class="empty">Geen pauzes</div>';
+  const tot = pauzesLijst.reduce((a, p) => { const [h1,m1]=(p.van||'0:0').split(':').map(Number), [h2,m2]=(p.tot||'0:0').split(':').map(Number); return a + Math.max(0,(h2*60+m2)-(h1*60+m1)); }, 0);
+  el.innerHTML += `<div style="font-size:13px;margin-top:6px"><b>Totaal: ${tot} minuten</b></div>`;
+}
+async function renderPauzes() {
+  document.getElementById('pauzes-lijst').innerHTML = '<div class="loading">Laden...</div>';
+  pauzesLijst = JSON.parse(JSON.stringify(STANDAARD_PAUZES));
+  try { const snap = await getDoc(doc(db, 'instellingen', 'pauzes')); if (snap.exists && snap.data() && Array.isArray(snap.data().lijst)) pauzesLijst = snap.data().lijst; } catch (e) {}
+  pauzeRijen();
+}
+window.pauzeToevoegen = function() { pauzesLijst.push({naam:'Pauze',van:'',tot:''}); pauzeRijen(); };
+window.savePauzes = async function() {
+  const lijst = pauzesLijst.filter(p => p.van && p.tot);
+  if (lijst.some(p => p.tot <= p.van)) { alert('Bij elke pauze moet "Tot" later zijn dan "Van".'); return; }
+  if (!confirm('Zeker weten?\n\nDe pauzes gelden direct voor alle medewerkers.')) return;
+  try { await setDoc(doc(db, 'instellingen', 'pauzes'), { lijst }); }
+  catch (e) { alert('Opslaan mislukt: ' + e.message + '\nMogelijk staan de Firebase-regels de collectie "instellingen" niet toe.'); return; }
+  pauzesLijst = lijst; pauzeRijen();
+  const ok = document.getElementById('pauzes-ok'); ok.textContent = '✓ Pauzes opgeslagen'; ok.style.display = 'block'; setTimeout(() => ok.style.display = 'none', 5000);
+};
 function goToPage(name) {
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.page === name));
   document.querySelectorAll('.nav-dropdown-item').forEach(el => el.classList.toggle('active', el.dataset.page === name));
@@ -860,6 +906,7 @@ function goToPage(name) {
     opmerkingen: () => renderOpmerkingen(),
     import: () => { document.getElementById('import-resultaat').style.display = 'none'; document.getElementById('import-err').style.display = 'none'; renderTeeltToewijzing(); },
     feestdagen: () => renderFeestdagen(),
+    pauzes: () => renderPauzes(),
     weekcheck: () => {},
   };
   if (renderers[name]) renderers[name]();
@@ -2390,7 +2437,7 @@ window.renderDagoverzicht=async function(){
 
 
 </script>
-<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-09-25 10:45 Beheer</div>
+<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-09-25 11:40 Beheer</div>
 <div id="verjaardag-kader" style="display:none;position:fixed;bottom:20px;left:20px;z-index:200;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;font-size:15px;font-weight:700;color:#142433;line-height:2;max-width:380px;box-shadow:0 4px 16px rgba(0,0,0,.2)"></div>
 </body>
 </html>
