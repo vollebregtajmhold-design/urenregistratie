@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Urenregistratie — Beheer | v2026-09-24 18:07 Beheer</title>
+<title>Urenregistratie — Beheer | v2026-09-25 10:45 Beheer</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -346,7 +346,7 @@
       <div class="page-head" style="flex-wrap:wrap;gap:.75rem;align-items:flex-start">
         <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
           <div>
-            <div class="page-title" style="color:#fff">START</div>
+            <div class="page-title" style="color:#fff;display:flex;align-items:center;gap:10px">START <button type="button" onclick="toonHandleiding()" title="Korte handleiding" style="background:#E8007D;color:#fff;border:none;border-radius:14px;padding:3px 12px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0">? Uitleg</button></div>
             
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px">
@@ -475,7 +475,7 @@
           <option value="excl">Excl. algemeen</option><option value="incl">Incl. algemeen</option>
         </select></div>
       </div>
-      <div class="card" id="teelten-list"><div class="loading">Laden...</div></div>
+      <div class="card" id="teelten-list" style="border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;"><div class="loading">Laden...</div></div>
       <details class="card" style="margin-top:1.5rem;overflow-x:auto">
         <summary style="cursor:pointer;font-weight:700;font-size:16px;color:var(--text)">Per medewerker</summary>
         <div id="loon-medewerkers-list" style="margin-top:.75rem"><div class="loading">Laden...</div></div>
@@ -555,6 +555,7 @@
           <div class="field"><label>Week (details)</label><select id="f-vak-week" onchange="renderVakantieDetail()" style="background:#EAF4FC;color:#142433;border:1px solid #A9C9E3"><option value="aankomend" selected>Deze week + 5 volgende weken</option></select></div>
         </div>
       </div>
+      <div id="aanvragen-box"></div>
       <div id="vakantie-list"></div>
     </div>
     <!-- IMPORT -->
@@ -614,6 +615,52 @@
         <button class="btn btn-primary btn-block" onclick="changeAdminPassword()">Wachtwoord wijzigen</button>
       </div>
     </div>
+  </div>
+</div>
+<div id="handleiding-modal" style="display:none;position:fixed;inset:0;background:rgba(20,36,51,.45);z-index:1000;align-items:center;justify-content:center" onclick="if(event.target===this) sluitHandleiding()">
+  <div style="background:#fff;border-radius:12px;border-top:6px solid #1B5EBE;padding:1.25rem 1.5rem;max-width:560px;width:92%;max-height:85vh;overflow-y:auto;font-size:14px;line-height:1.5;color:#142433">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+      <div style="font-weight:700;font-size:18px;color:#1B5EBE">❓ Korte handleiding – START</div>
+      <button class="btn btn-secondary btn-sm" onclick="sluitHandleiding()">✕</button>
+    </div>
+    <style>
+      #handleiding-modal h4{margin:.9rem 0 .3rem;font-size:14px;color:#7AB648;text-transform:uppercase;letter-spacing:.04em}
+      #handleiding-modal ul{margin:0;padding-left:1.2rem} #handleiding-modal li{margin:.15rem 0}
+      #handleiding-modal .kl{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:middle;margin-right:4px;border:1px solid rgba(0,0,0,.15)}
+    </style>
+    <h4>Bovenaan</h4>
+    <ul>
+      <li><b>Jaar</b>: kies het jaar.</li>
+      <li><b>Weergave</b>: kies wat u ziet (totaal, gewerkt, ziek, snipperuren, vakantie…).</li>
+      <li><b>Vaste / losse krachten</b>: kies welke medewerkers u ziet.</li>
+    </ul>
+    <h4>Links: dagcheck</h4>
+    <ul>
+      <li>Alleen ter info: wie heeft deze dag wat ingevuld?</li>
+      <li>Met <b>◀ ▶</b> of de datum kiest u een andere dag.</li>
+      <li><span class="kl" style="background:#F8DEDA"></span>Rood = niets ingevuld.</li>
+      <li>🏖️ Vrije dag = snipper- of vakantiedag.</li>
+      <li>Geen werkdag = deze medewerker werkt die dag niet.</li>
+      <li>Corrigeren doet u in de matrix (rechts).</li>
+    </ul>
+    <h4>Rechts: matrix</h4>
+    <ul>
+      <li><b>Vandaag</b>: springt naar deze week.</li>
+      <li><b>Groene schuifbalk</b>: sleep om andere weken te zien. Trek aan de randjes voor meer of minder weken.</li>
+      <li><b>Klik op een vakje</b>: popup om de uren van die week te corrigeren of te verwijderen.</li>
+      <li>Rode rand of ⚠️ = er missen dagen in die week.</li>
+      <li><b>Klik op een weeknummer</b> (bovenaan): details van die week, ook af te drukken 🖨️.</li>
+      <li><b>Klik op een naam</b>: naar het weekoverzicht van die medewerker.</li>
+      <li><b>Klik op het rondje</b> voor de naam: instellingen van de medewerker.</li>
+      <li>Ga met de muis op een vakje staan voor extra info.</li>
+    </ul>
+    <h4>Verder</h4>
+    <ul>
+      <li>🔔 <b>aanvragen</b> (rechtsboven): open vakantie-aanvragen. Klik om ze goed te keuren.</li>
+      <li>🎂 Linksonder verschijnt een kader als iemand binnen 7 dagen jarig is.</li>
+      <li>⬇️ <b>Backup</b>: download alle gegevens.</li>
+      <li>Sneltoetsen: <kbd>M</kbd> medewerkers · <kbd>D</kbd> dagcheck · <kbd>V</kbd> vakantie · <kbd>◀ ▶</kbd> medewerker · <kbd>▲ ▼</kbd> week.</li>
+    </ul>
   </div>
 </div>
 <div id="shortcuts-modal" style="display:none;position:fixed;inset:0;background:rgba(20,36,51,.45);z-index:1000;align-items:center;justify-content:center" onclick="if(event.target===this) sluitSneltoetsen()">
@@ -790,6 +837,8 @@ window.doLogin = async function() {
   show('screen-app'); goToPage('matrix'); refreshAanvraagBadge();
 };
 window.doLogout = function() { me = null; allEntries = []; setVal('login-name',''); setVal('login-pass',''); show('screen-login'); };
+window.toonHandleiding = function() { document.getElementById('handleiding-modal').style.display = 'flex'; };
+window.sluitHandleiding = function() { document.getElementById('handleiding-modal').style.display = 'none'; };
 window.toonSneltoetsen = function() { document.getElementById('shortcuts-modal').style.display = 'flex'; };
 window.sluitSneltoetsen = function() { document.getElementById('shortcuts-modal').style.display = 'none'; };
 const INSTELLINGEN_PAGINAS = ['mensen', 'import', 'feestdagen', 'wachtwoord', 'lossekrachten', 'opmerkingen'];
@@ -1572,6 +1621,7 @@ window.renderMatrix = async function() {
         </table>
       </div>
       <div id="mx-weekblok" style="display:none;background:#fff;border-radius:12px;padding:0;width:auto;font-size:13px;flex-shrink:0;overflow:hidden;margin-top:0;border-top:10px solid #1B5EBE;border-right:10px solid #7AB648;border-bottom:10px solid #E8007D;border-left:10px solid #7AB648;box-shadow:0 4px 16px rgba(0,0,0,.12)"></div>
+      <div id="verjaardag-kader" style="display:none;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;margin-top:1.5rem;font-size:15px;font-weight:700;color:#000;line-height:2;max-width:420px;align-self:start"></div>
       <div id="verjaardag-kader" style="display:none;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;margin-top:1.5rem;font-size:15px;font-weight:700;color:#142433;line-height:2;max-width:420px"></div>
     </div>`;
 
@@ -1867,7 +1917,7 @@ window.renderJaaroverzicht=function(){const jaren=[...new Set(allEntries.map(e=>
 window.renderWeekcheck=function(){const jaren=[...new Set(allEntries.map(e=>e.datum.substring(0,4)))].sort().reverse();const huidigJaar=new Date().getFullYear().toString();if(!jaren.includes(huidigJaar))jaren.unshift(huidigJaar);const jaarSel=document.getElementById('f-wc-jaar');const curJaar=jaarSel.value||huidigJaar;jaarSel.innerHTML=jaren.map(j=>`<option ${j===curJaar?'selected':''} value="${j}">${j}</option>`).join('');const type='vast';const namen=allUsers.filter(u=>u.role!=='admin'&&isActief(u)&&(type==='beide'||(type==='vast'&&!u.losseKracht)||(type==='los'&&u.losseKracht))).map(u=>u.name).sort();if(!namen.length){document.getElementById('weekcheck-list').innerHTML='<div class="empty">Geen medewerkers gevonden</div>';return;}let maxWeek=53;if(curJaar===huidigJaar)maxWeek=getWeekNr(todayStr());const ingevuld=new Set();allEntries.forEach(e=>{if(e.datum.startsWith(curJaar))ingevuld.add(e.naam+'_'+getWeekNr(e.datum));});let rows='';for(let w=1;w<=maxWeek;w++){rows+=`<tr><td class="left"><b>${w}</b></td>`;namen.forEach(n=>{const ok=ingevuld.has(n+'_'+w);rows+=`<td style="text-align:center;${ok?'':'background:#FBE2DE'}">${ok?'<span style="color:#155C36;font-weight:700">\u2713</span>':'<span style="color:#A6362A;font-weight:700">\u2715</span>'}</td>`;});rows+='</tr>';}const colWidth=Math.max(8,Math.floor(72/namen.length));document.getElementById('weekcheck-list').innerHTML=`<div style="font-size:13px;color:var(--muted);margin-bottom:.75rem">\u2713 = minstens 1 dag ingevuld &nbsp;\u00b7&nbsp; \u2715 = niets ingevuld</div><div class="vak-table-scroll" id="weekcheck-scroll" style="overflow-x:auto"><table class="uren-table" style="min-width:100%"><thead><tr><th class="left" style="width:44px">Week</th>${namen.map(n=>`<th style="width:44px;font-size:11px;padding-left:3px;padding-right:3px">${n}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;const scrollEl=document.getElementById('weekcheck-scroll');requestAnimationFrame(()=>{const headerRow=scrollEl.querySelector('thead tr');const bodyRow=scrollEl.querySelector('tbody tr');if(headerRow&&bodyRow){const headH=headerRow.getBoundingClientRect().height;const rowH=bodyRow.getBoundingClientRect().height;scrollEl.style.maxHeight=Math.round(headH+rowH*14)+'px';}scrollEl.scrollTop=scrollEl.scrollHeight;});};
 // ===== DAGOVERZICHT =====
 window.stapDagoverzichtDatum=function(delta){const input=document.getElementById('f-dg-datum');const huidig=input.value||todayStr();const d=new Date(huidig);d.setDate(d.getDate()+delta);input.value=d.toISOString().split('T')[0];renderDagoverzicht();};
-window.renderVakantieDetail=function(){const el=document.getElementById('vakantie-list');if(!vakAllVrij){el.innerHTML='';return;}const namen=allUsers.filter(u=>u.role!=='admin'&&!u.losseKracht&&isActief(u)).map(u=>u.name).sort();const alleWeken=new Set();namen.forEach(naam=>{Object.keys(vakAllVrij[naam]||{}).forEach(datum=>{if(vakAllVrij[naam][datum])alleWeken.add(weekKey(datum));});});const wekenSorted=[...alleWeken].sort();const huidigeWeekKey=weekKey(todayStr());const isoJaar=parseInt(huidigeWeekKey.split('-W')[0]);const totalWeken=getWeekNr(`${isoJaar}-12-28`);const upcomingWeken=[];for(let w=1;w<=totalWeken;w++)upcomingWeken.push(`${isoJaar}-W${String(w).padStart(2,'0')}`);const sel=document.getElementById('f-vak-week');const curWeek=sel.value||'aankomend';const huidigSel=curWeek;sel.innerHTML=`<option value="aankomend" ${huidigSel==='aankomend'?'selected':''}>Heel jaar (start bij deze week)</option>`+wekenSorted.map(w=>{const weekNr=parseInt(w.split('-W')[1]);const jaar=parseInt(w.split('-W')[0]);const ma=datumVanWeekdag(jaar,weekNr,0);const vr=datumVanWeekdag(jaar,weekNr,4);return `<option ${w===huidigSel?'selected':''} value="${w}">Week ${weekNr} (${fmtDateShort(ma)}–${fmtDateShort(vr)})</option>`;}).join('');el.innerHTML='';const dagNamen=['Ma','Di','Wo','Do','Vr'];const isAankomend=curWeek==='aankomend';const teTonenWeken=isAankomend?upcomingWeken:[curWeek];if(!teTonenWeken.length){el.innerHTML='<div class="empty">Geen vakantiedagen</div>';return;}const grid=document.createElement('div');grid.className='vak-week-grid';teTonenWeken.forEach(wk=>{const weekNr=parseInt(wk.split('-W')[1]),jaar=parseInt(wk.split('-W')[0]);const ma=datumVanWeekdag(jaar,weekNr,0),vr=datumVanWeekdag(jaar,weekNr,4);const isHuidig=isAankomend&&wk===huidigeWeekKey;const vrijDezeWeek=[];namen.forEach(naam=>{const vrijDagen=vakAllVrij[naam]||{};const dagenDezeWeek=[];for(let i=0;i<5;i++){const datum=datumVanWeekdag(jaar,weekNr,i);const status=vrijStatus(vrijDagen[datum]);if(status)dagenDezeWeek.push({dag:dagNamen[i],datum,status});}if(dagenDezeWeek.length)vrijDezeWeek.push({naam,dagen:dagenDezeWeek});});if(!vrijDezeWeek.length&&!isAankomend)return;const blok=document.createElement('div');blok.className='week-block';if(isHuidig)blok.id='vak-week-huidig';const header=document.createElement('div');header.className='week-header';header.innerHTML=`<span class="week-title">Week ${weekNr}${isHuidig?' \u00b7 deze week':''}</span><span class="week-totals">${fmtDateShort(ma)} \u2013 ${fmtDateShort(vr)}</span>`;const body=document.createElement('div');body.style.cssText='padding:10px 14px;background:var(--surface)';if(!vrijDezeWeek.length){body.innerHTML='<div style="color:var(--muted);font-size:13px;padding:4px 0">Geen vrije dagen gepland</div>';}else{vrijDezeWeek.forEach(({naam,dagen})=>{const rij=document.createElement('div');rij.style.cssText='display:flex;align-items:flex-start;gap:4px;padding:3px 0;border-bottom:1px solid #E0E0E0;font-size:12px;flex-wrap:wrap';const tags=dagen.map(({dag,datum,status})=>`<span class="tag-day status-${status}${datum===todayStr()?' is-today':''}" onclick="approveFromList('${naam}','${datum}')">${dag} ${fmtDateShort(datum)}${status==='aangevraagd'?' \u29B3':' \u2713'}</span>`).join('');rij.innerHTML=`<span style="font-weight:700;min-width:60px;flex-shrink:0;font-size:12px;color:#1F5E8C">${naam}</span>${tags}`;body.appendChild(rij);});}blok.appendChild(header);blok.appendChild(body);grid.appendChild(blok);});el.appendChild(grid);if(!grid.children.length)el.innerHTML='<div class="empty">Geen vakantiedagen</div>';if(isAankomend){const top=el.getBoundingClientRect().top;el.style.maxHeight='';el.style.overflowY='';const huidigEl=document.getElementById('vak-week-huidig');if(huidigEl)requestAnimationFrame(()=>huidigEl.scrollIntoView({block:'start'}));}else{el.style.maxHeight='';el.style.overflowY='';}};
+window.renderVakantieDetail=function(){const el=document.getElementById('vakantie-list');if(!vakAllVrij){el.innerHTML='';return;}const namen=allUsers.filter(u=>u.role!=='admin'&&!u.losseKracht&&isActief(u)).map(u=>u.name).sort();const alleWeken=new Set();namen.forEach(naam=>{Object.keys(vakAllVrij[naam]||{}).forEach(datum=>{if(vakAllVrij[naam][datum])alleWeken.add(weekKey(datum));});});const wekenSorted=[...alleWeken].sort();const huidigeWeekKey=weekKey(todayStr());const isoJaar=parseInt(huidigeWeekKey.split('-W')[0]);const totalWeken=getWeekNr(`${isoJaar}-12-28`);const upcomingWeken=[];for(let w=1;w<=totalWeken;w++)upcomingWeken.push(`${isoJaar}-W${String(w).padStart(2,'0')}`);const sel=document.getElementById('f-vak-week');const curWeek=sel.value||'aankomend';const huidigSel=curWeek;sel.innerHTML=`<option value="aankomend" ${huidigSel==='aankomend'?'selected':''}>Heel jaar (start bij deze week)</option>`+wekenSorted.map(w=>{const weekNr=parseInt(w.split('-W')[1]);const jaar=parseInt(w.split('-W')[0]);const ma=datumVanWeekdag(jaar,weekNr,0);const vr=datumVanWeekdag(jaar,weekNr,4);return `<option ${w===huidigSel?'selected':''} value="${w}">Week ${weekNr} (${fmtDateShort(ma)}–${fmtDateShort(vr)})</option>`;}).join('');el.innerHTML='';const dagNamen=['Ma','Di','Wo','Do','Vr'];const isAankomend=curWeek==='aankomend';const teTonenWeken=isAankomend?upcomingWeken:[curWeek];if(!teTonenWeken.length){el.innerHTML='<div class="empty">Geen vakantiedagen</div>';return;}const grid=document.createElement('div');grid.className='vak-week-grid';teTonenWeken.forEach(wk=>{const weekNr=parseInt(wk.split('-W')[1]),jaar=parseInt(wk.split('-W')[0]);const ma=datumVanWeekdag(jaar,weekNr,0),vr=datumVanWeekdag(jaar,weekNr,4);const isHuidig=isAankomend&&wk===huidigeWeekKey;const vrijDezeWeek=[];namen.forEach(naam=>{const vrijDagen=vakAllVrij[naam]||{};const dagenDezeWeek=[];for(let i=0;i<5;i++){const datum=datumVanWeekdag(jaar,weekNr,i);const status=vrijStatus(vrijDagen[datum]);if(status)dagenDezeWeek.push({dag:dagNamen[i],datum,status});}if(dagenDezeWeek.length)vrijDezeWeek.push({naam,dagen:dagenDezeWeek});});if(!vrijDezeWeek.length&&!isAankomend)return;const blok=document.createElement('div');blok.className='week-block';if(isHuidig)blok.id='vak-week-huidig';const header=document.createElement('div');header.className='week-header';header.innerHTML=`<span class="week-title">Week ${weekNr}${isHuidig?' \u00b7 deze week':''}</span><span class="week-totals">${fmtDateShort(ma)} \u2013 ${fmtDateShort(vr)}</span>`;const body=document.createElement('div');body.style.cssText='padding:10px 14px;background:var(--surface)';if(!vrijDezeWeek.length){body.innerHTML='<div style="color:var(--muted);font-size:13px;padding:4px 0">Geen vrije dagen gepland</div>';}else{vrijDezeWeek.forEach(({naam,dagen})=>{const rij=document.createElement('div');rij.style.cssText='display:flex;align-items:flex-start;gap:4px;padding:3px 0;border-bottom:1px solid #E0E0E0;font-size:12px;flex-wrap:wrap';const tags=dagen.map(({dag,datum,status})=>`<span class="tag-day status-${status}${datum===todayStr()?' is-today':''}" onclick="approveFromList('${naam}','${datum}')">${dag} ${fmtDateShort(datum)}${status==='aangevraagd'?' \u29B3':' \u2713'}</span>`).join('');rij.innerHTML=`<span style="font-weight:700;min-width:60px;flex-shrink:0;font-size:12px;color:#1F5E8C">${naam}</span>${tags}`;body.appendChild(rij);});}blok.appendChild(header);blok.appendChild(body);grid.appendChild(blok);});el.appendChild(grid);if(!grid.children.length)el.innerHTML='<div class="empty">Geen vakantiedagen</div>';if(isAankomend){const top=el.getBoundingClientRect().top;el.style.maxHeight='';el.style.overflowY='';const huidigEl=document.getElementById('vak-week-huidig');if(huidigEl&&!window._heeftAanvragen)requestAnimationFrame(()=>huidigEl.scrollIntoView({block:'start'}));}else{el.style.maxHeight='';el.style.overflowY='';}};
 window.renderWeekplanning=async function(){const el=document.getElementById('weekplanning-strook');if(!el)return;el.innerHTML='<div class="loading">Laden...</div>';await Promise.all([laadFeestdagen(),laadVrijeDagen()]);const vasteMedewerkers=allUsers.filter(u=>u.role!=='admin'&&!u.losseKracht&&isActief(u)&&(u.contracturen||0)>0);if(!vasteMedewerkers.length){el.innerHTML='<div class="empty">Nog geen vaste medewerkers met contracturen</div>';return;}const dagIdx={Ma:0,Di:1,Wo:2,Do:3,Vr:4};const huidigJaar=new Date().getFullYear();const huidigWeek=getWeekNr(todayStr());const startWeek=Math.max(1,huidigWeek-1);const weken=[];for(let w=startWeek;w<=53;w++){const ma=datumVanWeekdag(huidigJaar,w,0);if(new Date(ma).getUTCFullYear()>huidigJaar)break;let bruto=0,feestUren=0,verlofUren=0;vasteMedewerkers.forEach(u=>{const werkdagen=(u.vasteWerkdagen||DAGNAMEN5).filter(d=>dagIdx[d]!==undefined);const contract=u.contracturen||0;if(!werkdagen.length)return;const dagUren=contract/werkdagen.length;bruto+=contract;const vrijDagenUser=vakAllVrij[u.name]||{};werkdagen.forEach(dagNaam=>{const datum=datumVanWeekdag(huidigJaar,w,dagIdx[dagNaam]);if(isFeestdag(datum))feestUren+=dagUren;else if(vrijStatus(vrijDagenUser[datum]))verlofUren+=dagUren;});});const netto=+(bruto-feestUren-verlofUren).toFixed(1);const pct=bruto>0?(netto/bruto)*100:100;weken.push({w,ma,bruto,feestUren,verlofUren,netto,pct,isHuidig:w===huidigWeek});}const stickyCol='position:sticky;left:0;z-index:1';const head=`<th class="left" style="${stickyCol};background:var(--accent-light);min-width:150px">Week</th>`+weken.map(x=>`<th style="min-width:64px;text-align:center;${x.isHuidig?'background:var(--warn-bg)':''}">W${x.w}<div style="font-weight:400;font-size:10px;color:var(--muted)">${fmtDateShort(x.ma)}</div></th>`).join('');const nettoVeldje=x=>{const kleur=x.pct>=90?{bg:'#BEEBD2',fg:'#155C36'}:x.pct>=80?{bg:'#FBEBD0',fg:'#8A5A00'}:{bg:'#F8DEDA',fg:'#A6362A'};return `<span style="display:inline-block;min-width:46px;padding:4px 8px;border-radius:6px;font-weight:700;background:${kleur.bg};color:${kleur.fg}">${x.netto.toFixed(1)}</span>`;};const rij=(label,opts)=>`<tr><td class="left" style="${stickyCol};background:var(--surface);${opts.bold?'font-weight:700':''}${opts.top?';border-top:2px solid var(--border)':''}">${label}</td>${weken.map(x=>`<td style="text-align:center;padding:6px 4px;${!opts.veldje&&opts.bold?'font-weight:700;color:var(--accent)':''};${x.isHuidig?'background:var(--warn-bg)':''}${opts.top?';border-top:2px solid var(--border)':''}">${opts.fmt(x)}</td>`).join('')}</tr>`;const rows=[rij('Bruto beschikbaar',{fmt:x=>x.bruto.toFixed(1)}),rij('Snipperuren',{fmt:x=>x.verlofUren?'-'+x.verlofUren.toFixed(1):'\u2013'}),rij('Feestvrij',{fmt:x=>x.feestUren?'-'+x.feestUren.toFixed(1):'\u2013'}),rij('Netto beschikbaar',{bold:true,top:true,veldje:true,fmt:nettoVeldje})].join('');el.innerHTML=`<div style="overflow-x:auto"><table class="wk-table" style="border-collapse:separate;border-spacing:0;width:max-content"><thead><tr>${head}</tr></thead><tbody>${dagRows}</tbody></table></div>`;};
 
 // ===== MEDEWERKERS =====
@@ -2045,6 +2095,7 @@ function updateAanvraagBadge() {
   });
   const badge = document.getElementById('nav-badge-vakantie');
   if (badge) { badge.textContent = n; badge.style.display = n > 0 ? 'inline-block' : 'none'; }
+  renderAanvragen();
   const banner = document.getElementById('global-aanvraag-banner');
   if (banner) {
     if (n > 0) {
@@ -2053,6 +2104,52 @@ function updateAanvraagBadge() {
     } else { banner.style.display = 'none'; }
   }
 }
+
+function renderAanvragen() {
+  const el = document.getElementById('aanvragen-box');
+  if (!el) return;
+  const dagNm = ['zo','ma','di','wo','do','vr','za'];
+  const lijst = [];
+  Object.keys(vakAllVrij || {}).sort().forEach(naam => {
+    const d = Object.keys(vakAllVrij[naam] || {}).filter(x => vrijStatus(vakAllVrij[naam][x]) === 'aangevraagd').sort();
+    if (d.length) lijst.push({ naam, d });
+  });
+  window._heeftAanvragen = lijst.length > 0;
+  if (!lijst.length) {
+    el.innerHTML = `<div style="background:#EEF6E6;border:1px solid #7AB648;border-radius:10px;padding:10px 16px;margin-bottom:1rem;font-size:13px;color:#3F6B1E;font-weight:600">✓ Geen openstaande aanvragen</div>`;
+    return;
+  }
+  const esc = n => n.replace(/'/g, "\\'");
+  el.innerHTML = `<div style="background:#fff;border:1px solid #A9C9E3;border-left:6px solid #E8007D;border-radius:10px;padding:12px 16px;margin-bottom:1rem">
+    <div style="font-weight:700;font-size:15px;color:#1B5EBE;margin-bottom:8px">🔔 Openstaande aanvragen (${lijst.reduce((a,x)=>a+x.d.length,0)} dagen)</div>
+    ${lijst.map(x => `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-top:1px solid #E4EEF7">
+      <b style="min-width:130px">${x.naam}</b>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1">${x.d.map(datum => {
+        const dn = dagNm[new Date(datum + 'T12:00:00').getDay()];
+        return `<span style="display:inline-flex;align-items:center;gap:4px;background:#DCEAF6;border:1px solid #1B5EBE;border-radius:14px;padding:2px 4px 2px 10px;font-size:12px;color:#1B5EBE">${dn} ${fmtDateShort(datum)}
+          <button title="Goedkeuren" onclick="beslisAanvraag('${esc(x.naam)}',['${datum}'],true)" style="border:none;background:#7AB648;color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px">✓</button>
+          <button title="Afwijzen" onclick="beslisAanvraag('${esc(x.naam)}',['${datum}'],false)" style="border:none;background:#C0392B;color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px">✕</button></span>`;
+      }).join('')}</div>
+      <button class="btn btn-sm" onclick="beslisAanvraag('${esc(x.naam)}',${JSON.stringify(x.d).replace(/"/g,"'")},true)" style="background:#7AB648;color:#fff;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:600">✓ Alles goedkeuren</button>
+    </div>`).join('')}
+  </div>`;
+}
+
+window.beslisAanvraag = async function(naam, datums, goed) {
+  const tekst = goed ? `${datums.length} dag(en) van ${naam} goedkeuren?` : `Aanvraag van ${naam} (${datums.map(fmtDateShort).join(', ')}) afwijzen?`;
+  if (!confirm('Zeker weten?\n\n' + tekst)) return;
+  const snap = await getDocs(collection(db, 'vrije_dagen'));
+  const match = snap.docs.find(d => d.data().naam === naam);
+  const obj = { ...(match ? match.data().dagen || {} : {}) };
+  datums.forEach(d => { if (goed) obj[d] = 'goedgekeurd'; else delete obj[d]; });
+  const docId = match ? match.id : naam.toLowerCase().replace(/\s+/g, '-');
+  await setDoc(doc(db, 'vrije_dagen', docId), { naam, dagen: obj });
+  if (!vakAllVrij) vakAllVrij = {};
+  vakAllVrij[naam] = obj;
+  herberekenFeestdagEntries();
+  updateAanvraagBadge();
+  renderVakantieDetail();
+};
 
 async function refreshAanvraagBadge() {
   await laadVrijeDagen();
@@ -2293,7 +2390,7 @@ window.renderDagoverzicht=async function(){
 
 
 </script>
-<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-09-24 18:07 Beheer</div>
+<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-09-25 10:45 Beheer</div>
 <div id="verjaardag-kader" style="display:none;position:fixed;bottom:20px;left:20px;z-index:200;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;font-size:15px;font-weight:700;color:#142433;line-height:2;max-width:380px;box-shadow:0 4px 16px rgba(0,0,0,.2)"></div>
 </body>
 </html>
