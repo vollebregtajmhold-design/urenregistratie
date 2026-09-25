@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-09-24 18:29 Mobiel</title>
+<title>Urenregistratie | v2026-09-25 09:35 Mobiel</title>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -152,7 +152,7 @@
     <button class="tab active" onclick="switchTab('user','invullen',this)" data-i18n="tab_invullen">Invullen</button>
     <button class="tab" onclick="switchTab('user','weekoverzicht',this)" data-i18n="tab_weekoverzicht">Weekoverzicht</button>
     <button class="tab" onclick="switchTab('user','vrijevdagen',this)">Vrije dagen</button>
-    <button class="tab" onclick="switchTab('user','wachtwoord',this)" data-i18n="tab_wachtwoord">Wachtwoord</button>
+    <button class="tab" id="tab-instellingen" onclick="toggleInstMenu(event)">Instellingen &#9662;</button>
     
   </div>
   <div id="user-invullen" class="tabpanel active">
@@ -201,6 +201,10 @@
       </div>
 <button class="btn btn-primary" id="btn-opslaan" onclick="saveEntry()" data-i18n="btn_opslaan">Opslaan</button>
       <div style="background:#F8F5EC;border:1px solid #CCC;border-radius:8px;padding:10px 14px;margin-top:.75rem;font-size:12px;color:#4F7395;line-height:1.7">
+        <b style="color:#E8007D">Nieuw: Start/stop</b><br>
+        Onder Instellingen staat nu Start/stop.<br>
+        Vul hier je vaste begin- en eindtijd in.<br>
+        Wijkt het een dag af? Pas dan alleen de aanvang en einde van die dag aan.<br><br>
         <b style="color:#1F5E8C">Vergeten in te vullen:</b><br>
         Dan krijg je meldingen per dag (gele balk) waar je op kunt klikken.<br>
         Vul deze in, incl de teelt, en sla op.<br>
@@ -213,7 +217,6 @@
         de contracturen - gewerkt = snipperuren.
       </div>
     </div>
-  </div>
   <div id="user-weekoverzicht" class="tabpanel" style="display:none">
     <div id="snipper-banner" style="display:none"></div>
     <div id="user-snipper-summary"></div>
@@ -224,6 +227,33 @@
     <div id="vrije-dagen-list"><div class="loading">Laden...</div></div>
   </div>
   <div id="user-wachtwoord" class="tabpanel">
+    <div class="card card-compact">
+      <div style="font-weight:600;margin-bottom:.75rem" data-i18n="pw_title">Wachtwoord wijzigen</div>
+      <label data-i18n="pw_lbl_oud">Huidig wachtwoord</label><input type="password" id="pw-oud" autocomplete="current-password">
+      <label data-i18n="pw_lbl_nieuw">Nieuw wachtwoord</label><input type="password" id="pw-nieuw" autocomplete="new-password">
+      <label data-i18n="pw_lbl_herhaal">Nieuw wachtwoord herhalen</label><input type="password" id="pw-herhaal" autocomplete="new-password">
+      <div id="pw-err" class="error" style="display:none"></div>
+      <div id="pw-ok" class="success-msg" style="display:none"></div>
+      <button class="btn btn-primary" onclick="changePassword()" data-i18n="pw_btn">Wachtwoord wijzigen</button>
+    </div>
+  </div>
+  <div id="user-startstop" class="tabpanel">
+    <div class="card card-compact">
+      <div style="font-weight:600;margin-bottom:.35rem">Basis start- en stoptijd</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:.5rem">Deze tijden worden elke dag vooraf ingevuld.</div>
+      <div class="row2">
+        <div><label>Start</label><input type="time" id="ss-aanvang"></div>
+        <div><label>Stop</label><input type="time" id="ss-einde"></div>
+      </div>
+      <div id="ss-ok" class="success-msg" style="display:none"></div>
+      <button class="btn btn-primary" onclick="saveStartStop()">Opslaan</button>
+    </div>
+  </div>
+</div>
+<div id="inst-menu" style="display:none;position:fixed;z-index:5000;background:#fff;border:1px solid #A9C9E3;border-radius:8px;box-shadow:0 6px 18px rgba(20,36,51,.18);overflow:hidden;min-width:170px">
+  <div onclick="kiesInst('wachtwoord')" style="padding:11px 16px;font-size:14px;cursor:pointer;border-bottom:1px solid #E4EEF7;color:#1F5E8C">&#128273; Wachtwoord</div>
+  <div onclick="kiesInst('startstop')" style="padding:11px 16px;font-size:14px;cursor:pointer;color:#1F5E8C">&#9201; Start/stop</div>
+</div>
     <!-- ADMIN -->
 <div id="screen-admin" class="screen">
   <div class="topbar">
@@ -417,11 +447,12 @@ window.doRegister=async function(){
 window.doLogout=function(){me=null;allEntries=[];setVal('login-name','');setVal('login-pass','');show('screen-login');};
 window.saveEntry=async function(){
   const datum=val('u-datum');if(!datum){showErr('u-err',t('err_datum'));return;}if(isLocked(datum)){showErr('u-err',t('err_definitief'));return;}hideEl('u-err');
+  if(allEntries.some(e=>e.naam===me.name&&e.datum===datum)&&!confirm('Zeker weten?\n\nJe wijzigt de uren van '+fmtDate(datum)+'.'))return;
   const btn=document.getElementById('btn-opslaan');btn.textContent='Opslaan...';btn.disabled=true;
   const rec={naam:me.name,datum,aanvang:val('u-aanvang'),einde:val('u-einde'),gewerkt:parseFloat(val('u-gewerkt'))||0,ziek:parseFloat(val('u-ziek'))||0,dokter:parseFloat(val('u-dokter'))||0,snip:parseFloat(val('u-snip'))||0,vrij:parseFloat(val('u-vrij'))||0,opmerking:val('u-opmerking')||'',teelten:Array.from(document.querySelectorAll('.u-teelt:checked')).map(c=>c.value)};
   const id=me.name.toLowerCase().replace(/\s+/g,'-')+'_'+datum;
   await setDoc(doc(db,'entries',id),rec);await loadEntries();btn.textContent='Opslaan';btn.disabled=false;
-  const okEl=document.getElementById('u-ok');okEl.textContent=t('saved_for')+' '+fmtDate(datum);okEl.style.display='block';setTimeout(()=>okEl.style.display='none',3000);
+  const okEl=document.getElementById('u-ok');okEl.textContent=t('saved_for')+' '+fmtDate(datum);okEl.style.display='block';clearTimeout(window._okT);window._okT=setTimeout(()=>okEl.style.display='none',5000);
 };
 window.addUser=async function(){
   const n=val('new-naam').trim();const p=val('new-pass');
@@ -454,6 +485,30 @@ window.changePassword=async function(){
   await setDoc(doc(db,'users',key),{...me,pass:nieuw});await loadUsers();me=allUsers.find(u=>u.name===me.name);
   setVal('pw-oud','');setVal('pw-nieuw','');setVal('pw-herhaal','');
   ok.textContent=t('pw_ok');ok.style.display='block';setTimeout(()=>ok.style.display='none',3000);
+};
+window.toggleInstMenu=function(ev){
+  ev.stopPropagation();
+  const m=document.getElementById('inst-menu');
+  if(m.style.display==='block'){m.style.display='none';return;}
+  const r=document.getElementById('tab-instellingen').getBoundingClientRect();
+  m.style.top=(r.bottom+4)+'px';
+  m.style.left=Math.max(8,Math.min(r.left,window.innerWidth-178))+'px';
+  m.style.display='block';
+};
+document.addEventListener('click',()=>{const m=document.getElementById('inst-menu');if(m)m.style.display='none';});
+window.kiesInst=function(tab){
+  document.getElementById('inst-menu').style.display='none';
+  switchTab('user',tab,document.getElementById('tab-instellingen'));
+  if(tab==='startstop'){setVal('ss-aanvang',me.stdAanvang||'08:00');setVal('ss-einde',me.stdEinde||'17:00');}
+};
+window.saveStartStop=async function(){
+  const a=val('ss-aanvang'),e=val('ss-einde');
+  if(!a||!e){alert('Vul start en stop in');return;}
+  if(!confirm('Zeker weten?\n\nStart '+a+' en stop '+e+' opslaan.'))return;
+  const key=me.name.toLowerCase().replace(/\s+/g,'-');
+  await setDoc(doc(db,'users',key),{...me,stdAanvang:a,stdEinde:e});
+  await loadUsers();me=allUsers.find(u=>u.name===me.name)||{...me,stdAanvang:a,stdEinde:e};
+  const ok=document.getElementById('ss-ok');ok.textContent='\u2713 Opgeslagen';ok.style.display='block';setTimeout(()=>ok.style.display='none',5000);
 };
 window.changeAdminPassword=async function(){
   const oud=val('apw-oud'),nieuw=val('apw-nieuw'),herhaal=val('apw-herhaal');
@@ -658,6 +713,7 @@ window.toonAlsnogOpties=function(datum){
 }
 
 window.snelInvullen=async function(datum, type){
+  if(allEntries.some(e=>e.naam===me.name&&e.datum===datum)&&!confirm('Zeker weten?\n\nEr zijn al uren ingevuld voor deze dag.'))return;
   // Haal contracturen/werkdagen op voor uren per dag
   const u=allUsers?allUsers.find(x=>x.name===me.name):null;
   const urenPerDag=u&&u.contracturen&&u.werkdagen?(u.contracturen/u.werkdagen):0;
@@ -682,7 +738,7 @@ window.snelInvullen=async function(datum, type){
     bevestiging.innerHTML=`<div style="background:#BEEBD2;border:1px solid #155C36;border-radius:8px;padding:8px 12px;margin-bottom:.5rem;font-size:13px;color:#155C36;font-weight:600">✓ Opgeslagen voor ${datumLbl2}</div>`;
     const kaart=document.querySelector('#user-invullen .card');
     if(kaart) kaart.parentNode.insertBefore(bevestiging, kaart);
-    setTimeout(()=>bevestiging.remove(), 2500);
+    setTimeout(()=>bevestiging.remove(), 5000);
     // Hercheck vergeten - toont volgende ontbrekende dag
     checkVergeten();
     if(typeof window.updateSnipdagMelding==='function')window.updateSnipdagMelding(datum);
@@ -1226,6 +1282,6 @@ function updateVrijeDagSnel(datum){
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-09-24 18:29 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-09-25 09:35 Mobiel</div>
 </body>
 </html>
