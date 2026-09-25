@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Urenregistratie — Beheer | v2026-09-25 13:30 Beheer</title>
+<title>Urenregistratie — Beheer | v2026-09-25 14:00 Beheer</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -1798,12 +1798,13 @@ window.opslaanMatrixPopup = async function() {
       gewerkt: vals.gewerkt,
       ziek: vals.ziek,
       dokter: vals.dokter,
-      vrij: vals.vrij,
+      vrij: +(bestaand?.vrij || 0) || 0,
       snip: vals.snip,
       opmerking: bestaand?.opmerking || '',
       teelten: bestaand?.teelten || [],
     };
-    await setDoc(doc(db, 'entries', id), rec);
+    try { await setDoc(doc(db, 'entries', id), rec); }
+    catch (e) { alert('Opslaan mislukt voor ' + fmtDate(datum) + ':\n' + e.message); await loadEntries(); renderMatrix(); return; }
   }
   await loadEntries();
   sluitMatrixPopup();
@@ -2437,7 +2438,7 @@ window.renderDagoverzicht=async function(){
 
 
 </script>
-<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-09-25 13:30 Beheer</div>
+<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-09-25 14:00 Beheer</div>
 <div id="verjaardag-kader" style="display:none;position:fixed;bottom:20px;left:20px;z-index:200;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;font-size:15px;font-weight:700;color:#142433;line-height:2;max-width:380px;box-shadow:0 4px 16px rgba(0,0,0,.2)"></div>
 </body>
 </html>
