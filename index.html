@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-09-25 09:35 Mobiel</title>
+<title>Urenregistratie | v2026-09-25 12:00 Mobiel</title>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -169,11 +169,12 @@
       </div>
       <div id="uren-velden">
         <div class="row2">
-          <div><label data-i18n="lbl_aanvang">Aanvang</label><input type="time" id="u-aanvang"></div>
-          <div><label data-i18n="lbl_einde">Einde</label><input type="time" id="u-einde"></div>
+          <div><label data-i18n="lbl_aanvang">Aanvang</label><input type="time" id="u-aanvang" oninput="herberekenGewerkt()"></div>
+          <div><label data-i18n="lbl_einde">Einde</label><input type="time" id="u-einde" oninput="herberekenGewerkt()"></div>
         </div>
         <label data-i18n="lbl_gewerkt">Gewerkte uren</label>
-        <input type="number" id="u-gewerkt" min="0" max="24" step="0.5" placeholder="0">
+        <input type="number" id="u-gewerkt" min="0" max="24" step="0.25" placeholder="0">
+        <div id="u-pauze-info" style="display:none;font-size:11px;color:var(--muted);margin-top:-4px;margin-bottom:4px"></div>
         <label data-i18n="lbl_ziek">Uren ziek</label>
         <input type="number" id="u-ziek" min="0" max="24" step="0.5" placeholder="0">
         <label data-i18n="lbl_dokter">Uren dokter</label>
@@ -204,7 +205,8 @@
         <b style="color:#E8007D">Nieuw: Start/stop</b><br>
         Onder Instellingen staat nu Start/stop.<br>
         Vul hier je vaste begin- en eindtijd in.<br>
-        Wijkt het een dag af? Pas dan alleen de aanvang en einde van die dag aan.<br><br>
+        Wijkt het een dag af? Pas dan alleen de aanvang en einde van die dag aan.<br>
+        De pauzes worden automatisch van de gewerkte uren afgetrokken.<br><br>
         <b style="color:#1F5E8C">Vergeten in te vullen:</b><br>
         Dan krijg je meldingen per dag (gele balk) waar je op kunt klikken.<br>
         Vul deze in, incl de teelt, en sla op.<br>
@@ -419,8 +421,14 @@ function applyUserLang(){
   document.querySelectorAll('#screen-user [data-i18n]').forEach(el=>{el.textContent=t(el.getAttribute('data-i18n'));});
 }
 let allEntries=[];let allUsers=[];let mijnVrijeDagen={};let allNotes=[];
+let pauzes=[{naam:'Ochtendpauze',van:'10:00',tot:'10:15'},{naam:'Lunchpauze',van:'12:00',tot:'12:30'},{naam:'Middagpauze',van:'14:30',tot:'14:45',vervaltTm:'15:00'}];
+async function loadPauzes(){try{const snap=await getDoc(doc(db,'instellingen','pauzes'));if(snap.exists()&&Array.isArray(snap.data().lijst))pauzes=snap.data().lijst;}catch(e){}}
+function tijdMin(t){if(!t||!/^\d{1,2}:\d{2}/.test(t))return null;const[h,m]=t.split(':').map(Number);return h*60+m;}
+function pauzeMinuten(a,e){let tot=0;pauzes.forEach(p=>{const pv=tijdMin(p.van),pt=tijdMin(p.tot);if(pv==null||pt==null)return;const vv=tijdMin(p.vervaltTm);if(vv!=null&&e<=vv)return;tot+=Math.max(0,Math.min(e,pt)-Math.max(a,pv));});return tot;}
+function berekenGewerkt(aanvang,einde){const a=tijdMin(aanvang),e=tijdMin(einde);if(a==null||e==null||e<=a)return null;const p=pauzeMinuten(a,e);return{uren:Math.round((e-a-p)/60*100)/100,pauze:p};}
+window.herberekenGewerkt=function(){const r=berekenGewerkt(val('u-aanvang'),val('u-einde'));const info=document.getElementById('u-pauze-info');if(!r){if(info)info.style.display='none';return;}setVal('u-gewerkt',r.uren);if(info){info.textContent=r.pauze>0?`Pauze (${r.pauze} min) is al afgetrokken.`:'Geen pauze in deze tijd.';info.style.display='block';}};
 async function init(){
-  try{const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),10000));await Promise.race([loadUsers(),timeout]);}
+  try{const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),10000));await Promise.race([loadUsers(),timeout]);await loadPauzes();}
   catch(e){document.getElementById('screen-loading').innerHTML=`<div style="padding-top:4rem;text-align:center"><div class="logo" style="justify-content:center;display:block">Urenregistratie</div><p style="margin-top:1rem;color:var(--danger)">\u26A0\uFE0F Kan geen verbinding maken.<br>Controleer je internet en probeer opnieuw.</p><button onclick="location.reload()" style="margin-top:1.5rem;padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer">Opnieuw proberen</button></div>`;return;}
   if(!allUsers.find(u=>u.name==='admin')){await setDoc(doc(db,'users','admin'),{name:'admin',pass:'admin123',role:'admin'});await loadUsers();}
   show('screen-login');
@@ -508,6 +516,7 @@ window.saveStartStop=async function(){
   const key=me.name.toLowerCase().replace(/\s+/g,'-');
   await setDoc(doc(db,'users',key),{...me,stdAanvang:a,stdEinde:e});
   await loadUsers();me=allUsers.find(u=>u.name===me.name)||{...me,stdAanvang:a,stdEinde:e};
+  if(typeof window.onDatumChange==='function')window.onDatumChange();
   const ok=document.getElementById('ss-ok');ok.textContent='\u2713 Opgeslagen';ok.style.display='block';setTimeout(()=>ok.style.display='none',5000);
 };
 window.changeAdminPassword=async function(){
@@ -1032,6 +1041,7 @@ window.switchTab=function(scope,tab,btn){
   const actief=document.getElementById(`${scope}-${tab}`);
   if(actief){actief.classList.add('active');actief.style.display='block';}
   btn.classList.add('active');
+  if(scope==='user'&&tab==='invullen'&&typeof window.onDatumChange==='function')window.onDatumChange();
   if(scope==='user'&&tab==='weekoverzicht'){
     const vdList=document.getElementById('vrije-dagen-list');
     if(vdList)vdList.innerHTML='<div class="loading">Laden...</div>';
@@ -1109,7 +1119,7 @@ window.onDatumChange=function(){
   document.getElementById('lock-notice').style.display=locked?'block':'none';
   ['u-aanvang','u-einde','u-gewerkt','u-ziek','u-dokter','u-snip','u-vrij','u-opmerking'].forEach(id=>document.getElementById(id).disabled=locked);
   document.querySelectorAll('.u-teelt').forEach(c=>c.disabled=locked);document.getElementById('btn-opslaan').disabled=locked;
-  if(datum){const ex=allEntries.find(e=>e.naam===me.name&&e.datum===datum);if(ex){setVal('u-aanvang',ex.aanvang||'');setVal('u-einde',ex.einde||'');setVal('u-gewerkt',ex.gewerkt||'');setVal('u-ziek',ex.ziek||'');setVal('u-dokter',ex.dokter||'');setVal('u-snip',ex.snip||'');setVal('u-vrij',ex.vrij||'');setVal('u-opmerking',ex.opmerking||'');setTeelten(ex.teelten||[]);}else{setVal('u-aanvang',me.stdAanvang||'08:00');setVal('u-einde',me.stdEinde||'17:00');['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,''));setTeelten([]);}
+  if(datum){const ex=allEntries.find(e=>e.naam===me.name&&e.datum===datum);if(ex){const _pi=document.getElementById('u-pauze-info');if(_pi)_pi.style.display='none';setVal('u-aanvang',ex.aanvang||me.stdAanvang||'08:00');setVal('u-einde',ex.einde||me.stdEinde||'17:00');setVal('u-gewerkt',ex.gewerkt||'');setVal('u-ziek',ex.ziek||'');setVal('u-dokter',ex.dokter||'');setVal('u-snip',ex.snip||'');setVal('u-vrij',ex.vrij||'');setVal('u-opmerking',ex.opmerking||'');setTeelten(ex.teelten||[]);}else{setVal('u-aanvang',me.stdAanvang||'08:00');setVal('u-einde',me.stdEinde||'17:00');['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,''));setTeelten([]);if(!locked&&!vrijStatus(mijnVrijeDagen[datum]))herberekenGewerkt();}
   if(typeof window.updateSnipdagMelding==='function')window.updateSnipdagMelding(datum);
 }
 };
@@ -1282,6 +1292,6 @@ function updateVrijeDagSnel(datum){
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-09-25 09:35 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-09-25 12:00 Mobiel</div>
 </body>
 </html>
