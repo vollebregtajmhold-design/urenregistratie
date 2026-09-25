@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-09-25 12:15 Mobiel</title>
+<title>Urenregistratie | v2026-09-25 13:30 Mobiel</title>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -430,9 +430,15 @@ window.herberekenGewerkt=function(){const r=berekenGewerkt(val('u-aanvang'),val(
 async function init(){
   try{const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),10000));await Promise.race([loadUsers(),timeout]);await loadPauzes();}
   catch(e){document.getElementById('screen-loading').innerHTML=`<div style="padding-top:4rem;text-align:center"><div class="logo" style="justify-content:center;display:block">Urenregistratie</div><p style="margin-top:1rem;color:var(--danger)">\u26A0\uFE0F Kan geen verbinding maken.<br>Controleer je internet en probeer opnieuw.</p><button onclick="location.reload()" style="margin-top:1.5rem;padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer">Opnieuw proberen</button></div>`;return;}
-  if(!allUsers.find(u=>u.name==='admin')){await setDoc(doc(db,'users','admin'),{name:'admin',pass:'admin123',role:'admin'});await loadUsers();}
+  if(allUsers.length===0){try{const _a=await getDoc(doc(db,'users','admin'));if(!_a.exists()){await setDoc(doc(db,'users','admin'),{name:'admin',pass:'admin123',role:'admin'});await loadUsers();}}catch(e){}}
   show('screen-login');
+  // Automatisch inloggen als dit toestel de login heeft onthouden
+  try{const l=JSON.parse(localStorage.getItem('uren_login')||'null');
+    if(l&&l.n&&allUsers.find(x=>x.name.toLowerCase()===String(l.n).toLowerCase()&&x.pass===l.p)){setVal('login-name',l.n);setVal('login-pass',l.p);await doLogin();}
+    else if(l){localStorage.removeItem('uren_login');setVal('login-name',l.n||'');}
+  }catch(e){}
 }
+function bewaarLogin(n,p){try{localStorage.setItem('uren_login',JSON.stringify({n,p}));}catch(e){}}
 async function loadUsers(){const snap=await getDocs(collection(db,'users'));allUsers=snap.docs.map(d=>d.data());}
 async function loadEntries(){const snap=await getDocs(query(collection(db,'entries'),orderBy('datum','desc')));allEntries=snap.docs.map(d=>d.data());}
 async function loadNotes(){const snap=await getDocs(collection(db,'notes'));allNotes=snap.docs.map(d=>({id:d.id,...d.data()}));}
@@ -440,7 +446,7 @@ window.doLogin=async function(){
   const n=val('login-name').trim().toLowerCase();const p=val('login-pass');
   const u=allUsers.find(x=>x.name.toLowerCase()===n&&x.pass===p);
   if(!u){showErr('login-err','Naam of wachtwoord onjuist');return;}
-  hideEl('login-err');me=u;await loadEntries();
+  hideEl('login-err');me=u;bewaarLogin(u.name,p);await loadEntries();
   if(u.role==='admin'){await loadNotes();show('screen-admin');fillFilters();renderAdmin();}
   else{curLang=u.taal||'nl';document.getElementById('user-name-label').textContent=u.name;initEntryForm(todayStr());show('screen-user');applyUserLang();resetUserTabs();// Laad eigen vrije dagen
   try{const key=me.name.toLowerCase().replace(/\s+/g,'-');const snap=await getDoc(doc(db,'vrije_dagen',key));if(snap.exists())mijnVrijeDagen=snap.data().dagen||{};}catch(e){mijnVrijeDagen={};}
@@ -452,7 +458,7 @@ window.doRegister=async function(){
   if(allUsers.find(u=>u.name.toLowerCase()===n.toLowerCase())){showErr('reg-err','Naam al in gebruik');return;}
   await setDoc(doc(db,'users',n.toLowerCase()),{name:n,pass:p,role:'user'});await loadUsers();hideEl('reg-err');alert('Account aangemaakt! U kunt nu inloggen.');show('screen-login');
 };
-window.doLogout=function(){me=null;allEntries=[];setVal('login-name','');setVal('login-pass','');show('screen-login');};
+window.doLogout=function(){try{localStorage.removeItem('uren_login');}catch(e){}me=null;allEntries=[];setVal('login-name','');setVal('login-pass','');show('screen-login');};
 window.saveEntry=async function(){
   const datum=val('u-datum');if(!datum){showErr('u-err',t('err_datum'));return;}if(isLocked(datum)){showErr('u-err',t('err_definitief'));return;}hideEl('u-err');
   if(allEntries.some(e=>e.naam===me.name&&e.datum===datum)&&!confirm('Zeker weten?\n\nJe wijzigt de uren van '+fmtDate(datum)+'.'))return;
@@ -490,7 +496,7 @@ window.changePassword=async function(){
   if(nieuw.length<4){err.textContent=t('pw_err_kort');err.style.display='block';return;}
   err.style.display='none';
   const key=me.name.toLowerCase().replace(/\s+/g,'-');
-  await setDoc(doc(db,'users',key),{...me,pass:nieuw});await loadUsers();me=allUsers.find(u=>u.name===me.name);
+  await setDoc(doc(db,'users',key),{pass:nieuw},{merge:true});await loadUsers();me=allUsers.find(u=>u.name===me.name);bewaarLogin(me.name,nieuw);
   setVal('pw-oud','');setVal('pw-nieuw','');setVal('pw-herhaal','');
   ok.textContent=t('pw_ok');ok.style.display='block';setTimeout(()=>ok.style.display='none',3000);
 };
@@ -514,7 +520,7 @@ window.saveStartStop=async function(){
   if(!a||!e){alert('Vul start en stop in');return;}
   if(!confirm('Zeker weten?\n\nStart '+a+' en stop '+e+' opslaan.'))return;
   const key=me.name.toLowerCase().replace(/\s+/g,'-');
-  await setDoc(doc(db,'users',key),{...me,stdAanvang:a,stdEinde:e});
+  await setDoc(doc(db,'users',key),{stdAanvang:a,stdEinde:e},{merge:true});
   await loadUsers();me=allUsers.find(u=>u.name===me.name)||{...me,stdAanvang:a,stdEinde:e};
   if(typeof window.onDatumChange==='function')window.onDatumChange();
   const ok=document.getElementById('ss-ok');ok.textContent='\u2713 Opgeslagen';ok.style.display='block';setTimeout(()=>ok.style.display='none',5000);
@@ -528,7 +534,7 @@ window.changeAdminPassword=async function(){
   if(nieuw.length<4){err.textContent='Wachtwoord moet minimaal 4 tekens zijn';err.style.display='block';return;}
   err.style.display='none';
   const key=me.name.toLowerCase().replace(/\s+/g,'-');
-  await setDoc(doc(db,'users',key),{...me,pass:nieuw});await loadUsers();me=allUsers.find(u=>u.name===me.name);
+  await setDoc(doc(db,'users',key),{pass:nieuw},{merge:true});await loadUsers();me=allUsers.find(u=>u.name===me.name);
   setVal('apw-oud','');setVal('apw-nieuw','');setVal('apw-herhaal','');
   ok.textContent='\u2713 Wachtwoord gewijzigd!';ok.style.display='block';setTimeout(()=>ok.style.display='none',3000);
 };
@@ -536,7 +542,7 @@ window.resetPassword=async function(name){
   const nieuw=prompt(`Nieuw wachtwoord voor ${name}:`);if(!nieuw)return;
   if(nieuw.length<4){alert('Wachtwoord moet minimaal 4 tekens zijn');return;}
   const key=name.toLowerCase().replace(/\s+/g,'-');const u=allUsers.find(x=>x.name===name);if(!u)return;
-  await setDoc(doc(db,'users',key),{...u,pass:nieuw});await loadUsers();alert(`Wachtwoord van ${name} is gewijzigd.`);
+  await setDoc(doc(db,'users',key),{pass:nieuw},{merge:true});await loadUsers();alert(`Wachtwoord van ${name} is gewijzigd.`);
 };
 function snipFactor(u){const c=u.contracturen||0;const wd=u.werkdagen||5;return wd>0?c/wd:0;}
 function calcJaarsnippers(u){
@@ -576,7 +582,7 @@ window.saveContract=async function(name){
   const key=name.toLowerCase().replace(/\s+/g,'-');const u=allUsers.find(x=>x.name===name);if(!u)return;
   const newU={...u,contracturen:c,werkdagen:wd,wekenperjaar:wj,snipperdagen:sd,startsaldo:s,saldo_gew:sgew,saldo_ziek:sziek,saldo_dok:sdok,saldo_vrij:svrij,notitie,berichtBeheerder,stdAanvang,stdEinde,taal,losseKracht};
   newU.jaarsnippers=calcJaarsnippers(newU);
-  await setDoc(doc(db,'users',key),newU);await loadUsers();renderAdmin();
+  {const {pass:_p,...zonderPass}=newU;await setDoc(doc(db,'users',key),zonderPass,{merge:true});}await loadUsers();renderAdmin();
   alert(`Gegevens voor ${name} opgeslagen (${newU.jaarsnippers}u snipperuren/jaar)`);
 };
 window.editEntry=function(id){document.getElementById('entry-view-'+id).style.display='none';document.getElementById('entry-edit-'+id).style.display='block';};
@@ -617,7 +623,7 @@ window.saveReminder=async function(){
   if(aan&&Notification.permission==='denied'){err.textContent=t('rem_blocked');err.style.display='block';return;}
   if(aan&&Notification.permission==='default'){const perm=await Notification.requestPermission();if(perm!=='granted'){err.textContent=t('rem_denied');err.style.display='block';return;}}
   err.style.display='none';const key=me.name.toLowerCase().replace(/\s+/g,'-');
-  me={...me,reminderAan:aan,reminderTijd:tijd};await setDoc(doc(db,'users',key),me);await loadUsers();startReminderCheck();
+  me={...me,reminderAan:aan,reminderTijd:tijd};await setDoc(doc(db,'users',key),{reminderAan:aan,reminderTijd:tijd},{merge:true});await loadUsers();startReminderCheck();
   ok.textContent=t('rem_ok');ok.style.display='block';setTimeout(()=>ok.style.display='none',3000);
 };
 function vrijStatus(v){if(v===true)return 'goedgekeurd';return(v==='aangevraagd'||v==='goedgekeurd')?v:null;}
@@ -1291,6 +1297,6 @@ function updateVrijeDagSnel(datum){
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-09-25 12:15 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-09-25 13:30 Mobiel</div>
 </body>
 </html>
