@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-09-25 12:00 Mobiel</title>
+<title>Urenregistratie | v2026-09-25 12:15 Mobiel</title>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -426,7 +426,7 @@ async function loadPauzes(){try{const snap=await getDoc(doc(db,'instellingen','p
 function tijdMin(t){if(!t||!/^\d{1,2}:\d{2}/.test(t))return null;const[h,m]=t.split(':').map(Number);return h*60+m;}
 function pauzeMinuten(a,e){let tot=0;pauzes.forEach(p=>{const pv=tijdMin(p.van),pt=tijdMin(p.tot);if(pv==null||pt==null)return;const vv=tijdMin(p.vervaltTm);if(vv!=null&&e<=vv)return;tot+=Math.max(0,Math.min(e,pt)-Math.max(a,pv));});return tot;}
 function berekenGewerkt(aanvang,einde){const a=tijdMin(aanvang),e=tijdMin(einde);if(a==null||e==null||e<=a)return null;const p=pauzeMinuten(a,e);return{uren:Math.round((e-a-p)/60*100)/100,pauze:p};}
-window.herberekenGewerkt=function(){const r=berekenGewerkt(val('u-aanvang'),val('u-einde'));const info=document.getElementById('u-pauze-info');if(!r){if(info)info.style.display='none';return;}setVal('u-gewerkt',r.uren);if(info){info.textContent=r.pauze>0?`Pauze (${r.pauze} min) is al afgetrokken.`:'Geen pauze in deze tijd.';info.style.display='block';}};
+window.herberekenGewerkt=function(){const r=berekenGewerkt(val('u-aanvang'),val('u-einde'));const info=document.getElementById('u-pauze-info');if(!r){if(info)info.style.display='none';return;}setVal('u-gewerkt',r.uren);if(info){info.textContent=r.pauze>0?`Pauze (${r.pauze} min) is al afgetrokken. Je kunt de uren zelf aanpassen.`:'Geen pauze in deze tijd.';info.style.display='block';}};
 async function init(){
   try{const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),10000));await Promise.race([loadUsers(),timeout]);await loadPauzes();}
   catch(e){document.getElementById('screen-loading').innerHTML=`<div style="padding-top:4rem;text-align:center"><div class="logo" style="justify-content:center;display:block">Urenregistratie</div><p style="margin-top:1rem;color:var(--danger)">\u26A0\uFE0F Kan geen verbinding maken.<br>Controleer je internet en probeer opnieuw.</p><button onclick="location.reload()" style="margin-top:1.5rem;padding:10px 24px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer">Opnieuw proberen</button></div>`;return;}
@@ -1041,7 +1041,6 @@ window.switchTab=function(scope,tab,btn){
   const actief=document.getElementById(`${scope}-${tab}`);
   if(actief){actief.classList.add('active');actief.style.display='block';}
   btn.classList.add('active');
-  if(scope==='user'&&tab==='invullen'&&typeof window.onDatumChange==='function')window.onDatumChange();
   if(scope==='user'&&tab==='weekoverzicht'){
     const vdList=document.getElementById('vrije-dagen-list');
     if(vdList)vdList.innerHTML='<div class="loading">Laden...</div>';
@@ -1292,6 +1291,6 @@ function updateVrijeDagSnel(datum){
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-09-25 12:00 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-09-25 12:15 Mobiel</div>
 </body>
 </html>
