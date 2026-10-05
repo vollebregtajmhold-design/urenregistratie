@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-09-25 13:30 Mobiel</title>
+<title>Urenregistratie | v2026-10-05 13:30 Mobiel</title>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -200,6 +200,8 @@
       <div id="u-err" class="error" style="display:none"></div>
       <div id="u-ok" class="success-msg" style="display:none"></div>
       </div>
+<div id="u-snipregel" style="display:none;margin:.6rem 0 0;padding:7px 12px;border-radius:8px;font-size:14px;font-weight:600;background:#EAF4FC;border:1px solid #A9C9E3;color:#1F5E8C"></div>
+<div id="u-status" style="display:none;margin:.6rem 0 .4rem;padding:8px 12px;border-radius:8px;font-size:14px;font-weight:700"></div>
 <button class="btn btn-primary" id="btn-opslaan" onclick="saveEntry()" data-i18n="btn_opslaan">Opslaan</button>
       <div style="background:#F8F5EC;border:1px solid #CCC;border-radius:8px;padding:10px 14px;margin-top:.75rem;font-size:12px;color:#4F7395;line-height:1.7">
         <b style="color:#E8007D">Nieuw: Start/stop</b><br>
@@ -421,6 +423,46 @@ function applyUserLang(){
   document.querySelectorAll('#screen-user [data-i18n]').forEach(el=>{el.textContent=t(el.getAttribute('data-i18n'));});
 }
 let allEntries=[];let allUsers=[];let mijnVrijeDagen={};let allNotes=[];
+let feestdagSet=new Set();let uDirty=false;
+async function loadFeestdagen(){try{const snap=await getDocs(collection(db,'feestdagen'));feestdagSet=new Set(snap.docs.map(d=>d.data().datum).filter(Boolean));}catch(e){}}
+function isWerkdagMe(datum){const dagNm=['Zo','Ma','Di','Wo','Do','Vr','Za'][new Date(datum+'T12:00:00').getDay()];return (me&&me.vasteWerkdagen||['Ma','Di','Wo','Do','Vr']).includes(dagNm);}
+function updateSnipRegel(){
+  const el=document.getElementById('u-snipregel');if(!el||!me)return;
+  const datum=val('u-datum');const c=+me.contracturen||0,wd=+me.werkdagen||5;
+  if(!datum||!c||me.nulUrenContract||me.losseKracht){el.style.display='none';return;}
+  const perDag=c/wd;
+  const dagNm=['Zo','Ma','Di','Wo','Do','Vr','Za'][new Date(datum+'T12:00:00').getDay()];
+  const isWerkdag=(me.vasteWerkdagen||['Ma','Di','Wo','Do','Vr']).includes(dagNm);
+  const som=['u-gewerkt','u-ziek','u-dokter'].reduce((a,id)=>a+(parseFloat(val(id))||0),0);
+  let snip,uitleg;
+  if(feestdagSet.has(datum)){snip=som>0?-som:0;uitleg=som>0?'feestdag, overuren':'feestdag';}
+  else if(vrijStatus(mijnVrijeDagen[datum])==='goedgekeurd'){snip=perDag;uitleg='vrije dag';}
+  else if(!isWerkdag){snip=som>0?-som:0;uitleg=som>0?'geen werkdag, overuren':'geen werkdag';}
+  else{snip=perDag-som;uitleg=`${(+perDag.toFixed(2))} \u2212 ${(+som.toFixed(2))}`;}
+  snip=+snip.toFixed(2);
+  el.innerHTML=`Berekende snipperuren: <b style="color:${snip<0?'#A6362A':snip>0?'#155C36':'#1F5E8C'}">${snip}u</b> <span style="font-size:12px;font-weight:400;color:#4F7395">(${uitleg})</span>`;
+  el.style.display='block';
+}
+function updateStatusRegel(){
+  updateSnipRegel();
+  const el=document.getElementById('u-status');if(!el||!me)return;
+  const datum=val('u-datum');if(!datum){el.style.display='none';return;}
+  const ex=allEntries.find(e=>e.naam===me.name&&e.datum===datum);
+  const vs=vrijStatus(mijnVrijeDagen[datum]);
+  let groen=false,tekst='';
+  if(uDirty&&ex){tekst='\u2715 Status: gewijzigd \u2013 nog niet opgeslagen';}
+  else if(ex&&!uDirty){groen=true;tekst='\u2713 Status: opgeslagen';}
+  else if(vs==='goedgekeurd'){groen=true;tekst='\u2713 Status: vrije dag (goedgekeurd) \u2013 opslaan niet nodig';}
+  else if(feestdagSet.has(datum)){groen=true;tekst='\u2713 Status: feestdag';}
+  else if(!uDirty&&!isWerkdagMe(datum)){el.textContent='Status: geen werkdag';el.style.display='block';el.style.background='#F0F0F0';el.style.color='#666';el.style.border='1px solid #CCC';const k=document.getElementById('btn-opslaan');if(k)k.style.display='';return;}
+  else{tekst='\u2715 Status: nog niet opgeslagen';}
+  el.textContent=tekst;el.style.display='block';
+  const knop=document.getElementById('btn-opslaan');if(knop)knop.style.display=(!ex&&!uDirty&&vs==='goedgekeurd')?'none':'';
+  el.style.background=groen?'#E3F2E1':'#FBE2DE';el.style.color=groen?'#155C36':'#A6362A';el.style.border='1px solid '+(groen?'#7AB648':'#E0A39A');
+}
+function markeerGewijzigd(){uDirty=true;updateStatusRegel();}
+document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('#uren-velden'))markeerGewijzigd();});
+document.addEventListener('change',e=>{if(e.target.closest&&e.target.closest('#uren-velden'))markeerGewijzigd();});
 let pauzes=[{naam:'Ochtendpauze',van:'10:00',tot:'10:15'},{naam:'Lunchpauze',van:'12:00',tot:'12:30'},{naam:'Middagpauze',van:'14:30',tot:'14:45',vervaltTm:'15:00'}];
 async function loadPauzes(){try{const snap=await getDoc(doc(db,'instellingen','pauzes'));if(snap.exists()&&Array.isArray(snap.data().lijst))pauzes=snap.data().lijst;}catch(e){}}
 function tijdMin(t){if(!t||!/^\d{1,2}:\d{2}/.test(t))return null;const[h,m]=t.split(':').map(Number);return h*60+m;}
@@ -446,7 +488,7 @@ window.doLogin=async function(){
   const n=val('login-name').trim().toLowerCase();const p=val('login-pass');
   const u=allUsers.find(x=>x.name.toLowerCase()===n&&x.pass===p);
   if(!u){showErr('login-err','Naam of wachtwoord onjuist');return;}
-  hideEl('login-err');me=u;bewaarLogin(u.name,p);await loadEntries();
+  hideEl('login-err');me=u;bewaarLogin(u.name,p);await loadEntries();await loadFeestdagen();
   if(u.role==='admin'){await loadNotes();show('screen-admin');fillFilters();renderAdmin();}
   else{curLang=u.taal||'nl';document.getElementById('user-name-label').textContent=u.name;initEntryForm(todayStr());show('screen-user');applyUserLang();resetUserTabs();// Laad eigen vrije dagen
   try{const key=me.name.toLowerCase().replace(/\s+/g,'-');const snap=await getDoc(doc(db,'vrije_dagen',key));if(snap.exists())mijnVrijeDagen=snap.data().dagen||{};}catch(e){mijnVrijeDagen={};}
@@ -466,7 +508,7 @@ window.saveEntry=async function(){
   const rec={naam:me.name,datum,aanvang:val('u-aanvang'),einde:val('u-einde'),gewerkt:parseFloat(val('u-gewerkt'))||0,ziek:parseFloat(val('u-ziek'))||0,dokter:parseFloat(val('u-dokter'))||0,snip:parseFloat(val('u-snip'))||0,vrij:parseFloat(val('u-vrij'))||0,opmerking:val('u-opmerking')||'',teelten:Array.from(document.querySelectorAll('.u-teelt:checked')).map(c=>c.value)};
   const id=me.name.toLowerCase().replace(/\s+/g,'-')+'_'+datum;
   await setDoc(doc(db,'entries',id),rec);await loadEntries();btn.textContent='Opslaan';btn.disabled=false;
-  const okEl=document.getElementById('u-ok');okEl.textContent=t('saved_for')+' '+fmtDate(datum);okEl.style.display='block';clearTimeout(window._okT);window._okT=setTimeout(()=>okEl.style.display='none',5000);
+  const okEl=document.getElementById('u-ok');okEl.textContent=t('saved_for')+' '+fmtDate(datum);uDirty=false;updateStatusRegel();okEl.style.display='block';clearTimeout(window._okT);window._okT=setTimeout(()=>okEl.style.display='none',5000);
 };
 window.addUser=async function(){
   const n=val('new-naam').trim();const p=val('new-pass');
@@ -678,6 +720,9 @@ function checkVergeten(){
     if(dw===0||dw===6)continue;
     const ds=dag.toISOString().split('T')[0];
     try{if(isFeestdag(new Date(ds+'T12:00:00')))continue;}catch(e){}
+    if(feestdagSet.has(ds))continue;
+    if(vrijStatus(mijnVrijeDagen[ds])==='goedgekeurd')continue; // goedgekeurde vrije dag: niets op te slaan
+    try{if(!isWerkdagMe(ds))continue;}catch(e){}
     if(!allEntries.find(e=>e.naam===me.name&&e.datum===ds)){
       ontbrekend.push(ds);
     }
@@ -1124,8 +1169,9 @@ window.onDatumChange=function(){
   document.getElementById('lock-notice').style.display=locked?'block':'none';
   ['u-aanvang','u-einde','u-gewerkt','u-ziek','u-dokter','u-snip','u-vrij','u-opmerking'].forEach(id=>document.getElementById(id).disabled=locked);
   document.querySelectorAll('.u-teelt').forEach(c=>c.disabled=locked);document.getElementById('btn-opslaan').disabled=locked;
-  if(datum){const ex=allEntries.find(e=>e.naam===me.name&&e.datum===datum);if(ex){const _pi=document.getElementById('u-pauze-info');if(_pi)_pi.style.display='none';setVal('u-aanvang',ex.aanvang||me.stdAanvang||'08:00');setVal('u-einde',ex.einde||me.stdEinde||'17:00');setVal('u-gewerkt',ex.gewerkt||'');setVal('u-ziek',ex.ziek||'');setVal('u-dokter',ex.dokter||'');setVal('u-snip',ex.snip||'');setVal('u-vrij',ex.vrij||'');setVal('u-opmerking',ex.opmerking||'');setTeelten(ex.teelten||[]);}else{setVal('u-aanvang',me.stdAanvang||'08:00');setVal('u-einde',me.stdEinde||'17:00');['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,''));setTeelten([]);if(!locked&&!vrijStatus(mijnVrijeDagen[datum]))herberekenGewerkt();}
+  if(datum){const ex=allEntries.find(e=>e.naam===me.name&&e.datum===datum);if(ex){const _pi=document.getElementById('u-pauze-info');if(_pi)_pi.style.display='none';setVal('u-aanvang',ex.aanvang||me.stdAanvang||'08:00');setVal('u-einde',ex.einde||me.stdEinde||'17:00');setVal('u-gewerkt',ex.gewerkt||'');setVal('u-ziek',ex.ziek||'');setVal('u-dokter',ex.dokter||'');setVal('u-snip',ex.snip||'');setVal('u-vrij',ex.vrij||'');setVal('u-opmerking',ex.opmerking||'');setTeelten(ex.teelten||[]);}else{setVal('u-aanvang',me.stdAanvang||'08:00');setVal('u-einde',me.stdEinde||'17:00');['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,''));setTeelten([]);if(!locked&&!vrijStatus(mijnVrijeDagen[datum])&&isWerkdagMe(datum)&&!feestdagSet.has(datum))herberekenGewerkt();else{const _pi=document.getElementById('u-pauze-info');if(_pi)_pi.style.display='none';}}
   if(typeof window.updateSnipdagMelding==='function')window.updateSnipdagMelding(datum);
+  uDirty=false;updateStatusRegel();
 }
 };
 window.updateSnipdagMelding=function(datum){
@@ -1274,7 +1320,7 @@ window.toggleVrijeDagSnel=async function(){
   updateVrijeDagSnel(datum);
 };
 
-function updateVrijeDagSnel(datum){
+function updateVrijeDagSnel(datum){setTimeout(updateStatusRegel,0);
   const el=document.getElementById('vd-snel');
   const velden=document.getElementById('uren-velden');
   if(!el||!datum)return;
@@ -1297,6 +1343,6 @@ function updateVrijeDagSnel(datum){
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-09-25 13:30 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-05 13:30 Mobiel</div>
 </body>
 </html>
