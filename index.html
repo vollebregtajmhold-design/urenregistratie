@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-10-05 13:30 Mobiel</title>
+<title>Urenregistratie | v2026-10-05 15:30 Mobiel</title>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -162,11 +162,6 @@
     <div class="card card-compact">
       <label><span data-i18n="lbl_datum">Datum</span> <span style="font-weight:400;text-transform:none;font-size:12px;color:var(--muted)">(max. 6 dagen terug)</span></label>
       <input type="date" id="u-datum" onchange="onDatumChange()">
-      <div id="vd-snel-wrap" style="margin-top:4px;margin-bottom:4px">
-        <div id="vd-snel" onclick="toggleVrijeDagSnel()" style="display:flex;align-items:center;gap:6px;border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #A9C9E3;background:#EAF4FC;color:#1F5E8C;user-select:none">
-          Maak van deze dag een snipperdag
-        </div>
-      </div>
       <div id="uren-velden">
         <div class="row2">
           <div><label data-i18n="lbl_aanvang">Aanvang</label><input type="time" id="u-aanvang" oninput="herberekenGewerkt()"></div>
@@ -194,6 +189,11 @@
           <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Cyclamen" style="width:auto;margin:0"> Cyclamen</label>
           <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-weight:400;margin-top:0"><input type="checkbox" class="u-teelt" value="Algemeen" style="width:auto;margin:0"> Algemeen</label>
         </div>
+        <label>Locatie</label>
+        <div id="locatie-keuze" style="display:flex;gap:10px;margin-bottom:.4rem">
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;text-transform:none;font-weight:600;font-size:15px;margin-top:0;border:1px solid #A9C9E3;border-radius:8px;padding:8px;background:#EAF4FC;cursor:pointer"><input type="radio" name="u-locatie" value="250" style="width:auto;margin:0"> 250</label>
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;text-transform:none;font-weight:600;font-size:15px;margin-top:0;border:1px solid #A9C9E3;border-radius:8px;padding:8px;background:#EAF4FC;cursor:pointer"><input type="radio" name="u-locatie" value="207" style="width:auto;margin:0"> 207</label>
+        </div>
         <label data-i18n="lbl_opmerking">Opmerking (optioneel)</label>
         <input type="text" id="u-opmerking">
       </div>
@@ -213,7 +213,7 @@
         Dan krijg je meldingen per dag (gele balk) waar je op kunt klikken.<br>
         Vul deze in, incl de teelt, en sla op.<br>
         Bij ziekte invoeren en opslaan.<br>
-        Bij snipperdag (niet aangemeld) klik je op het veld onder de datum en sla op.<br><br>
+        Snipperdag aanvragen doe je bij Vrije dagen.<br><br>
         Een feestdag wordt automatisch ingevuld.<br>
         Idem bij een aangemelde snipperdag.<br><br>
         <b style="color:#1F5E8C">Snipperuren dus niet invullen:</b><br>
@@ -423,13 +423,14 @@ function applyUserLang(){
   document.querySelectorAll('#screen-user [data-i18n]').forEach(el=>{el.textContent=t(el.getAttribute('data-i18n'));});
 }
 let allEntries=[];let allUsers=[];let mijnVrijeDagen={};let allNotes=[];
-let feestdagSet=new Set();let uDirty=false;
-async function loadFeestdagen(){try{const snap=await getDocs(collection(db,'feestdagen'));feestdagSet=new Set(snap.docs.map(d=>d.data().datum).filter(Boolean));}catch(e){}}
+let feestdagSet=new Set();let feestdagNamen={};let uDirty=false;
+async function loadFeestdagen(){try{const snap=await getDocs(collection(db,'feestdagen'));feestdagNamen={};snap.docs.forEach(d=>{const x=d.data();if(x&&x.datum)feestdagNamen[x.datum]=x.naam||'Feestdag';});feestdagSet=new Set(Object.keys(feestdagNamen));}catch(e){}}
 function isWerkdagMe(datum){const dagNm=['Zo','Ma','Di','Wo','Do','Vr','Za'][new Date(datum+'T12:00:00').getDay()];return (me&&me.vasteWerkdagen||['Ma','Di','Wo','Do','Vr']).includes(dagNm);}
 function updateSnipRegel(){
   const el=document.getElementById('u-snipregel');if(!el||!me)return;
   const datum=val('u-datum');const c=+me.contracturen||0,wd=+me.werkdagen||5;
-  if(!datum||!c||me.nulUrenContract||me.losseKracht){el.style.display='none';return;}
+  if(!datum){el.style.display='none';return;}
+  if(!c||me.nulUrenContract||me.losseKracht){el.innerHTML='Berekende snipperuren: <b>\u2013</b> <span style="font-size:12px;font-weight:400;color:#4F7395">(geen contracturen bekend)</span>';el.style.display='block';return;}
   const perDag=c/wd;
   const dagNm=['Zo','Ma','Di','Wo','Do','Vr','Za'][new Date(datum+'T12:00:00').getDay()];
   const isWerkdag=(me.vasteWerkdagen||['Ma','Di','Wo','Do','Vr']).includes(dagNm);
@@ -450,9 +451,10 @@ function updateStatusRegel(){
   const ex=allEntries.find(e=>e.naam===me.name&&e.datum===datum);
   const vs=vrijStatus(mijnVrijeDagen[datum]);
   let groen=false,tekst='';
-  if(uDirty&&ex){tekst='\u2715 Status: gewijzigd \u2013 nog niet opgeslagen';}
-  else if(ex&&!uDirty){groen=true;tekst='\u2713 Status: opgeslagen';}
-  else if(vs==='goedgekeurd'){groen=true;tekst='\u2713 Status: vrije dag (goedgekeurd) \u2013 opslaan niet nodig';}
+  if(uDirty){tekst='\u2715 Status: gewijzigd \u2013 nog niet opgeslagen';}
+  else if(ex){groen=true;tekst='\u2713 Status: opgeslagen';}
+  else if(feestdagSet.has(datum)){groen=true;tekst='\u2713 Status: opgeslagen (feestdag: '+(feestdagNamen[datum]||'')+')';}
+  else if(vs==='goedgekeurd'){groen=true;tekst='\u2713 Status: opgeslagen (goedgekeurde vrije dag)';}
   else if(feestdagSet.has(datum)){groen=true;tekst='\u2713 Status: feestdag';}
   else if(!uDirty&&!isWerkdagMe(datum)){el.textContent='Status: geen werkdag';el.style.display='block';el.style.background='#F0F0F0';el.style.color='#666';el.style.border='1px solid #CCC';const k=document.getElementById('btn-opslaan');if(k)k.style.display='';return;}
   else{tekst='\u2715 Status: nog niet opgeslagen';}
@@ -505,7 +507,7 @@ window.saveEntry=async function(){
   const datum=val('u-datum');if(!datum){showErr('u-err',t('err_datum'));return;}if(isLocked(datum)){showErr('u-err',t('err_definitief'));return;}hideEl('u-err');
   if(allEntries.some(e=>e.naam===me.name&&e.datum===datum)&&!confirm('Zeker weten?\n\nJe wijzigt de uren van '+fmtDate(datum)+'.'))return;
   const btn=document.getElementById('btn-opslaan');btn.textContent='Opslaan...';btn.disabled=true;
-  const rec={naam:me.name,datum,aanvang:val('u-aanvang'),einde:val('u-einde'),gewerkt:parseFloat(val('u-gewerkt'))||0,ziek:parseFloat(val('u-ziek'))||0,dokter:parseFloat(val('u-dokter'))||0,snip:parseFloat(val('u-snip'))||0,vrij:parseFloat(val('u-vrij'))||0,opmerking:val('u-opmerking')||'',teelten:Array.from(document.querySelectorAll('.u-teelt:checked')).map(c=>c.value)};
+  const rec={naam:me.name,datum,aanvang:val('u-aanvang'),einde:val('u-einde'),gewerkt:parseFloat(val('u-gewerkt'))||0,ziek:parseFloat(val('u-ziek'))||0,dokter:parseFloat(val('u-dokter'))||0,snip:parseFloat(val('u-snip'))||0,vrij:parseFloat(val('u-vrij'))||0,opmerking:val('u-opmerking')||'',teelten:Array.from(document.querySelectorAll('.u-teelt:checked')).map(c=>c.value),locatie:getLocatie()};
   const id=me.name.toLowerCase().replace(/\s+/g,'-')+'_'+datum;
   await setDoc(doc(db,'entries',id),rec);await loadEntries();btn.textContent='Opslaan';btn.disabled=false;
   const okEl=document.getElementById('u-ok');okEl.textContent=t('saved_for')+' '+fmtDate(datum);uDirty=false;updateStatusRegel();okEl.style.display='block';clearTimeout(window._okT);window._okT=setTimeout(()=>okEl.style.display='none',5000);
@@ -1168,8 +1170,10 @@ window.onDatumChange=function(){
   const datum=val('u-datum');const locked=isLocked(datum);
   document.getElementById('lock-notice').style.display=locked?'block':'none';
   ['u-aanvang','u-einde','u-gewerkt','u-ziek','u-dokter','u-snip','u-vrij','u-opmerking'].forEach(id=>document.getElementById(id).disabled=locked);
-  document.querySelectorAll('.u-teelt').forEach(c=>c.disabled=locked);document.getElementById('btn-opslaan').disabled=locked;
-  if(datum){const ex=allEntries.find(e=>e.naam===me.name&&e.datum===datum);if(ex){const _pi=document.getElementById('u-pauze-info');if(_pi)_pi.style.display='none';setVal('u-aanvang',ex.aanvang||me.stdAanvang||'08:00');setVal('u-einde',ex.einde||me.stdEinde||'17:00');setVal('u-gewerkt',ex.gewerkt||'');setVal('u-ziek',ex.ziek||'');setVal('u-dokter',ex.dokter||'');setVal('u-snip',ex.snip||'');setVal('u-vrij',ex.vrij||'');setVal('u-opmerking',ex.opmerking||'');setTeelten(ex.teelten||[]);}else{setVal('u-aanvang',me.stdAanvang||'08:00');setVal('u-einde',me.stdEinde||'17:00');['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,''));setTeelten([]);if(!locked&&!vrijStatus(mijnVrijeDagen[datum])&&isWerkdagMe(datum)&&!feestdagSet.has(datum))herberekenGewerkt();else{const _pi=document.getElementById('u-pauze-info');if(_pi)_pi.style.display='none';}}
+  document.querySelectorAll('.u-teelt,input[name="u-locatie"]').forEach(c=>c.disabled=locked);document.getElementById('btn-opslaan').disabled=locked;
+  if(datum){const ex=allEntries.find(e=>e.naam===me.name&&e.datum===datum);if(ex){const _pi=document.getElementById('u-pauze-info');if(_pi)_pi.style.display='none';setVal('u-aanvang',ex.aanvang||me.stdAanvang||'08:00');setVal('u-einde',ex.einde||me.stdEinde||'17:00');setVal('u-gewerkt',ex.gewerkt||'');setVal('u-ziek',ex.ziek||'');setVal('u-dokter',ex.dokter||'');setVal('u-snip',ex.snip||'');setVal('u-vrij',ex.vrij||'');setVal('u-opmerking',ex.opmerking||'');setTeelten(ex.teelten||[]);setLocatie(ex.locatie||'');}else{setVal('u-aanvang',me.stdAanvang||'08:00');setVal('u-einde',me.stdEinde||'17:00');['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,''));setTeelten([]);setLocatie(laatsteLocatie());if(!locked&&!vrijStatus(mijnVrijeDagen[datum])&&isWerkdagMe(datum)&&!feestdagSet.has(datum))herberekenGewerkt();else{const _pi=document.getElementById('u-pauze-info');if(_pi)_pi.style.display='none';}
+  if(!feestdagSet.has(datum)&&vrijStatus(mijnVrijeDagen[datum])==='goedgekeurd'&&isWerkdagMe(datum)){setVal('u-aanvang','');setVal('u-einde','');setVal('u-gewerkt','0');setVal('u-ziek','0');setVal('u-dokter','0');setVal('u-opmerking','Vrije dag (snipperdag)');}
+  if(feestdagSet.has(datum)){setVal('u-aanvang','');setVal('u-einde','');setVal('u-gewerkt','0');setVal('u-ziek','0');setVal('u-dokter','0');setVal('u-opmerking',feestdagNamen[datum]||'Feestdag');}}
   if(typeof window.updateSnipdagMelding==='function')window.updateSnipdagMelding(datum);
   uDirty=false;updateStatusRegel();
 }
@@ -1191,6 +1195,9 @@ window.updateSnipdagMelding=function(datum){
   }
 };
 
+function getLocatie(){const r=document.querySelector('input[name="u-locatie"]:checked');return r?r.value:'';}
+function setLocatie(v){document.querySelectorAll('input[name="u-locatie"]').forEach(r=>r.checked=(r.value===String(v||'')));}
+function laatsteLocatie(){const e=allEntries.filter(x=>x.naam===me.name&&x.locatie).sort((a,b)=>b.datum.localeCompare(a.datum))[0];return e?e.locatie:'';}
 function setTeelten(arr){document.querySelectorAll('.u-teelt').forEach(c=>c.checked=arr.includes(c.value));}
 window.toggleWeek=function(h){const b=h.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none';};
 window.togglePerson=function(h){const b=h.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none';};
@@ -1343,6 +1350,6 @@ function updateVrijeDagSnel(datum){setTimeout(updateStatusRegel,0);
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-05 13:30 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-05 15:30 Mobiel</div>
 </body>
 </html>
