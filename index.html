@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-10-05 17:00 Mobiel</title>
+<title>Urenregistratie | v2026-10-05 18:00 Mobiel</title>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -204,6 +204,8 @@
 <div id="u-status" style="display:none;margin:.6rem 0 .4rem;padding:8px 12px;border-radius:8px;font-size:14px;font-weight:700"></div>
 <button class="btn btn-primary" id="btn-opslaan" onclick="saveEntry()" data-i18n="btn_opslaan">Opslaan</button>
       <div style="background:#F8F5EC;border:1px solid #CCC;border-radius:8px;padding:10px 14px;margin-top:.75rem;font-size:12px;color:#4F7395;line-height:1.7">
+        <b style="color:#E8007D">Nieuw: Locatie</b><br>
+        Vink de locatie aan (250 of 207) waar je deze dag het meest hebt gewerkt.<br><br>
         <b style="color:#E8007D">Nieuw: Start/stop</b><br>
         Onder Instellingen staat nu Start/stop.<br>
         Vul hier je vaste begin- en eindtijd in.<br>
@@ -505,9 +507,18 @@ window.doRegister=async function(){
 window.doLogout=function(){try{localStorage.removeItem('uren_login');}catch(e){}me=null;allEntries=[];setVal('login-name','');setVal('login-pass','');show('screen-login');};
 window.saveEntry=async function(){
   const datum=val('u-datum');if(!datum){showErr('u-err',t('err_datum'));return;}if(isLocked(datum)){showErr('u-err',t('err_definitief'));return;}hideEl('u-err');
-  if(allEntries.some(e=>e.naam===me.name&&e.datum===datum)&&!confirm('Zeker weten?\n\nJe wijzigt de uren van '+fmtDate(datum)+'.'))return;
-  const btn=document.getElementById('btn-opslaan');btn.textContent='Opslaan...';btn.disabled=true;
   const rec={naam:me.name,datum,aanvang:val('u-aanvang'),einde:val('u-einde'),gewerkt:parseFloat(val('u-gewerkt'))||0,ziek:parseFloat(val('u-ziek'))||0,dokter:parseFloat(val('u-dokter'))||0,snip:parseFloat(val('u-snip'))||0,vrij:parseFloat(val('u-vrij'))||0,opmerking:val('u-opmerking')||'',teelten:Array.from(document.querySelectorAll('.u-teelt:checked')).map(c=>c.value),locatie:getLocatie()};
+  // Gewerkte uren zonder teelt: waarschuwen en niet opslaan
+  if(rec.gewerkt>0&&!rec.teelten.length){showErr('u-err','\u26A0\uFE0F Je hebt gewerkte uren ingevuld, maar geen teelt aangevinkt. Vink de teelt aan waarin je het meest hebt gewerkt.');document.getElementById('teelt-keuze')?.scrollIntoView({block:'center'});alert('Let op: de teelt is niet ingevuld.\n\nVink de teelt aan waarin je het meest hebt gewerkt en sla daarna op.');return;}
+  // Wijziging na opslaan: oude en nieuwe waarde laten bevestigen
+  const ex=allEntries.find(e=>e.naam===me.name&&e.datum===datum);
+  if(ex){
+    const velden=[['aanvang','Aanvang'],['einde','Einde'],['gewerkt','Gewerkt'],['ziek','Ziek'],['dokter','Dokter'],['teelten','Teelt'],['locatie','Locatie'],['opmerking','Opmerking']];
+    const fmtV=(k,v)=>{if(k==='teelten')return (v&&v.length)?v.join(', '):'\u2013';if(['gewerkt','ziek','dokter'].includes(k))return String(+(v||0)).replace('.',',');return (v===undefined||v===null||v==='')?'\u2013':String(v);};
+    const diffs=velden.filter(([k])=>fmtV(k,ex[k])!==fmtV(k,rec[k])).map(([k,l])=>`${l}: ${fmtV(k,ex[k])} \u2192 ${fmtV(k,rec[k])}`);
+    if(diffs.length&&!confirm('Wijziging '+fmtDate(datum)+'\n\n'+diffs.join('\n')+'\n\nKlopt dit?'))return;
+  }
+  const btn=document.getElementById('btn-opslaan');btn.textContent='Opslaan...';btn.disabled=true;
   const id=me.name.toLowerCase().replace(/\s+/g,'-')+'_'+datum;
   await setDoc(doc(db,'entries',id),rec);await loadEntries();btn.textContent='Opslaan';btn.disabled=false;
   const okEl=document.getElementById('u-ok');okEl.textContent=t('saved_for')+' '+fmtDate(datum);uDirty=false;updateStatusRegel();okEl.style.display='block';clearTimeout(window._okT);window._okT=setTimeout(()=>okEl.style.display='none',5000);
@@ -1364,6 +1375,6 @@ function updateVrijeDagSnel(datum){setTimeout(updateStatusRegel,0);
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-05 17:00 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-05 18:00 Mobiel</div>
 </body>
 </html>
