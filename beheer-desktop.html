@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Urenregistratie — Beheer | v2026-09-25 14:00 Beheer</title>
+<title>Urenregistratie — Beheer | v2026-10-05 12:00 Beheer</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -416,7 +416,7 @@
       <div id="matrix-backdrop" class="matrix-backdrop" style="display:none" onclick="sluitMatrixPopup()"></div>
       <div id="matrix-popup" class="matrix-popup" style="display:none;min-width:520px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
-          <h3 id="mp-titel" style="margin:0"></h3>
+          <h3 style="margin:0;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><span id="mp-titel"></span><span id="mp-contract-dag" style="font-size:13px;font-weight:600;color:var(--muted)"></span></h3>
           <button class="btn btn-secondary btn-sm" onclick="sluitMatrixPopup()" style="padding:3px 8px">✕</button>
         </div>
         <table style="width:100%;border-collapse:collapse">
@@ -429,18 +429,11 @@
 <tr><td style="font-size:13px;font-weight:700;color:#142433;white-space:nowrap;padding:5px 8px 5px 0">Ziek</td><td style="padding:2px"><input type="number" id="mp-ziek-0" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-ziek-1" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-ziek-2" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-ziek-3" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-ziek-4" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-ziek-5" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-ziek-6" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td id="mp-ziek-tot" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);padding:2px 4px">0</td></tr>
 <tr><td style="font-size:13px;font-weight:700;color:#142433;white-space:nowrap;padding:5px 8px 5px 0">Dokter</td><td style="padding:2px"><input type="number" id="mp-dok-0" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-dok-1" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-dok-2" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-dok-3" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-dok-4" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-dok-5" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-dok-6" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td id="mp-dok-tot" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);padding:2px 4px">0</td></tr>
 
-<tr><td style="font-size:13px;font-weight:700;color:#142433;white-space:nowrap;padding:5px 8px 5px 0">Snipperuren</td><td style="padding:2px"><input type="number" id="mp-snip-0" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-snip-1" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-snip-2" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-snip-3" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-snip-4" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-snip-5" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td style="padding:2px"><input type="number" id="mp-snip-6" min="0" max="24" step="0.5" onfocus="this.select()" style="width:100%;padding:6px 4px;font-size:14px;text-align:center;border:1px solid #A9C9E3;border-radius:4px;font-family:var(--font);color:#142433;font-weight:500"></td><td id="mp-snip-rijtot" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);padding:2px 4px">0</td></tr>
-<tr><td style="font-size:13px;font-weight:700;color:#1B5EBE;padding:6px 8px 4px 0;border-top:2px solid #1B5EBE">Totaal</td><td id="mp-tot-0" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-tot-1" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-tot-2" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-tot-3" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-tot-4" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-tot-5" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-tot-6" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-snip-tot" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">—</td><td id="mp-tot-tot"<td id="mp-tot-tot" style="text-align:center;font-weight:700;font-size:13px;color:var(--accent);border-top:2px solid var(--border);padding:4px 4px">0</td></tr>
-          <tr id="mp-contract-rij" style="background:#F0F0F0">
-            <td style="text-align:left;font-size:11px;color:var(--muted);padding:4px 0 4px 4px">Contract/dag</td>
-            <td colspan="8" style="text-align:center;font-size:11px;color:var(--muted)" id="mp-contract-dag">—</td>
-            <td></td>
-          </tr>
-          <tr id="mp-snip-rij" style="background:#F0F0F0">
-            <td style="text-align:left;font-size:11px;font-weight:700;padding:4px 0 4px 4px">Snipperuren</td>
-            <td colspan="8" style="text-align:center;font-size:12px;font-weight:700" id="mp-snip-week">—</td>
-            <td></td>
-          </tr>
+<tr><td style="font-size:13px;font-weight:700;color:#142433;white-space:nowrap;padding:5px 8px 5px 0" title="Berekend: contract/dag − (gewerkt + ziek + dokter). Vrije dag = contract/dag.">Snipperuren <span style="font-size:10px;font-weight:400;color:var(--muted)">(berekend)</span></td><td id="mp-snip-0" style="text-align:center;font-size:14px;font-weight:600;padding:6px 2px;background:#F3F3F3;border-radius:4px">—</td><td id="mp-snip-1" style="text-align:center;font-size:14px;font-weight:600;padding:6px 2px;background:#F3F3F3;border-radius:4px">—</td><td id="mp-snip-2" style="text-align:center;font-size:14px;font-weight:600;padding:6px 2px;background:#F3F3F3;border-radius:4px">—</td><td id="mp-snip-3" style="text-align:center;font-size:14px;font-weight:600;padding:6px 2px;background:#F3F3F3;border-radius:4px">—</td><td id="mp-snip-4" style="text-align:center;font-size:14px;font-weight:600;padding:6px 2px;background:#F3F3F3;border-radius:4px">—</td><td id="mp-snip-5" style="text-align:center;font-size:14px;font-weight:600;padding:6px 2px;background:#F3F3F3;border-radius:4px">—</td><td id="mp-snip-6" style="text-align:center;font-size:14px;font-weight:600;padding:6px 2px;background:#F3F3F3;border-radius:4px">—</td><td id="mp-snip-rijtot" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);padding:2px 4px">—</td></tr>
+<tr><td style="font-size:13px;font-weight:700;color:#1B5EBE;padding:6px 8px 4px 0;border-top:2px solid #1B5EBE" title="Gewerkt + ziek + dokter">Totaal</td><td id="mp-tot-0" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-tot-1" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-tot-2" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-tot-3" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-tot-4" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-tot-5" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-tot-6" style="text-align:center;font-weight:700;font-size:12px;color:var(--accent);border-top:2px solid var(--border);padding:4px 2px">0</td><td id="mp-tot-tot" style="text-align:center;font-weight:700;font-size:13px;color:var(--accent);border-top:2px solid var(--border);padding:4px 4px">0</td></tr>
+
+          <tr style="background:#F5F9FD"><td style="font-size:12px;font-weight:700;color:#1F5E8C;padding:4px 8px 4px 0;border-top:1px solid #A9C9E3">Start</td><td id="mp-start-0" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px;border-top:1px solid #A9C9E3">—</td><td id="mp-start-1" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px;border-top:1px solid #A9C9E3">—</td><td id="mp-start-2" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px;border-top:1px solid #A9C9E3">—</td><td id="mp-start-3" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px;border-top:1px solid #A9C9E3">—</td><td id="mp-start-4" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px;border-top:1px solid #A9C9E3">—</td><td id="mp-start-5" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px;border-top:1px solid #A9C9E3">—</td><td id="mp-start-6" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px;border-top:1px solid #A9C9E3">—</td><td style="border-top:1px solid #A9C9E3"></td><td style="border-top:1px solid #A9C9E3"></td></tr>
+          <tr style="background:#F5F9FD"><td style="font-size:12px;font-weight:700;color:#1F5E8C;padding:4px 8px 4px 0">Stop</td><td id="mp-stop-0" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px">—</td><td id="mp-stop-1" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px">—</td><td id="mp-stop-2" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px">—</td><td id="mp-stop-3" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px">—</td><td id="mp-stop-4" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px">—</td><td id="mp-stop-5" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px">—</td><td id="mp-stop-6" style="text-align:center;font-size:12px;color:#142433;padding:3px 2px">—</td><td style=""></td><td style=""></td></tr>
           </tbody>
         </table>
         <div class="btn-row" style="margin-top:.75rem">
@@ -1396,6 +1389,25 @@ window.printWeekBlok = function() {
   win.print();
 };
 
+// Lijn de rijen van dagcheck en weekblok uit op de matrix (zelfde hoogte per rij)
+function syncStartRijen() {
+  requestAnimationFrame(() => {
+    const mx = document.getElementById('mx-tabel');
+    if (!mx) return;
+    const bron = Array.from(mx.querySelectorAll('thead tr, tbody tr, tfoot tr'));
+    const hoogtes = bron.map(r => r.getBoundingClientRect().height);
+    const doelen = [document.querySelector('#dagoverzicht-list table'), document.querySelector('#mx-weekblok table')];
+    doelen.forEach(t => {
+      if (!t || !t.offsetParent) return;
+      const rijen = Array.from(t.querySelectorAll('thead tr, tbody tr, tfoot tr'));
+      if (rijen.length !== bron.length) return; // andere medewerkers (bijv. losse krachten): niet uitlijnen
+      rijen.forEach((r, i) => { r.style.height = hoogtes[i] + 'px'; });
+      // Fijn-afstemmen: kleine verschillen door randen corrigeren
+      rijen.forEach((r, i) => { const d = hoogtes[i] - r.getBoundingClientRect().height; if (Math.abs(d) > 0.4) r.style.height = (hoogtes[i] + d) + 'px'; });
+    });
+  });
+}
+window.addEventListener('resize', () => syncStartRijen());
 window.toonWeekBlok = function(weekNr, jaar) {
   const blok = document.getElementById('mx-weekblok');
   if (!blok) return;
@@ -1480,6 +1492,7 @@ window.toonWeekBlok = function(weekNr, jaar) {
       </tr></tfoot>
     </table>`;
   blok.style.display = 'block';
+  syncStartRijen();
 };
 
 
@@ -1667,7 +1680,7 @@ window.renderMatrix = async function() {
           <tfoot>${tfoot}</tfoot>
         </table>
       </div>
-      <div id="mx-weekblok" style="display:none;background:#fff;border-radius:12px;padding:0;width:auto;font-size:13px;flex-shrink:0;overflow:hidden;margin-top:0;border-top:10px solid #1B5EBE;border-right:10px solid #7AB648;border-bottom:10px solid #E8007D;border-left:10px solid #7AB648;box-shadow:0 4px 16px rgba(0,0,0,.12)"></div>
+      <div id="mx-weekblok" style="display:none;background:#fff;border-radius:0 0 8px 8px;padding:0;width:auto;font-size:13px;flex-shrink:0;overflow:hidden;margin-top:0;border:1px solid #A9C9E3;background:#F5F2EC"></div>
       <div id="verjaardag-kader" style="display:none;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;margin-top:1.5rem;font-size:15px;font-weight:700;color:#000;line-height:2;max-width:420px;align-self:start"></div>
       <div id="verjaardag-kader" style="display:none;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;margin-top:1.5rem;font-size:15px;font-weight:700;color:#142433;line-height:2;max-width:420px"></div>
     </div>`;
@@ -1680,6 +1693,7 @@ window.renderMatrix = async function() {
   setTimeout(() => {
     mxInitSlider(); // zorg dat grepen gekoppeld zijn
     mxUpdateUI();
+    syncStartRijen();
 
     // Sync sliders als je handmatig in de tabel scrolt
     const wrap = document.getElementById('mx-wrap');
@@ -1691,6 +1705,9 @@ window.renderMatrix = async function() {
 window.openMatrixPopup = async function(naam, weekNr, jaar) {
   const popup = document.getElementById('matrix-popup');
   const backdrop = document.getElementById('matrix-backdrop');
+  // Zet het kader direct in body, zodat het ook vanaf andere pagina's zichtbaar is
+  if (backdrop && backdrop.parentElement !== document.body) document.body.appendChild(backdrop);
+  if (popup && popup.parentElement !== document.body) document.body.appendChild(popup);
 
   // Laad alle 7 dagen van de week (ma t/m zo)
   const dagen = [0,1,2,3,4,5,6].map(i => datumVanWeekdag(parseInt(jaar), weekNr, i));
@@ -1700,8 +1717,14 @@ window.openMatrixPopup = async function(naam, weekNr, jaar) {
 
   document.getElementById('mp-titel').textContent = `${naam} — week ${weekNr}`;
 
-  const TYPEN = ['gew','ziek','dok','snip'];
-  const VELDEN = ['gewerkt','ziek','dokter','snip'];
+  const TYPEN = ['gew','ziek','dok'];
+  const VELDEN = ['gewerkt','ziek','dokter'];
+  const u5 = allUsers.find(x => x.name === naam) || {};
+  const contract5 = u5.contracturen || 0;
+  const perDag = (contract5 > 0 && !u5.nulUrenContract && !u5.losseKracht) ? snipFactor(u5) : 0;
+  const werkdagen5 = u5.vasteWerkdagen || DAGNAMEN5;
+  const vrij5 = (vakAllVrij && vakAllVrij[naam]) || {};
+  document.getElementById('mp-contract-dag').textContent = perDag > 0 ? `Contract ${contract5}u/week · ${perDag.toFixed(1)}u/dag` : 'Geen contracturen';
 
   // Vul velden voor alle 7 dagen
   for (let i = 0; i < 7; i++) {
@@ -1711,44 +1734,53 @@ window.openMatrixPopup = async function(naam, weekNr, jaar) {
     });
   }
 
+  // Toon ingevoerde start- en stoptijd per dag
+  for (let i = 0; i < 7; i++) {
+    const e = entries[i];
+    const sEl = document.getElementById(`mp-start-${i}`), tEl = document.getElementById(`mp-stop-${i}`);
+    if (sEl) sEl.textContent = (e && e.aanvang) ? e.aanvang : '—';
+    if (tEl) tEl.textContent = (e && e.einde) ? e.einde : '—';
+  }
+
+  // Snipperuren per dag: contract/dag - (gewerkt + ziek + dokter)
+  function snipVoorDag(i) {
+    const datum = dagen[i];
+    if (!perDag) return null;
+    const som = TYPEN.reduce((a, t) => a + (parseFloat(document.getElementById(`mp-${t}-${i}`)?.value) || 0), 0);
+    // Geen werkdag (za/zo of vrije weekdag) of feestdag: gewerkte uren tellen als overuren (negatieve snipperuren)
+    if (!werkdagen5.includes(dagNaamVanDatum(datum)) || isFeestdag(datum)) return som > 0 ? -som : null;
+    const isVrij = !!vrijStatus(vrij5[datum]);
+    if (!isVrij && som === 0 && !entries[i]) return null; // nog niets ingevuld
+    return +(perDag - som).toFixed(2);
+  }
+  matrixPopupState.snipVoorDag = snipVoorDag;
+
   // Herbereken totalen live
   function herbereken() {
     TYPEN.forEach(t => {
       let rijtot = 0;
-      for (let i = 0; i < 7; i++) {
-        const el = document.getElementById(`mp-${t}-${i}`);
-        rijtot += parseFloat(el?.value || 0) || 0;
-      }
+      for (let i = 0; i < 7; i++) rijtot += parseFloat(document.getElementById(`mp-${t}-${i}`)?.value || 0) || 0;
       const totEl = document.getElementById(`mp-${t}-tot`);
       if (totEl) totEl.textContent = rijtot > 0 ? rijtot.toFixed(1) : '—';
     });
+    let grandtot = 0, snipTot = 0, heeftSnip = false;
     for (let i = 0; i < 7; i++) {
       let koltot = 0;
       TYPEN.forEach(t => { koltot += parseFloat(document.getElementById(`mp-${t}-${i}`)?.value || 0) || 0; });
+      grandtot += koltot;
       const el = document.getElementById(`mp-tot-${i}`);
       if (el) el.textContent = koltot > 0 ? koltot.toFixed(1) : '—';
+      const sv = snipVoorDag(i);
+      const se = document.getElementById(`mp-snip-${i}`);
+      if (se) {
+        if (sv === null) { se.textContent = '—'; se.style.color = '#999'; }
+        else { heeftSnip = true; snipTot += sv; se.textContent = (+sv.toFixed(2)).toString(); se.style.color = sv < 0 ? 'var(--danger)' : sv > 0 ? 'var(--success)' : '#888'; }
+      }
     }
-    let grandtot = 0;
-    TYPEN.forEach(t => { for (let i = 0; i < 7; i++) grandtot += parseFloat(document.getElementById(`mp-${t}-${i}`)?.value || 0) || 0; });
-    // Snipperuren totaal
-    let snipTot=0;
-    for(let i=0;i<7;i++){const se=document.getElementById(`mp-snip-${i}`);snipTot+=parseFloat(se?.value||0)||0;}
-    const snipTotEl=document.getElementById('mp-snip-rijtot');
-    if(snipTotEl)snipTotEl.textContent=snipTot>0?snipTot.toFixed(1):'—';
+    const st = document.getElementById('mp-snip-rijtot');
+    if (st) { st.textContent = heeftSnip ? (+snipTot.toFixed(2)).toString() : '—'; st.style.color = snipTot < 0 ? 'var(--danger)' : 'var(--success)'; }
     const el = document.getElementById('mp-tot-tot');
     if (el) el.textContent = grandtot > 0 ? grandtot.toFixed(1) : '—';
-    // Bereken snipperuren
-    const u5 = allUsers.find(x => x.name === naam) || {};
-    const contract5 = u5.contracturen || 0;
-    const sf5 = snipFactor(u5);
-    const cdEl = document.getElementById('mp-contract-dag');
-    if (cdEl) cdEl.textContent = contract5 > 0 ? sf5.toFixed(1)+'u/dag' : '—';
-    const snipEl = document.getElementById('mp-snip-week');
-    if (snipEl && contract5 > 0) {
-      const snipVal = +(contract5 - grandtot).toFixed(1);
-      snipEl.textContent = snipVal > 0 ? '+'+snipVal+'u' : snipVal+'u';
-      snipEl.style.color = snipVal >= 0 ? 'var(--success)' : 'var(--danger)';
-    } else if (snipEl) { snipEl.textContent = '—'; }
   }
 
   // Live update bij invullen
@@ -1767,6 +1799,12 @@ window.openMatrixPopup = async function(naam, weekNr, jaar) {
   setTimeout(() => document.getElementById('mp-gew-0').focus(), 50);
 };
 
+async function verversWeekoverzichtNaPopup(weekNr) {
+  const pg = document.getElementById('page-weekoverzicht');
+  if (!pg || !pg.classList.contains('active')) return;
+  await renderWeekoverzicht();
+  setTimeout(() => markeerWeekActief(weekNr, { block: 'center' }), 120);
+}
 window.sluitMatrixPopup = function() {
   document.getElementById('matrix-popup').style.display = 'none';
   document.getElementById('matrix-backdrop').style.display = 'none';
@@ -1778,8 +1816,9 @@ window.opslaanMatrixPopup = async function() {
   const { naam, weekNr, jaar, dagen, entries } = matrixPopupState;
   if (!confirm(`Uren opslaan voor ${naam} — week ${weekNr}?`)) return;
   const naamKey = naam.toLowerCase().replace(/\s+/g,'-');
-  const TYPEN = ['gew','ziek','dok','snip'];
-  const VELDEN = ['gewerkt','ziek','dokter','snip'];
+  const TYPEN = ['gew','ziek','dok'];
+  const VELDEN = ['gewerkt','ziek','dokter'];
+  const snipVoorDag = matrixPopupState.snipVoorDag;
 
   for (let i = 0; i < 7; i++) {
     const datum = dagen[i];
@@ -1789,6 +1828,8 @@ window.opslaanMatrixPopup = async function() {
     });
     const heeftIets = Object.values(vals).some(v => v > 0);
     const bestaand = entries[i];
+    const sv = snipVoorDag ? snipVoorDag(i) : null;
+    vals.snip = sv === null ? 0 : sv;
     if (!heeftIets && !bestaand) continue;
     const id = naamKey + '_' + datum;
     const rec = {
@@ -1809,6 +1850,7 @@ window.opslaanMatrixPopup = async function() {
   await loadEntries();
   sluitMatrixPopup();
   renderMatrix();
+  await verversWeekoverzichtNaPopup(weekNr);
 };
 
 window.verwijderMatrixWeek = async function() {
@@ -1824,9 +1866,11 @@ window.verwijderMatrixWeek = async function() {
   await loadEntries();
   sluitMatrixPopup();
   renderMatrix();
+  await verversWeekoverzichtNaPopup(weekNr);
 };
 
 // ===== WEEKOVERZICHT =====
+let wkVoorkeurNaam=null;
 let wkLast=null,wkActiefWeek=null,terugNaarWeekoverzichtNaOpslaan=false,terugTeOpenenDatum=null;
 window.renderWeekoverzicht = async function() {
   const naamSel=document.getElementById('wk-naam'),jaarSel=document.getElementById('wk-jaar');
@@ -1883,7 +1927,7 @@ window.renderWeekoverzicht = async function() {
           if(wkd2.includes(dagNaamVanDatum(dt))&&vrijStatus(vd[dt])==='goedgekeurd')vakDagenWk++;
         }
       }
-      rows+=`<tr id="wkrow-${w}"><td class="weeknr" style="cursor:pointer" onclick="toggleWkDag(${w})">${w} \u25be</td><td>${contract>0?contract.toFixed(2):'\u2013'}</td><td>${t.g>0?t.g.toFixed(2):'\u2013'}</td><td>${t.z>0?t.z.toFixed(2):'\u2013'}</td><td>${t.d>0?t.d.toFixed(2):'\u2013'}</td><td>${t.v>0?t.v.toFixed(2):'\u2013'}</td><td style="color:${snip<0?'var(--danger)':snip>0?'var(--success)':'var(--muted)'};font-weight:600">${snip!==null?(snip===0?"0.00":snip>0?"+"+snip.toFixed(2):snip.toFixed(2)):"\u2013"}</td><td style="text-align:center;color:var(--accent)">${vakDagenWk>0?vakDagenWk:"\u2013"}</td><td class="opm-cell">${opm||''}</td></tr><tr id="wkdag-${w}" style="display:none"><td colspan="8" style="padding:0">${weekTable(wk.items)}</td></tr>`;
+      rows+=`<tr id="wkrow-${w}"><td class="weeknr" style="cursor:pointer" title="Week ${w} corrigeren" onclick="markeerWeekActief(${w},{scroll:false});openMatrixPopup('${curNaam.replace(/'/g,"\\'")}',${w},'${curJaar}')">${w} \u25be</td><td>${contract>0?contract.toFixed(2):'\u2013'}</td><td>${t.g>0?t.g.toFixed(2):'\u2013'}</td><td>${t.z>0?t.z.toFixed(2):'\u2013'}</td><td>${t.d>0?t.d.toFixed(2):'\u2013'}</td><td>${t.v>0?t.v.toFixed(2):'\u2013'}</td><td style="color:${snip<0?'var(--danger)':snip>0?'var(--success)':'var(--muted)'};font-weight:600">${snip!==null?(snip===0?"0.00":snip>0?"+"+snip.toFixed(2):snip.toFixed(2)):"\u2013"}</td><td style="text-align:center;color:var(--accent)">${vakDagenWk>0?vakDagenWk:"\u2013"}</td><td class="opm-cell">${opm||''}</td></tr><tr id="wkdag-${w}" style="display:none"><td colspan="8" style="padding:0">${weekTable(wk.items)}</td></tr>`;
     }else{
       rows+=`<tr id="wkrow-${w}"><td class="weeknr">${w}</td><td>${contract>0?contract.toFixed(2):'\u2013'}</td><td class="zero">\u2013</td><td class="zero">\u2013</td><td class="zero">\u2013</td><td class="zero">\u2013</td><td class="zero">\u2013</td><td class="opm-cell"></td></tr>`;
     }
@@ -2411,7 +2455,7 @@ window.renderDagoverzicht=async function(){
     else{statusHtml='<span style="color:#A6362A;font-weight:700">✕ Niets ingevuld</span>';rowStyle='background:#FBE2DE';rank=0;ontbrekend++;}
     return{naam,gewerkt,ziek,dokter,vrij,statusHtml,rowStyle,rank};
   });
-  items.sort((a,b)=>a.rank-b.rank||a.naam.localeCompare(b.naam));
+  items.sort((a,b)=>a.naam.localeCompare(b.naam)); // zelfde volgorde als de matrix
   const fmt=v=>v>0?v.toFixed(1):'<span style="color:#CCC">—</span>';
   const dagRows=items.map(({naam,gewerkt,ziek,dokter,vrij,statusHtml,rowStyle})=>
     `<tr style="${rowStyle};height:34px">
@@ -2433,12 +2477,18 @@ window.renderDagoverzicht=async function(){
       <th style="text-align:left;padding:0 6px;font-weight:700;font-size:12px;color:#333;border-bottom:2px solid #888;vertical-align:middle">Status</th>
     </tr></thead>
     <tbody>${dagRows}</tbody>
+    <tfoot><tr style="background:#E0E0E0;height:36px">
+      <td style="padding:0 6px;font-weight:700;font-size:12px;color:#333;border-top:2px solid #888;border-right:2px solid #888;vertical-align:middle">Totaal</td>
+      ${['gewerkt','ziek','dokter','vrij'].map(k=>{const t=items.reduce((a,x)=>a+x[k],0);return `<td style="text-align:center;font-weight:700;font-size:12px;color:#333;border-top:2px solid #888;border-right:1px solid #999;vertical-align:middle">${t>0?t.toFixed(1):'—'}</td>`;}).join('')}
+      <td style="padding:0 6px;font-size:11px;font-weight:700;border-top:2px solid #888;vertical-align:middle;white-space:nowrap;color:${ontbrekend?'#A6362A':'#155C36'}">${ontbrekend?ontbrekend+' niet ingevuld':'✓ Compleet'}</td>
+    </tr></tfoot>
   </table>`;
+  syncStartRijen();
 };
 
 
 </script>
-<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-09-25 14:00 Beheer</div>
+<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-10-05 12:00 Beheer</div>
 <div id="verjaardag-kader" style="display:none;position:fixed;bottom:20px;left:20px;z-index:200;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;font-size:15px;font-weight:700;color:#142433;line-height:2;max-width:380px;box-shadow:0 4px 16px rgba(0,0,0,.2)"></div>
 </body>
 </html>
