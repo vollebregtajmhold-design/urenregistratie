@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-10-05 15:30 Mobiel</title>
+<title>Urenregistratie | v2026-10-05 17:00 Mobiel</title>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -700,12 +700,26 @@ window.downloadBackup=function(){
   const url=URL.createObjectURL(blob);const a=document.createElement('a');
   a.href=url;a.download=`urenregistratie_backup_${todayStr()}.json`;a.click();URL.revokeObjectURL(url);
 };
+// Snipperuren lopende week: alleen t/m gisteren (null = geen lopende week)
+function snipLopendeWeekVan(u,items){
+  const d0=items&&items[0]&&items[0].datum;if(!d0||!u||!u.contracturen||u.nulUrenContract)return null;
+  const vandaag=todayStr();const jaar=parseInt(d0.substring(0,4)),w=getWeekNr(d0);
+  const ma=datumVanWeekdag(jaar,w,0),zo=datumVanWeekdag(jaar,w,6);
+  if(!(ma<=vandaag&&vandaag<=zo))return null;
+  const perDag=snipFactor(u);const wd=u.vasteWerkdagen||['Ma','Di','Wo','Do','Vr'];
+  let verwacht=0,gedaan=0;
+  for(let i=0;i<7;i++){const d=datumVanWeekdag(jaar,w,i);if(d>=vandaag)break;
+    const dn=['Zo','Ma','Di','Wo','Do','Vr','Za'][new Date(d+'T12:00:00').getDay()];
+    if(wd.includes(dn)&&!feestdagSet.has(d))verwacht+=perDag;
+    const e=allEntries.find(x=>x.naam===u.name&&x.datum===d);if(e)gedaan+=+(e.gewerkt||0)+ +(e.ziek||0)+ +(e.dokter||0)+ +(e.vrij||0);}
+  return +(verwacht-gedaan).toFixed(1);
+}
 function showSnipperBanner(){
   const banner=document.getElementById('snipper-banner');if(!banner)return;
   const contract=me.contracturen||0,jaarsnippers=me.jaarsnippers||0,startsaldo=me.startsaldo||0;
   if(!jaarsnippers){banner.style.display='none';return;}
   const mine=allEntries.filter(e=>e.naam===me.name);const weken=groupByWeek(mine);
-  const sommeSnip=weken.reduce((acc,{items})=>{const t2=totals(items);const tot=+(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);const s=contract>0?+(contract-tot).toFixed(1):0;return acc+s;},0);
+  const sommeSnip=weken.reduce((acc,{items})=>{const t2=totals(items);const tot=+(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);const _lw=snipLopendeWeekVan(me,items);const s=contract>0?(_lw!==null?_lw:+(contract-tot).toFixed(1)):0;return acc+s;},0);
   const snip=+(startsaldo+jaarsnippers-sommeSnip).toFixed(1);const kleur=snip>=0?'var(--success)':'var(--danger)';
   banner.innerHTML=`<div style="background:var(--accent-light);border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;font-size:12px"><span>${t('snip_saldo')}</span><b style="color:${kleur};font-size:14px">${snip} uur</b></div>`;
   banner.style.display='block';
@@ -989,12 +1003,12 @@ window.renderJaaroverzicht=function(){
     const s_gew=u?(u.saldo_gew||0):0,s_ziek=u?(u.saldo_ziek||0):0,s_dok=u?(u.saldo_dok||0):0,s_vrij=u?(u.saldo_vrij||0):0;
     const heeftSaldo=s_gew||s_ziek||s_dok||s_vrij||startsaldo;
     const rows=weken.map(({label,items})=>{
-      const t2=totals(items);const tot=+(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);const snip=contract>0?+(contract-tot).toFixed(1):null;
+      const t2=totals(items);const tot=+(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);const _lw=snipLopendeWeekVan(u,items);const snip=contract>0?(_lw!==null?_lw:+(contract-tot).toFixed(1)):null;
       return `<tr><td class="left">${label}</td><td>${t2.g||'\u2013'}</td><td>${t2.z>0?t2.z:'\u2013'}</td><td>${t2.d>0?t2.d:'\u2013'}</td><td>${t2.v>0?t2.v:'\u2013'}</td><td><b>${tot>0?tot.toFixed(1):'\u2013'}</b></td>${jaarSnippers>0&&contract>0?`<td style="color:${snip<0?'var(--danger)':snip>0?'var(--success)':'var(--muted)'};font-weight:600">${snip!==null?snip:'\u2013'}</td>`:''}</tr>`;
     }).join('');
     const totGew=+(jaarTot.g+s_gew).toFixed(1),totZiek=+(jaarTot.z+s_ziek).toFixed(1),totDok=+(jaarTot.d+s_dok).toFixed(1),totVrij=+(jaarTot.v+s_vrij).toFixed(1);
     const jTot=+(totGew+totZiek+totDok+totVrij).toFixed(1);
-    const sommeSnip=weken.reduce((acc,{items})=>{const t2=totals(items);const tot3=+(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);const snip2=contract>0?+(contract-tot3).toFixed(1):0;return acc+snip2;},0);
+    const sommeSnip=weken.reduce((acc,{items})=>{const t2=totals(items);const tot3=+(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);const _lw=snipLopendeWeekVan(u,items);const snip2=contract>0?(_lw!==null?_lw:+(contract-tot3).toFixed(1)):0;return acc+snip2;},0);
     const snipperSaldo=jaarSnippers>0?+(startsaldo+jaarSnippers-sommeSnip).toFixed(1):null;
     const sf=snipFactor(u||{});const snipperDagen=(jaarSnippers>0&&sf>0)?+(snipperSaldo/sf).toFixed(2):null;
     return `<div class="week-block" style="margin-bottom:1.25rem"><div class="week-header" style="flex-direction:column;align-items:stretch;gap:4px"><div style="display:flex;justify-content:space-between;align-items:baseline"><span class="week-title">${naam}</span><span class="week-totals">${curJaar}</span></div>${jaarSnippers>0?`<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px"><span style="color:var(--muted)">Snipperuren per jaar: <b style="color:var(--text)">${jaarSnippers} uur</b></span>${snipperSaldo!==null?`<span>Saldo: <b style="color:${snipperSaldo>=0?'#155C36':'#A6362A'}">${snipperSaldo} uur${snipperDagen!==null?`&nbsp;&nbsp;&nbsp;(${Math.round(snipperDagen)} dagen)`:''}</b></span>`:''}</div>`:''}</div><div class="uren-table-wrap"><table class="uren-table"><colgroup><col style="width:28%"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num">${contract>0?'<col class="c-num">':''}</colgroup><thead>${heeftSaldo?`<tr style="background:var(--accent-light);font-size:10px;color:var(--muted)"><td class="left" style="padding:4px 6px;font-style:italic">Beginsaldo</td><td style="padding:4px 3px">${s_gew||'\u2013'}</td><td style="padding:4px 3px">${s_ziek||'\u2013'}</td><td style="padding:4px 3px">${s_dok||'\u2013'}</td><td style="padding:4px 3px">${s_vrij||'\u2013'}</td><td style="padding:4px 3px">${startsaldo?startsaldo+'s':'\u2013'}</td>${contract>0?`<td style="padding:4px 3px">${startsaldo||'\u2013'}</td>`:''}</tr>`:''}<tr><th class="left">Week</th><th>Gew.</th><th>Ziek</th><th>Dok.</th><th>Vrij</th><th>Tot.</th>${contract>0?'<th>Snip.</th>':''}</tr></thead><tbody>${rows}</tbody><tfoot><tr class="totaalrij"><td class="left">Totaal${heeftSaldo?' incl. saldo':''}</td><td>${totGew||'\u2013'}</td><td>${totZiek>0?totZiek:'\u2013'}</td><td>${totDok>0?totDok:'\u2013'}</td><td>${totVrij>0?totVrij:'\u2013'}</td><td><b>${jTot>0?jTot:'\u2013'}</b></td>${contract>0?`<td style="color:${snipperSaldo!==null?(snipperSaldo>=0?'var(--success)':'var(--danger)'):'inherit'};font-weight:700">${snipperSaldo!==null?snipperSaldo:'\u2013'}</td>`:''}</tr></tfoot></table></div></div>`;
@@ -1350,6 +1364,6 @@ function updateVrijeDagSnel(datum){setTimeout(updateStatusRegel,0);
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-05 15:30 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-05 17:00 Mobiel</div>
 </body>
 </html>
