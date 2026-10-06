@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-10-06 11:00 Mobiel</title>
+<title>Urenregistratie | v2026-10-06 11:30 Mobiel</title>
+<script>
+// Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
+(function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
+</script>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -1393,6 +1397,6 @@ function updateVrijeDagSnel(datum){setTimeout(updateStatusRegel,0);
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-06 11:00 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-06 11:30 Mobiel</div>
 </body>
 </html>
