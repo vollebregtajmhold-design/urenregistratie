@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-10-06 10:45 Mobiel</title>
+<title>Urenregistratie | v2026-10-06 11:00 Mobiel</title>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -1214,7 +1214,7 @@ window.onDatumChange=function(){
   document.getElementById('lock-notice').style.display=locked?'block':'none';
   ['u-aanvang','u-einde','u-gewerkt','u-ziek','u-dokter','u-snip','u-vrij','u-opmerking'].forEach(id=>document.getElementById(id).disabled=locked);
   document.querySelectorAll('.u-teelt,input[name="u-locatie"]').forEach(c=>c.disabled=locked);document.getElementById('btn-opslaan').disabled=locked;
-  if(datum){const ex=allEntries.find(e=>e.naam===me.name&&e.datum===datum);if(ex){const _pi=document.getElementById('u-pauze-info');if(_pi)_pi.style.display='none';setVal('u-aanvang',ex.aanvang||me.stdAanvang||'08:00');setVal('u-einde',ex.einde||me.stdEinde||'17:00');setVal('u-gewerkt',ex.gewerkt||'');setVal('u-ziek',ex.ziek||'');setVal('u-dokter',ex.dokter||'');setVal('u-snip',ex.snip||'');setVal('u-vrij',ex.vrij||'');setVal('u-opmerking',ex.opmerking||'');setTeelten(ex.teelten||[]);setLocatie(ex.locatie||'');}else{setVal('u-aanvang',me.stdAanvang||'08:00');setVal('u-einde',me.stdEinde||'17:00');['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,''));setTeelten([]);setLocatie(laatsteLocatie());if(!locked&&!vrijStatus(mijnVrijeDagen[datum])&&isWerkdagMe(datum)&&!feestdagSet.has(datum))herberekenGewerkt();else{const _pi=document.getElementById('u-pauze-info');if(_pi)_pi.style.display='none';}
+  if(datum){const ex=allEntries.find(e=>e.naam===me.name&&e.datum===datum);if(ex){const _pi=document.getElementById('u-pauze-info');if(_pi)_pi.style.display='none';setVal('u-aanvang',ex.aanvang||me.stdAanvang||'08:00');setVal('u-einde',ex.einde||me.stdEinde||'17:00');setVal('u-gewerkt',ex.gewerkt||'');setVal('u-ziek',ex.ziek||'');setVal('u-dokter',ex.dokter||'');setVal('u-snip',ex.snip||'');setVal('u-vrij',ex.vrij||'');setVal('u-opmerking',ex.opmerking||'');setTeelten(ex.teelten||[]);setLocatie(ex.locatie||'');}else{setVal('u-aanvang',me.stdAanvang||'08:00');setVal('u-einde',me.stdEinde||'17:00');['u-gewerkt','u-ziek','u-dokter','u-vrij','u-opmerking'].forEach(id=>setVal(id,''));setTeelten([]);setLocatie(laatsteLocatie(datum));if(!locked&&!vrijStatus(mijnVrijeDagen[datum])&&isWerkdagMe(datum)&&!feestdagSet.has(datum))herberekenGewerkt();else{const _pi=document.getElementById('u-pauze-info');if(_pi)_pi.style.display='none';}
   if(!feestdagSet.has(datum)&&vrijStatus(mijnVrijeDagen[datum])==='goedgekeurd'&&isWerkdagMe(datum)){setVal('u-aanvang','');setVal('u-einde','');setVal('u-gewerkt','0');setVal('u-ziek','0');setVal('u-dokter','0');setVal('u-opmerking','Vrije dag (snipperdag)');}
   if(feestdagSet.has(datum)){setVal('u-aanvang','');setVal('u-einde','');setVal('u-gewerkt','0');setVal('u-ziek','0');setVal('u-dokter','0');setVal('u-opmerking',feestdagNamen[datum]||'Feestdag');}}
   if(typeof window.updateSnipdagMelding==='function')window.updateSnipdagMelding(datum);
@@ -1240,7 +1240,7 @@ window.updateSnipdagMelding=function(datum){
 
 function getLocatie(){const r=document.querySelector('input[name="u-locatie"]:checked');return r?r.value:'';}
 function setLocatie(v){document.querySelectorAll('input[name="u-locatie"]').forEach(r=>r.checked=(r.value===String(v||'')));}
-function laatsteLocatie(){const e=allEntries.filter(x=>x.naam===me.name&&x.locatie).sort((a,b)=>b.datum.localeCompare(a.datum))[0];return e?e.locatie:'';}
+function laatsteLocatie(datum){const mijn=allEntries.filter(x=>x.naam===me.name&&x.locatie).sort((a,b)=>b.datum.localeCompare(a.datum));const e=(datum&&mijn.find(x=>x.datum<datum))||mijn[0];return e?e.locatie:'';}
 function setTeelten(arr){document.querySelectorAll('.u-teelt').forEach(c=>c.checked=arr.includes(c.value));}
 window.toggleWeek=function(h){const b=h.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none';};
 window.togglePerson=function(h){const b=h.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none';};
@@ -1393,6 +1393,6 @@ function updateVrijeDagSnel(datum){setTimeout(updateStatusRegel,0);
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-06 10:45 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-06 11:00 Mobiel</div>
 </body>
 </html>
