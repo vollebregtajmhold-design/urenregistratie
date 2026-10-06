@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-10-05 18:00 Mobiel</title>
+<title>Urenregistratie | v2026-10-06 10:45 Mobiel</title>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -725,11 +725,29 @@ function snipLopendeWeekVan(u,items){
     const e=allEntries.find(x=>x.naam===u.name&&x.datum===d);if(e)gedaan+=+(e.gewerkt||0)+ +(e.ziek||0)+ +(e.dokter||0)+ +(e.vrij||0);}
   return +(verwacht-gedaan).toFixed(1);
 }
+// Eigen registraties + goedgekeurde vrije dagen en feestdagen (t/m vandaag) als "virtuele" dagen,
+// zodat weken met alleen vrije dagen ook in het overzicht en de saldi meetellen.
+function mijnEntriesMetVrij(){
+  const mine=allEntries.filter(e=>e.naam===me.name);
+  const heb=new Set(mine.map(e=>e.datum));
+  const perDag=snipFactor(me),vandaag=todayStr(),extra=[];
+  if(perDag>0&&!me.nulUrenContract){
+    Object.keys(mijnVrijeDagen||{}).forEach(d=>{
+      if(d>vandaag||heb.has(d)||vrijStatus(mijnVrijeDagen[d])!=='goedgekeurd'||feestdagSet.has(d)||!isWerkdagMe(d))return;
+      extra.push({naam:me.name,datum:d,gewerkt:0,ziek:0,dokter:0,vrij:0,snip:+perDag.toFixed(2),opmerking:'Vrije dag (snipperdag)',__virtueel:true});heb.add(d);
+    });
+    Object.keys(feestdagNamen||{}).forEach(d=>{
+      if(d>vandaag||heb.has(d)||!isWerkdagMe(d))return;
+      extra.push({naam:me.name,datum:d,gewerkt:0,ziek:0,dokter:0,vrij:+perDag.toFixed(2),snip:0,opmerking:feestdagNamen[d]||'Feestdag',__virtueel:true});
+    });
+  }
+  return [...mine,...extra].sort((a,b)=>b.datum.localeCompare(a.datum));
+}
 function showSnipperBanner(){
   const banner=document.getElementById('snipper-banner');if(!banner)return;
   const contract=me.contracturen||0,jaarsnippers=me.jaarsnippers||0,startsaldo=me.startsaldo||0;
   if(!jaarsnippers){banner.style.display='none';return;}
-  const mine=allEntries.filter(e=>e.naam===me.name);const weken=groupByWeek(mine);
+  const mine=mijnEntriesMetVrij();const weken=groupByWeek(mine);
   const sommeSnip=weken.reduce((acc,{items})=>{const t2=totals(items);const tot=+(t2.g||0)+ +(t2.z||0)+ +(t2.d||0)+ +(t2.v||0);const _lw=snipLopendeWeekVan(me,items);const s=contract>0?(_lw!==null?_lw:+(contract-tot).toFixed(1)):0;return acc+s;},0);
   const snip=+(startsaldo+jaarsnippers-sommeSnip).toFixed(1);const kleur=snip>=0?'var(--success)':'var(--danger)';
   banner.innerHTML=`<div style="background:var(--accent-light);border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;font-size:12px"><span>${t('snip_saldo')}</span><b style="color:${kleur};font-size:14px">${snip} uur</b></div>`;
@@ -1237,7 +1255,7 @@ function resetUserTabs(){
 }
 window.renderUserWeek=function(){
   showSnipperBanner();
-  const mine=allEntries.filter(e=>e.naam===me.name);
+  const mine=mijnEntriesMetVrij();
   const el=document.getElementById('user-week-list');
   const summary=document.getElementById('user-snipper-summary');
   const contract=me.contracturen||0;
@@ -1248,7 +1266,7 @@ window.renderUserWeek=function(){
 
   // Snipper saldo
   if(contract>0||jaarsnippers>0){
-    const mine2=allEntries.filter(e=>e.naam===me.name&&e.datum.startsWith(curYear));
+    const mine2=mine.filter(e=>e.datum.startsWith(curYear));
     const opgenomen=mine2.reduce((s,e)=>s+(+(e.snip||0)),0);
     const snipperSaldo=+(startsaldo+jaarsnippers-opgenomen).toFixed(1);
     const dagen=sf>0?+(snipperSaldo/sf).toFixed(1):null;
@@ -1265,7 +1283,7 @@ window.renderUserWeek=function(){
   const rows=weken.map(({key,label,items})=>{
     const tot=totals(items);
     const totaal=+(tot.g+tot.z+tot.d+tot.v).toFixed(1);
-    const snipVal=contract>0?+(contract-totaal).toFixed(1):null;
+    const _lw=snipLopendeWeekVan(me,items);const snipVal=contract>0?(_lw!==null?_lw:+(contract-totaal).toFixed(1)):null;
     const kleur2=snipVal!==null?(snipVal>=0?'var(--success)':'var(--danger)'):'';
     const weekNr=key.split('-W')[1]||key;
     return `<tr>
@@ -1375,6 +1393,6 @@ function updateVrijeDagSnel(datum){setTimeout(updateStatusRegel,0);
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-05 18:00 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-06 10:45 Mobiel</div>
 </body>
 </html>
