@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-10-07 09:00 Mobiel</title>
+<title>Urenregistratie | v2026-10-11 10:00 Mobiel</title>
 <script>
 // Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
 (function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
@@ -204,6 +204,7 @@
       <div id="u-err" class="error" style="display:none"></div>
       <div id="u-ok" class="success-msg" style="display:none"></div>
       </div>
+<div id="u-extrapauze" style="display:none;margin:.6rem 0 0;padding:7px 12px;border-radius:8px;font-size:14px;font-weight:600;background:#FBF0D6;border:1px solid #E9D48A;color:#7A4F00"></div>
 <div id="u-snipregel" style="display:none;margin:.6rem 0 0;padding:7px 12px;border-radius:8px;font-size:14px;font-weight:600;background:#EAF4FC;border:1px solid #A9C9E3;color:#1F5E8C"></div>
 <div id="u-status" style="display:none;margin:.6rem 0 .4rem;padding:8px 12px;border-radius:8px;font-size:14px;font-weight:700"></div>
 <button class="btn btn-primary" id="btn-opslaan" onclick="saveEntry()" data-i18n="btn_opslaan">Opslaan</button>
@@ -450,7 +451,19 @@ function updateSnipRegel(){
   el.innerHTML=`Berekende snipperuren: <b style="color:${snip<0?'#A6362A':snip>0?'#155C36':'#1F5E8C'}">${snip}u</b> <span style="font-size:12px;font-weight:400;color:#4F7395">(${uitleg})</span>`;
   el.style.display='block';
 }
+function extraPauzeMinuten(){
+  const r=berekenGewerkt(val('u-aanvang'),val('u-einde'));if(!r)return 0;
+  const g=parseFloat(val('u-gewerkt'))||0;if(g<=0)return 0;
+  const som=g+(parseFloat(val('u-ziek'))||0)+(parseFloat(val('u-dokter'))||0);
+  const m=Math.round((r.uren-som)*60);return m>0?m:0;
+}
+function updateExtraPauze(){
+  const el=document.getElementById('u-extrapauze');if(!el)return;
+  const m=extraPauzeMinuten();
+  if(m>0){el.textContent=`\u23F8\uFE0F Vandaag ${m} minuten extra pauze`;el.style.display='block';}else{el.style.display='none';}
+}
 function updateStatusRegel(){
+  updateExtraPauze();
   updateSnipRegel();
   const el=document.getElementById('u-status');if(!el||!me)return;
   const datum=val('u-datum');if(!datum){el.style.display='none';return;}
@@ -511,7 +524,7 @@ window.doRegister=async function(){
 window.doLogout=function(){try{localStorage.removeItem('uren_login');}catch(e){}me=null;allEntries=[];setVal('login-name','');setVal('login-pass','');show('screen-login');};
 window.saveEntry=async function(){
   const datum=val('u-datum');if(!datum){showErr('u-err',t('err_datum'));return;}if(isLocked(datum)){showErr('u-err',t('err_definitief'));return;}hideEl('u-err');
-  const rec={naam:me.name,datum,aanvang:val('u-aanvang'),einde:val('u-einde'),gewerkt:parseFloat(val('u-gewerkt'))||0,ziek:parseFloat(val('u-ziek'))||0,dokter:parseFloat(val('u-dokter'))||0,snip:parseFloat(val('u-snip'))||0,vrij:parseFloat(val('u-vrij'))||0,opmerking:val('u-opmerking')||'',teelten:Array.from(document.querySelectorAll('.u-teelt:checked')).map(c=>c.value),locatie:getLocatie()};
+  const rec={naam:me.name,datum,aanvang:val('u-aanvang'),einde:val('u-einde'),gewerkt:parseFloat(val('u-gewerkt'))||0,ziek:parseFloat(val('u-ziek'))||0,dokter:parseFloat(val('u-dokter'))||0,snip:parseFloat(val('u-snip'))||0,vrij:parseFloat(val('u-vrij'))||0,opmerking:val('u-opmerking')||'',teelten:Array.from(document.querySelectorAll('.u-teelt:checked')).map(c=>c.value),locatie:getLocatie(),extraPauze:extraPauzeMinuten()};
   // Gewerkte uren zonder teelt: waarschuwen en niet opslaan
   if(rec.gewerkt>0&&!rec.teelten.length){showErr('u-err','\u26A0\uFE0F Je hebt gewerkte uren ingevuld, maar geen teelt aangevinkt. Vink de teelt aan waarin je het meest hebt gewerkt.');document.getElementById('teelt-keuze')?.scrollIntoView({block:'center'});alert('Let op: de teelt is niet ingevuld.\n\nVink de teelt aan waarin je het meest hebt gewerkt en sla daarna op.');return;}
   // Wijziging na opslaan: oude en nieuwe waarde laten bevestigen
@@ -1398,6 +1411,6 @@ function updateVrijeDagSnel(datum){setTimeout(updateStatusRegel,0);
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-07 09:00 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-11 10:00 Mobiel</div>
 </body>
 </html>
