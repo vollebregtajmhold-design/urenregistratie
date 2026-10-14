@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-10-11 10:00 Mobiel</title>
+<title>Urenregistratie | v2026-10-14 16:00 Mobiel</title>
 <script>
 // Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
 (function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
@@ -156,6 +156,7 @@
     <button class="tab active" onclick="switchTab('user','invullen',this)" data-i18n="tab_invullen">Invullen</button>
     <button class="tab" onclick="switchTab('user','weekoverzicht',this)" data-i18n="tab_weekoverzicht">Weekoverzicht</button>
     <button class="tab" onclick="switchTab('user','vrijevdagen',this)">Vrije dagen</button>
+    <button class="tab" id="tab-huisregels" onclick="switchTab('user','huisregels',this)">Huisregels</button>
     <button class="tab" id="tab-instellingen" onclick="toggleInstMenu(event)">Instellingen &#9662;</button>
     
   </div>
@@ -247,6 +248,10 @@
       <div id="pw-ok" class="success-msg" style="display:none"></div>
       <button class="btn btn-primary" onclick="changePassword()" data-i18n="pw_btn">Wachtwoord wijzigen</button>
     </div>
+  </div>
+  <div id="user-huisregels" class="tabpanel">
+    <div id="hrm-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem"></div>
+    <div class="card" id="hrm-inhoud"></div>
   </div>
   <div id="user-startstop" class="tabpanel">
     <div class="card card-compact">
@@ -513,7 +518,7 @@ window.doLogin=async function(){
   if(u.role==='admin'){await loadNotes();show('screen-admin');fillFilters();renderAdmin();}
   else{curLang=u.taal||'nl';document.getElementById('user-name-label').textContent=u.name;initEntryForm(todayStr());show('screen-user');applyUserLang();resetUserTabs();// Laad eigen vrije dagen
   try{const key=me.name.toLowerCase().replace(/\s+/g,'-');const snap=await getDoc(doc(db,'vrije_dagen',key));if(snap.exists())mijnVrijeDagen=snap.data().dagen||{};}catch(e){mijnVrijeDagen={};}
-  checkVergeten();showNotitieBanner();}
+  checkVergeten();showNotitieBanner();hrDocs=null;}
 };
 window.doRegister=async function(){
   const n=val('reg-name').trim();const p=val('reg-pass');
@@ -1159,6 +1164,7 @@ window.switchTab=function(scope,tab,btn){
     if(vdList)vdList.innerHTML='<div class="loading">Laden...</div>';
     renderUserWeek();
   }
+  if(scope==='user'&&tab==='huisregels'){openHuisregelsMobiel();}
   if(scope==='user'&&tab==='vrijevdagen'){
     // Zorg dat weekoverzicht content weg is
     const wkList=document.getElementById('user-week-list');
@@ -1409,8 +1415,47 @@ function updateVrijeDagSnel(datum){setTimeout(updateStatusRegel,0);
   }
 }
 
+// ===== HUISREGELS (mobiel) =====
+const HR_CATS=['hygiene','veiligheid','brand','storm','verzuim','overige'];
+const HR_NAMEN={nl:{hygiene:'Hygiëne',veiligheid:'Veiligheid',brand:'Brand',storm:'Storm',verzuim:'Verzuim',overige:'Overige'},
+  en:{hygiene:'Hygiene',veiligheid:'Safety',brand:'Fire',storm:'Storm',verzuim:'Absence',overige:'Other'},
+  pl:{hygiene:'Higiena',veiligheid:'Bezpieczeństwo',brand:'Pożar',storm:'Burza',verzuim:'Nieobecność',overige:'Inne'}};
+const HRT={nl:{titel:'Huisregels',bekeken:'Laatst bekeken',leeg:'Nog geen tekst.'},en:{titel:'House rules',bekeken:'Last viewed',leeg:'No text yet.'},pl:{titel:'Zasady',bekeken:'Ostatnio przeglądane',leeg:'Brak tekstu.'}};
+let hrDocs=null,hrHuidig='hygiene',hrBekekenOp=null;
+function hrTaalM(){return HRT[curLang]?curLang:'nl';}
+function hrT(k){return HRT[hrTaalM()][k];}
+function hrTekstVan(cat){const d=(hrDocs||{})[cat]||{};const tl=hrTaalM();return (tl!=='nl'&&d['tekst_'+tl])||d.tekst||'';}
+function hrEscM(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function hrInlineM(t){return hrEscM(t).replace(/(0\d[\d\- ]{7,}\d)/g,m=>`<a href="tel:${m.replace(/[^\d+]/g,'')}" style="color:#1B5EBE;font-weight:700;text-decoration:none">${m}</a>`);}
+function hrHtmlM(tekst){const regels=String(tekst||'').split('\n');let html='',lijst=false;const sl=()=>{if(lijst){html+='</ul>';lijst=false;}};
+  regels.forEach(r=>{const t=r.trim();
+    if(/^##\s+/.test(t)){sl();html+=`<div style="font-weight:700;font-size:16px;color:#1F5E8C;margin:1rem 0 .35rem;padding-bottom:3px;border-bottom:2px solid #7AB648">${hrInlineM(t.replace(/^##\s+/,''))}</div>`;}
+    else if(/^!\s*/.test(t)&&t.length>1){sl();html+=`<div style="background:#FDECEA;border-left:5px solid #E8007D;border-radius:6px;padding:8px 10px;margin:.5rem 0;font-weight:600;color:#7A1F3D">⚠️ ${hrInlineM(t.replace(/^!\s*/,''))}</div>`;}
+    else if(/^[-•*]\s+/.test(t)){if(!lijst){html+='<ul style="margin:.2rem 0 .5rem;padding-left:1.25rem">';lijst=true;}html+='<li style="margin:.25rem 0">'+hrInlineM(t.replace(/^[-•*]\s+/,''))+'</li>';}
+    else{sl();html+=t?'<div style="margin:.2rem 0">'+hrInlineM(t)+'</div>':'<div style="height:.4rem"></div>';}});
+  sl();return html;}
+// Bij openen van de tab: start bij Hygiëne en sla "laatst bekeken" op
+window.openHuisregelsMobiel=async function(){
+  hrHuidig='hygiene';
+  const el=document.getElementById('hrm-inhoud');if(el&&!hrDocs)el.innerHTML='<div class="loading">'+(t?t('loading'):'Laden...')+'</div>';
+  if(!hrDocs){try{const snap=await getDocs(collection(db,'huisregels'));hrDocs={};snap.docs.forEach(d=>hrDocs[d.id]=d.data());}catch(e){hrDocs={};}}
+  hrBekekenOp=new Date().toISOString();
+  try{await setDoc(doc(db,'huisregels_bekeken',me.name.toLowerCase().replace(/\s+/g,'-')),{naam:me.name,datum:hrBekekenOp,taal:hrTaalM()});}catch(e){}
+  renderHuisregelsMobiel();
+};
+window.kiesHrM=function(cat){hrHuidig=cat;renderHuisregelsMobiel();window.scrollTo(0,0);};
+window.renderHuisregelsMobiel=function(){
+  const el=document.getElementById('hrm-inhoud');if(!el)return;
+  const namen=HR_NAMEN[hrTaalM()];
+  const tabs=document.getElementById('hrm-tabs');
+  if(tabs)tabs.innerHTML=HR_CATS.map(c=>{const act=c===hrHuidig;return `<button onclick="kiesHrM('${c}')" style="border:1px solid #A9C9E3;border-radius:16px;padding:6px 11px;font-size:13px;font-weight:${act?700:500};background:${act?'#1F5E8C':'#fff'};color:${act?'#fff':'#1F5E8C'};cursor:pointer">${namen[c]}</button>`;}).join('');
+  const bek=hrBekekenOp?new Date(hrBekekenOp).toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}):'';
+  const tekst=hrTekstVan(hrHuidig);
+  el.innerHTML=`${bek?`<div style="font-size:12px;color:#4F7395;margin-bottom:.4rem">${hrT('bekeken')}: <b>${bek}</b></div>`:''}<div style="font-weight:700;font-size:18px;color:#1F5E8C;margin-bottom:.3rem">${namen[hrHuidig]}</div><div style="font-size:15px;line-height:1.6;color:#142433;overflow-wrap:anywhere">${tekst?hrHtmlM(tekst):hrT('leeg')}</div>`;
+};
+
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-11 10:00 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-14 16:00 Mobiel</div>
 </body>
 </html>
