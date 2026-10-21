@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Urenregistratie — Beheer | v2026-10-15 09:00 Beheer</title>
+<title>Urenregistratie — Beheer | v2026-10-21 11:30 Beheer</title>
 <script>
 // Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
 (function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
@@ -271,6 +271,7 @@
 <div class="topbar" id="topbar" style="display:none">
     <!-- Links: logo + instellingen dropdown -->
     <div class="topbar-left">
+      <button type="button" id="kh-knop" onclick="toggleKlikhulp()" title="Toon waar je kunt klikken"></button>
       <div class="topbar-logo">Urenregistratie</div>
       <!-- Instellingen dropdown -->
       <div class="nav-dropdown">
@@ -1078,7 +1079,7 @@ window.toggleDropdown = function(id) {
   document.querySelectorAll('.nav-dropdown-toggle').forEach(t => t.classList.remove('open'));
   if (!isOpen) { menu.classList.add('open'); toggle.classList.add('open'); }
 };
-function todayStr(){return new Date().toISOString().split('T')[0];}
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function getWeekNr(datum){const d=new Date(datum);const thu=new Date(d);thu.setDate(d.getDate()-((d.getDay()+6)%7)+3);const jan4=new Date(thu.getFullYear(),0,4);return Math.round((thu-jan4)/604800000)+1;}
 function weekKey(datum){return `${new Date(datum).getFullYear()}-W${String(getWeekNr(datum)).padStart(2,'0')}`;}
 function weekLabel(datum){return `Week ${getWeekNr(datum)} (${new Date(datum).getFullYear()})`;}
@@ -1179,6 +1180,11 @@ window.openMedewerkerPopup = async function(naam) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:.5rem">
       <div><label class="mini-lbl">Geboortedatum</label><input type="date" value="${u.geboortedatum||''}" id="mwp-geboortedatum" class="mini-input"></div>
       <div><label class="mini-lbl">Snip.saldo</label><input type="number" step="0.5" value="${u.startsaldo||0}" id="mwp-saldo" class="mini-input"></div>
+      <div><label class="mini-lbl">Taal</label><select id="mwp-taal" class="mini-input">
+        <option value="nl" ${(u.taal||'nl')==='nl'?'selected':''}>Nederlands</option>
+        <option value="en" ${u.taal==='en'?'selected':''}>English</option>
+        <option value="pl" ${u.taal==='pl'?'selected':''}>Polski</option>
+      </select></div>
     </div>
     <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.6rem">
       <label class="chk-row"><input type="checkbox" id="mwp-nulUren" ${u.nulUrenContract?'checked':''}> 0 uren contract</label>
@@ -1226,6 +1232,7 @@ window.saveMedewerkerPopup = async function() {
     losseKracht: document.getElementById('mwp-losseKracht').checked,
     vasteWerkdagen: Array.from(document.querySelectorAll('.mwp-vwd:checked')).map(c=>c.value),
     nulUrenContract: document.getElementById('mwp-nulUren').checked,
+    taal: document.getElementById('mwp-taal')?.value || 'nl',
     stdAanvang: document.getElementById('mwp-std-aanvang')?.value || '08:00',
     stdEinde: document.getElementById('mwp-std-einde')?.value || '17:00',
     actief: document.getElementById('mwp-actief').checked,
@@ -2740,7 +2747,135 @@ window.renderDagoverzicht=async function(){
 
 
 </script>
-<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-10-15 09:00 Beheer</div>
+<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-10-21 11:30 Beheer</div>
 <div id="verjaardag-kader" style="display:none;position:fixed;bottom:20px;left:20px;z-index:200;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;font-size:15px;font-weight:700;color:#142433;line-height:2;max-width:380px;box-shadow:0 4px 16px rgba(0,0,0,.2)"></div>
+<!-- Klikhulp: roze stip toont alle klikbare plekken; klik op een puntje voor uitleg -->
+<style>
+#kh-knop{width:22px;height:22px;border-radius:50%;background:#E8007D;border:3px solid #fff;box-shadow:0 0 0 2px #E8007D,0 2px 6px rgba(0,0,0,.25);cursor:pointer;flex-shrink:0;padding:0;margin:0 10px}
+#kh-knop.aan{background:#fff;border-color:#E8007D}
+#kh-laag{position:fixed;inset:0;pointer-events:none;z-index:99999;display:none}
+#kh-laag .kh-dot{position:fixed;width:12px;height:12px;border-radius:50%;background:#E8007D;border:1.5px solid #fff;box-shadow:0 0 2px rgba(0,0,0,.4);transform:translate(-50%,-50%);pointer-events:auto;cursor:help}
+#kh-laag .kh-dot::before{content:'';position:absolute;inset:-7px;border-radius:50%}
+#kh-uitleg{position:fixed;z-index:100000;display:none;background:#fff;border:2px solid #E8007D;border-radius:12px;padding:10px 14px;max-width:270px;font-size:14px;line-height:1.45;font-weight:600;color:#142433;box-shadow:0 6px 18px rgba(0,0,0,.22)}
+</style>
+<div id="kh-laag"></div>
+<div id="kh-uitleg"></div>
+<script>
+(function(){
+  const SEL='button,a[href],select,input:not([type=hidden]),textarea,[onclick],[onchange],.nav-item,.nav-dropdown-toggle,.nav-dropdown-item,[role=button],summary,label.chk-row';
+  // Uitleg per functie (onclick/onchange), per pagina (data-page) en per veld (id)
+  const FN={
+    openMatrixPopup:'Opent het correctiekader van deze medewerker en week. Hier pas je uren, vrije dagen en opmerkingen aan.',
+    toonWeekBlok:'Toont rechts de totalen van alle medewerkers in deze week. Ook af te drukken.',
+    openMedewerkerPopup:'Opent de instellingen van deze medewerker: contract, werkdagen, snipperdagen en basistijden.',
+    naarWeekoverzichtVoorNaam:'Gaat naar het medewerkeroverzicht met alle weken van deze medewerker.',
+    matrixScrollVandaag:'Springt in de matrix naar de huidige week.',
+    stapDagoverzichtDatum:'Naar de vorige of volgende dag in de dagcheck.',
+    renderDagoverzicht:'Kies een dag voor de dagcheck.',
+    toonHandleiding:'Opent de korte handleiding van deze pagina.',
+    toggleDropdown:'Opent dit menu.',
+    downloadBackup:'Downloadt een backup van alle gegevens.',
+    doLogout:'Uitloggen.',
+    toggleFullscreen:'Volledig scherm aan of uit.',
+    beslisAanvraag:'Keurt de vrije dag goed (✓) of wijst hem af (✕). Eerst komt een vraag ter controle.',
+    approveFromList:'Wisselt de status van deze vrije dag.',
+    opslaanMatrixPopup:'Slaat de wijzigingen op. Eerst zie je oud → nieuw ter controle.',
+    verwijderMatrixWeek:'Verwijdert alle uren van deze medewerker in deze week.',
+    sluitMatrixPopup:'Sluit dit venster zonder op te slaan.',
+    sluitMedewerkerPopup:'Sluit dit venster zonder op te slaan.',
+    saveMedewerkerPopup:'Slaat de instellingen van deze medewerker op.',
+    resetPasswordVanuitPopup:'Geeft deze medewerker een nieuw wachtwoord.',
+    resetPassword:'Geeft deze medewerker een nieuw wachtwoord.',
+    printWeekBlok:'Drukt het weekoverzicht af.',
+    savePauzes:'Slaat de pauzes op. Ze gelden meteen voor iedereen.',
+    pauzeToevoegen:'Voegt een extra pauze toe.',
+    saveHuisregel:'Slaat de tekst van dit hoofdstuk op, in de gekozen taal.',
+    laadHuisregelVoorstel:'Zet de voorgestelde tekst in het tekstvak.',
+    kiesHuisregel:'Kies een hoofdstuk van de huisregels.',
+    kiesHuisregelTaal:'Kies de taal: Nederlands, Engels of Pools.',
+    printHrBevestigingen:'Drukt de lijst af (of maak er een PDF van).',
+    saveKostenPerUur:'Kosten per uur voor iedereen. Hiermee rekent de app de bedragen uit.',
+    renderTeeltenLoonkosten:'Filter voor dit overzicht.',
+    renderMatrix:'Kies wat de matrix laat zien.',
+    renderVakantie:'Kies het jaar.',
+    renderVakantieDetail:'Kies welke week je ziet.',
+    renderWeekoverzicht:'Kies de medewerker of het jaar.',
+    stapWeekoverzichtMedewerker:'Naar de vorige of volgende medewerker.',
+    toggleWkDag:'Toont de dagen van deze week.',
+    saveContract:'Slaat de gegevens van deze medewerker op.',
+    deleteUser:'Verwijdert deze medewerker.',
+    addUser:'Maakt een nieuwe medewerker aan.',
+    voegFeestdagToe:'Voegt een feestdag toe.',
+    verwijderFeestdag:'Verwijdert deze feestdag.',
+    changeAdminPassword:'Wijzigt het wachtwoord.',
+    changePassword:'Wijzigt je wachtwoord.',
+    // mobiel
+    switchTab:'Opent dit tabblad.',
+    saveEntry:'Slaat de uren van deze dag op.',
+    alsnog:'Opent deze vergeten dag, zodat je hem alsnog kunt invullen.',
+    toggleInstMenu:'Opent het menu Instellingen (wachtwoord en start/stop).',
+    kiesInst:'Opent deze instelling.',
+    saveStartStop:'Slaat je vaste begin- en eindtijd op.',
+    saveDag:'Vraag deze dag aan als vrije dag (nog een keer klikken = weer weg).',
+    kiesHrM:'Toont dit hoofdstuk van de huisregels.',
+    toonWkDetails:'Toont de dagen van deze week.',
+    herberekenGewerkt:'Begin- of eindtijd. De gewerkte uren worden dan vanzelf uitgerekend (pauzes eraf).',
+    onDatumChange:'Kies de dag die je wilt invullen.',
+    snelInvullen:'Vult deze dag in één klik in.',
+    toggleKlikhulp:'Zet de klikhulp aan of uit.'
+  };
+  const PAGE={matrix:'Naar START: matrix met uren per medewerker per week.',vakantie:'Naar Vakantie: aanvragen goedkeuren en vrije dagen bekijken.',mensen:'Naar Medewerkers: contract, werkdagen en gegevens.',lossekrachten:'Naar Losse krachten.',opmerkingen:'Naar Opmerkingen.',import:'Naar Import van oude uren.',feestdagen:'Naar Feestdagen.',pauzes:'Naar Pauzes: vaste pauzes voor iedereen.',huisregels:'Naar Huisregels: teksten invoeren en zien wie ze heeft bekeken.',wachtwoord:'Naar Wachtwoord wijzigen.',weekoverzicht:'Naar Medewerkeroverzicht: alle weken van één medewerker.',teelten:'Naar Teelten & loonkosten.'};
+  const ID={'mx-jaar':'Kies het jaar van de matrix.','mx-weergave':'Kies wat de matrix toont: totaal, gewerkt, ziek, snipperuren enz.','mx-type':'Kies vaste krachten, losse krachten of alle.','f-dg-datum':'Kies de dag voor de dagcheck.','u-gewerkt':'Gewerkte uren van deze dag. Je kunt ze zelf aanpassen.','u-ziek':'Uren ziek op deze dag.','u-dokter':'Uren dokter/tandarts op deze dag.','u-opmerking':'Opmerking bij deze dag (optioneel).','u-datum':'Kies de dag die je wilt invullen.','hr-tekst':'Typ hier de tekst. ## = kopje, - = opsomming, ! = belangrijke melding.','f-tl-kosten':'Kosten per uur voor iedereen. Hiermee rekent de app de bedragen uit.','mx-rail':'Sleep om andere weken te zien.'};
+  const IDPRE=[['mp-gew-','Gewerkte uren van deze dag.'],['mp-ziek-','Uren ziek van deze dag.'],['mp-dok-','Uren dokter van deze dag.'],['mp-vrij-','Vinkje = goedgekeurde vrije dag (snipperdag).'],['mp-opm-','Opmerking bij deze dag.'],['mwp-','Instelling van deze medewerker. Klik op Opslaan om te bewaren.'],['std-','Basis start- of stoptijd van deze medewerker.']];
+  function uitlegVoor(el){
+    if(el.dataset&&el.dataset.uitleg)return el.dataset.uitleg;
+    const pg=el.dataset&&el.dataset.page;if(pg&&PAGE[pg])return PAGE[pg];
+    if(el.id&&ID[el.id])return ID[el.id];
+    if(el.id){for(const[p,t]of IDPRE)if(el.id.startsWith(p))return t;}
+    if(el.classList&&el.classList.contains('u-teelt'))return 'Vink de teelt aan waarin je het meest hebt gewerkt.';
+    if(el.name==='u-locatie')return 'Kies de locatie waar je deze dag het meest hebt gewerkt.';
+    const code=(el.getAttribute&&((el.getAttribute('onclick')||'')+' '+(el.getAttribute('onchange')||'')+' '+(el.getAttribute('oninput')||'')))||'';
+    const m=code.match(/([A-Za-z_]\w*)\s*\(/g)||[];
+    for(const f of m){const n=f.replace(/\s*\($/,'');if(FN[n])return FN[n];}
+    if(el.title)return el.title;
+    if(el.matches&&el.matches('input,select,textarea')){const lab=el.closest('div,label')&&el.closest('div,label').querySelector('label');return 'Invulveld'+(lab?': '+lab.innerText.trim():'')+'.';}
+    const tx=(el.innerText||'').trim().split('\n')[0].slice(0,40);
+    return tx?'Knop: '+tx+'.':'Klikbaar.';
+  }
+  let aan=false,kand=[],getekend=[],tMut=null,raf=null;
+  function zichtbaar(el){if(el.closest('#kh-laag')||el.closest('#kh-uitleg')||el.id==='kh-knop'||el.disabled)return false;const cs=getComputedStyle(el);if(cs.visibility==='hidden'||cs.display==='none'||+cs.opacity===0)return false;const r=el.getBoundingClientRect();return r.width>4&&r.height>4;}
+  function verzamel(){
+    const set=new Set(document.querySelectorAll(SEL));
+    document.querySelectorAll('body *').forEach(el=>{if(!set.has(el)&&getComputedStyle(el).cursor==='pointer'&&!(el.parentElement&&getComputedStyle(el.parentElement).cursor==='pointer'))set.add(el);});
+    kand=[...set].filter(el=>!el.parentElement||!el.parentElement.closest(SEL)||el.matches('input,select,textarea'));
+  }
+  function teken(){
+    raf=null;const laag=document.getElementById('kh-laag');if(!aan){laag.style.display='none';return;}
+    const W=innerWidth,H=innerHeight;let html='';getekend=[];
+    for(const el of kand){if(getekend.length>800)break;if(!el.isConnected||!zichtbaar(el))continue;const r=el.getBoundingClientRect();if(r.bottom<0||r.top>H||r.right<0||r.left>W)continue;
+      const x=Math.min(r.right-4,W-6),y=Math.max(r.top+4,6);const top=document.elementFromPoint(Math.max(r.left+2,Math.min(r.right-6,x)),Math.min(Math.max(r.top+6,y),H-2));
+      if(top&&top!==el&&!el.contains(top)&&!top.contains(el)&&!(top.closest&&top.closest('#kh-laag')))continue;
+      html+=`<span class="kh-dot" data-i="${getekend.length}" style="left:${x}px;top:${y}px"></span>`;getekend.push(el);}
+    laag.innerHTML=html;laag.style.display='block';
+  }
+  function plan(){if(aan&&!raf)raf=requestAnimationFrame(teken);}
+  function vernieuw(){verzamel();plan();}
+  function verbergUitleg(){const u=document.getElementById('kh-uitleg');if(u)u.style.display='none';}
+  window.toggleKlikhulp=function(){aan=!aan;const k=document.getElementById('kh-knop');if(k){k.classList.toggle('aan',aan);k.title=aan?'Klikbare plekken verbergen':'Toon waar je kunt klikken';}verbergUitleg();if(aan)vernieuw();else{document.getElementById('kh-laag').style.display='none';}};
+  document.getElementById('kh-laag').addEventListener('click',e=>{
+    const d=e.target.closest('.kh-dot');if(!d)return;e.stopPropagation();e.preventDefault();
+    const el=getekend[+d.dataset.i];if(!el)return;
+    const u=document.getElementById('kh-uitleg');u.textContent=uitlegVoor(el);u.style.display='block';
+    const r=d.getBoundingClientRect(),bw=u.offsetWidth,bh=u.offsetHeight;
+    let x=r.left-bw-6;if(x<8)x=Math.min(r.right+6,innerWidth-bw-8);
+    let y=r.bottom+6;if(y+bh>innerHeight-8)y=Math.max(8,r.top-bh-6);
+    u.style.left=x+'px';u.style.top=y+'px';
+  });
+  document.addEventListener('click',e=>{if(!e.target.closest('#kh-laag'))verbergUitleg();},true);
+  addEventListener('scroll',()=>{verbergUitleg();plan();},true);addEventListener('resize',plan);
+  addEventListener('click',e=>{if(aan&&!e.target.closest('#kh-laag'))setTimeout(vernieuw,120);},true);
+  new MutationObserver(m=>{if(!aan)return;if(m.every(x=>x.target.closest&&(x.target.closest('#kh-laag')||x.target.closest('#kh-uitleg'))))return;clearTimeout(tMut);tMut=setTimeout(vernieuw,150);}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
+})();
+</script>
 </body>
 </html>
