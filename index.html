@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-10-14 16:00 Mobiel</title>
+<title>Urenregistratie | v2026-10-23 10:00 Mobiel</title>
 <script>
 // Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
 (function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
@@ -150,13 +150,14 @@
       <div class="logo">Urenregistratie</div>
       <span id="user-name-label" style="font-weight:700;font-size:16px;color:#fff"></span>
     </div>
-    <button class="logout" onclick="doLogout()" data-i18n="btn_uitloggen">Uitloggen</button>
+    <div style="display:flex;align-items:center"><button type="button" id="kh-knop" onclick="toggleKlikhulp()" title="Toon waar je kunt klikken"></button><button class="logout" onclick="doLogout()" data-i18n="btn_uitloggen">Uitloggen</button></div>
   </div>
   <div class="tabs">
     <button class="tab active" onclick="switchTab('user','invullen',this)" data-i18n="tab_invullen">Invullen</button>
     <button class="tab" onclick="switchTab('user','weekoverzicht',this)" data-i18n="tab_weekoverzicht">Weekoverzicht</button>
     <button class="tab" onclick="switchTab('user','vrijevdagen',this)">Vrije dagen</button>
     <button class="tab" id="tab-huisregels" onclick="switchTab('user','huisregels',this)">Huisregels</button>
+    <button class="tab" id="tab-protocollen" onclick="switchTab('user','protocollen',this)">Protocollen</button>
     <button class="tab" id="tab-instellingen" onclick="toggleInstMenu(event)">Instellingen &#9662;</button>
     
   </div>
@@ -210,13 +211,6 @@
 <div id="u-status" style="display:none;margin:.6rem 0 .4rem;padding:8px 12px;border-radius:8px;font-size:14px;font-weight:700"></div>
 <button class="btn btn-primary" id="btn-opslaan" onclick="saveEntry()" data-i18n="btn_opslaan">Opslaan</button>
       <div style="background:#F8F5EC;border:1px solid #CCC;border-radius:8px;padding:10px 14px;margin-top:.75rem;font-size:12px;color:#4F7395;line-height:1.7">
-        <b style="color:#E8007D">Nieuw: Locatie</b><br>
-        Vink de locatie aan (250 of 207) waar je deze dag het meest hebt gewerkt.<br><br>
-        <b style="color:#E8007D">Nieuw: Start/stop</b><br>
-        Onder Instellingen staat nu Start/stop.<br>
-        Vul hier je vaste begin- en eindtijd in.<br>
-        Wijkt het een dag af? Pas dan alleen de aanvang en einde van die dag aan.<br>
-        De pauzes worden automatisch van de gewerkte uren afgetrokken.<br><br>
         <b style="color:#1F5E8C">Vergeten in te vullen:</b><br>
         Dan krijg je meldingen per dag (gele balk) waar je op kunt klikken.<br>
         Vul deze in, incl de teelt, en sla op.<br>
@@ -226,7 +220,9 @@
         Idem bij een aangemelde snipperdag.<br><br>
         <b style="color:#1F5E8C">Snipperuren dus niet invullen:</b><br>
         Bij eerder stoppen wordt berekend:<br>
-        de contracturen - gewerkt = snipperuren.
+        de contracturen - gewerkt = snipperuren.<br><br>
+        <b style="color:#1F5E8C">Huisregels:</b><br>
+        Dit is wat we jaarlijks op papier bespreken.
       </div>
     </div>
   <div id="user-weekoverzicht" class="tabpanel" style="display:none">
@@ -252,6 +248,10 @@
   <div id="user-huisregels" class="tabpanel">
     <div id="hrm-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem"></div>
     <div class="card" id="hrm-inhoud"></div>
+  </div>
+  <div id="user-protocollen" class="tabpanel">
+    <div id="prm-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem"></div>
+    <div class="card" id="prm-inhoud"></div>
   </div>
   <div id="user-startstop" class="tabpanel">
     <div class="card card-compact">
@@ -518,7 +518,7 @@ window.doLogin=async function(){
   if(u.role==='admin'){await loadNotes();show('screen-admin');fillFilters();renderAdmin();}
   else{curLang=u.taal||'nl';document.getElementById('user-name-label').textContent=u.name;initEntryForm(todayStr());show('screen-user');applyUserLang();resetUserTabs();// Laad eigen vrije dagen
   try{const key=me.name.toLowerCase().replace(/\s+/g,'-');const snap=await getDoc(doc(db,'vrije_dagen',key));if(snap.exists())mijnVrijeDagen=snap.data().dagen||{};}catch(e){mijnVrijeDagen={};}
-  checkVergeten();showNotitieBanner();hrDocs=null;}
+  checkVergeten();showNotitieBanner();hrDocs=null;prmDocs=null;}
 };
 window.doRegister=async function(){
   const n=val('reg-name').trim();const p=val('reg-pass');
@@ -1165,6 +1165,7 @@ window.switchTab=function(scope,tab,btn){
     renderUserWeek();
   }
   if(scope==='user'&&tab==='huisregels'){openHuisregelsMobiel();}
+  if(scope==='user'&&tab==='protocollen'){openProtocollenMobiel();}
   if(scope==='user'&&tab==='vrijevdagen'){
     // Zorg dat weekoverzicht content weg is
     const wkList=document.getElementById('user-week-list');
@@ -1194,15 +1195,15 @@ window.renderVrijeDagen=async function(){
     const u=allUsers.find(x=>x.name===me.name)||{};
     const wkd=u.vasteWerkdagen||['Ma','Di','Wo','Do','Vr'];
     const DAGNAMEN=['Ma','Di','Wo','Do','Vr','Za','Zo'];
-    const today=new Date();
+    // Maandag van de huidige ISO-week (in UTC rekenen, zodat datum en weeknummer altijd kloppen)
+    const t0=new Date(todayStr()+'T00:00:00Z');const ma0=new Date(t0.getTime()-((t0.getUTCDay()||7)-1)*86400000);
     let html2='';
     for(let w=-4;w<=8;w++){
-      const weekStart=new Date(today);
-      weekStart.setDate(today.getDate()-today.getDay()+1+w*7);
+      const weekStart=new Date(ma0.getTime()+w*7*86400000);
       const weekDagen=[];
       for(let d=0;d<7;d++){
-        const dag=new Date(weekStart);dag.setDate(weekStart.getDate()+d);
-        const ds=dag.toISOString().split('T')[0];
+        const ds=new Date(weekStart.getTime()+d*86400000).toISOString().split('T')[0];
+        const dag=new Date(ds+'T12:00:00');
         const dagNm=DAGNAMEN[d];
         if(!wkd.includes(dagNm))continue;
         const status=vrijStatus(dagen[ds]);
@@ -1217,7 +1218,7 @@ window.renderVrijeDagen=async function(){
         </div>`);
       }
       if(!weekDagen.length)continue;
-      const wkNr=String(Math.ceil((((weekStart-new Date(weekStart.getFullYear(),0,1))/86400000)+1)/7));
+      const wkNr=String(getWeekNr(weekStart.toISOString().split('T')[0]));
       html2+=`<div style="margin-bottom:.4rem;background:#F8F5EC;border-radius:8px;border:1px solid #CCC;padding:3px;display:grid;grid-template-columns:1fr 1fr 1fr;row-gap:2px;column-gap:2px">
         <div style="font-size:11px;font-weight:700;color:#1F5E8C;display:flex;align-items:center;justify-content:center;background:#EAF4FC;border-radius:5px;padding:2px">Wk ${wkNr}</div>
         ${weekDagen[0]||'<div></div>'}
@@ -1359,10 +1360,10 @@ function weekTable(items){
 }
 function groupByWeek(list){const map={};list.forEach(e=>{const k=weekKey(e.datum);if(!map[k])map[k]={key:k,label:weekLabel(e.datum),items:[]};map[k].items.push(e);});return Object.values(map).sort((a,b)=>b.key.localeCompare(a.key));}
 function totals(items){let g=0,z=0,d=0,v=0;items.forEach(e=>{g+=+(e.gewerkt||0);z+=+(e.ziek||0);d+=+(e.dokter||0);v+=+(e.vrij||0);});return{g:+g.toFixed(1),z:+z.toFixed(1),d:+d.toFixed(1),v:+v.toFixed(1)};}
-function todayStr(){return new Date().toISOString().split('T')[0];}
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function minDate(){const d=new Date();d.setDate(d.getDate()-6);return d.toISOString().split('T')[0];}
 function isLocked(datum){return datum<minDate();}
-function getWeekNr(datum){const d=new Date(datum);const thu=new Date(d);thu.setDate(d.getDate()-((d.getDay()+6)%7)+3);const jan4=new Date(thu.getFullYear(),0,4);return Math.round((thu-jan4)/604800000)+1;}
+function getWeekNr(datum){const [y,m,dd]=String(datum).substring(0,10).split('-').map(Number);const d=new Date(Date.UTC(y,m-1,dd));d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));const ys=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil(((d-ys)/86400000+1)/7);}
 function weekKey(datum){const d=new Date(datum);const thu=new Date(d);thu.setDate(d.getDate()-((d.getDay()+6)%7)+3);return `${thu.getFullYear()}-W${String(getWeekNr(datum)).padStart(2,'0')}`;}
 
 // VERBETERD: Datumnotatie met maandnamen
@@ -1454,8 +1455,163 @@ window.renderHuisregelsMobiel=function(){
   el.innerHTML=`${bek?`<div style="font-size:12px;color:#4F7395;margin-bottom:.4rem">${hrT('bekeken')}: <b>${bek}</b></div>`:''}<div style="font-weight:700;font-size:18px;color:#1F5E8C;margin-bottom:.3rem">${namen[hrHuidig]}</div><div style="font-size:15px;line-height:1.6;color:#142433;overflow-wrap:anywhere">${tekst?hrHtmlM(tekst):hrT('leeg')}</div>`;
 };
 
+
+// ===== PROTOCOLLEN (mobiel, alleen lezen) =====
+let prmDocs=null,prmHoofdstukken=[],prmHuidig=null;
+const PRM_T={nl:{titel:'Protocollen',leeg:'Nog geen protocollen.'},en:{titel:'Protocols',leeg:'No protocols yet.'},pl:{titel:'Protokoły',leeg:'Brak protokołów.'}};
+function prmNaam(h){const tl=hrTaalM();return (tl!=='nl'&&h['naam_'+tl])||h.naam;}
+function prmTekst(id){const d=(prmDocs||{})[id]||{};const tl=hrTaalM();return (tl!=='nl'&&d['tekst_'+tl])||d.tekst||'';}
+window.openProtocollenMobiel=async function(){
+  const el=document.getElementById('prm-inhoud');
+  if(!prmDocs){if(el)el.innerHTML='<div class="loading">'+t('loading')+'</div>';
+    try{const sn=await getDoc(doc(db,'instellingen','protocollen'));prmHoofdstukken=(sn.exists()&&Array.isArray(sn.data().hoofdstukken))?sn.data().hoofdstukken:[];}catch(e){prmHoofdstukken=[];}
+    try{const snap=await getDocs(collection(db,'protocollen'));prmDocs={};snap.docs.forEach(d=>prmDocs[d.id]=d.data());}catch(e){prmDocs={};}}
+  const tab=document.getElementById('tab-protocollen');if(tab)tab.textContent=PRM_T[hrTaalM()].titel;
+  const zicht=prmHoofdstukken.filter(h=>prmTekst(h.id).trim());
+  if(!prmHuidig||!zicht.find(h=>h.id===prmHuidig))prmHuidig=zicht[0]?zicht[0].id:null;
+  renderProtocollenMobiel();
+};
+window.kiesPrM=function(id){prmHuidig=id;renderProtocollenMobiel();window.scrollTo(0,0);};
+function renderProtocollenMobiel(){
+  const el=document.getElementById('prm-inhoud'),tabs=document.getElementById('prm-tabs');if(!el)return;
+  const zicht=prmHoofdstukken.filter(h=>prmTekst(h.id).trim());
+  if(tabs)tabs.innerHTML=zicht.map(h=>{const act=h.id===prmHuidig;return `<button onclick="kiesPrM('${h.id}')" style="border:1px solid #A9C9E3;border-radius:16px;padding:6px 11px;font-size:13px;font-weight:${act?700:500};background:${act?'#1F5E8C':'#fff'};color:${act?'#fff':'#1F5E8C'};cursor:pointer">${hrEscM(prmNaam(h))}</button>`;}).join('');
+  const h=zicht.find(x=>x.id===prmHuidig);
+  if(!h){el.innerHTML='<div style="color:#4F7395">'+PRM_T[hrTaalM()].leeg+'</div>';return;}
+  el.innerHTML=`<div style="font-weight:700;font-size:18px;color:#1F5E8C;margin-bottom:.3rem">${hrEscM(prmNaam(h))}</div><div style="font-size:15px;line-height:1.6;color:#142433;overflow-wrap:anywhere">${hrHtmlM(prmTekst(h.id))}</div>`;
+}
+
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-14 16:00 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-23 10:00 Mobiel</div>
+<!-- Klikhulp: roze stip toont alle klikbare plekken; klik op een puntje voor uitleg -->
+<style>
+#kh-knop{width:22px;height:22px;border-radius:50%;background:#E8007D;border:3px solid #fff;box-shadow:0 0 0 2px #E8007D,0 2px 6px rgba(0,0,0,.25);cursor:pointer;flex-shrink:0;padding:0;margin:0 10px}
+#kh-knop.aan{background:#fff;border-color:#E8007D}
+#kh-laag{position:fixed;inset:0;pointer-events:none;z-index:99999;display:none}
+#kh-laag .kh-dot{position:fixed;width:12px;height:12px;border-radius:50%;background:#E8007D;border:1.5px solid #fff;box-shadow:0 0 2px rgba(0,0,0,.4);transform:translate(-50%,-50%);pointer-events:auto;cursor:help}
+#kh-laag .kh-dot::before{content:'';position:absolute;inset:-7px;border-radius:50%}
+#kh-uitleg{position:fixed;z-index:100000;display:none;background:#fff;border:2px solid #E8007D;border-radius:12px;padding:10px 14px;max-width:270px;font-size:14px;line-height:1.45;font-weight:600;color:#142433;box-shadow:0 6px 18px rgba(0,0,0,.22)}
+</style>
+<div id="kh-laag"></div>
+<div id="kh-uitleg"></div>
+<script>
+(function(){
+  const SEL='button,a[href],select,input:not([type=hidden]),textarea,[onclick],[onchange],.nav-item,.nav-dropdown-toggle,.nav-dropdown-item,[role=button],summary,label.chk-row';
+  // Uitleg per functie (onclick/onchange), per pagina (data-page) en per veld (id)
+  const FN={
+    openMatrixPopup:'Opent het correctiekader van deze medewerker en week. Hier pas je uren, vrije dagen en opmerkingen aan.',
+    toonWeekBlok:'Toont rechts de totalen van alle medewerkers in deze week. Ook af te drukken.',
+    openMedewerkerPopup:'Opent de instellingen van deze medewerker: contract, werkdagen, snipperdagen en basistijden.',
+    naarWeekoverzichtVoorNaam:'Gaat naar het medewerkeroverzicht met alle weken van deze medewerker.',
+    matrixScrollVandaag:'Springt in de matrix naar de huidige week.',
+    stapDagoverzichtDatum:'Naar de vorige of volgende dag in de dagcheck.',
+    renderDagoverzicht:'Kies een dag voor de dagcheck.',
+    toonHandleiding:'Opent de korte handleiding van deze pagina.',
+    toggleDropdown:'Opent dit menu.',
+    downloadBackup:'Downloadt een backup van alle gegevens.',
+    doLogout:'Uitloggen.',
+    toggleFullscreen:'Volledig scherm aan of uit.',
+    beslisAanvraag:'Keurt de vrije dag goed (✓) of wijst hem af (✕). Eerst komt een vraag ter controle.',
+    approveFromList:'Wisselt de status van deze vrije dag.',
+    opslaanMatrixPopup:'Slaat de wijzigingen op. Eerst zie je oud → nieuw ter controle.',
+    verwijderMatrixWeek:'Verwijdert alle uren van deze medewerker in deze week.',
+    sluitMatrixPopup:'Sluit dit venster zonder op te slaan.',
+    sluitMedewerkerPopup:'Sluit dit venster zonder op te slaan.',
+    saveMedewerkerPopup:'Slaat de instellingen van deze medewerker op.',
+    resetPasswordVanuitPopup:'Geeft deze medewerker een nieuw wachtwoord.',
+    resetPassword:'Geeft deze medewerker een nieuw wachtwoord.',
+    printWeekBlok:'Drukt het weekoverzicht af.',
+    savePauzes:'Slaat de pauzes op. Ze gelden meteen voor iedereen.',
+    pauzeToevoegen:'Voegt een extra pauze toe.',
+    saveHuisregel:'Slaat de tekst van dit hoofdstuk op, in de gekozen taal.',
+    laadHuisregelVoorstel:'Zet de voorgestelde tekst in het tekstvak.',
+    kiesHuisregel:'Kies een hoofdstuk van de huisregels.',
+    kiesHuisregelTaal:'Kies de taal: Nederlands, Engels of Pools.',
+    printHrBevestigingen:'Drukt de lijst af (of maak er een PDF van).',
+    saveKostenPerUur:'Kosten per uur voor iedereen. Hiermee rekent de app de bedragen uit.',
+    renderTeeltenLoonkosten:'Filter voor dit overzicht.',
+    renderMatrix:'Kies wat de matrix laat zien.',
+    renderVakantie:'Kies het jaar.',
+    renderVakantieDetail:'Kies welke week je ziet.',
+    renderWeekoverzicht:'Kies de medewerker of het jaar.',
+    stapWeekoverzichtMedewerker:'Naar de vorige of volgende medewerker.',
+    toggleWkDag:'Toont de dagen van deze week.',
+    saveContract:'Slaat de gegevens van deze medewerker op.',
+    deleteUser:'Verwijdert deze medewerker.',
+    addUser:'Maakt een nieuwe medewerker aan.',
+    voegFeestdagToe:'Voegt een feestdag toe.',
+    verwijderFeestdag:'Verwijdert deze feestdag.',
+    changeAdminPassword:'Wijzigt het wachtwoord.',
+    changePassword:'Wijzigt je wachtwoord.',
+    // mobiel
+    switchTab:'Opent dit tabblad.',
+    saveEntry:'Slaat de uren van deze dag op.',
+    alsnog:'Opent deze vergeten dag, zodat je hem alsnog kunt invullen.',
+    toggleInstMenu:'Opent het menu Instellingen (wachtwoord en start/stop).',
+    kiesInst:'Opent deze instelling.',
+    saveStartStop:'Slaat je vaste begin- en eindtijd op.',
+    saveDag:'Vraag deze dag aan als vrije dag (nog een keer klikken = weer weg).',
+    kiesHrM:'Toont dit hoofdstuk van de huisregels.',
+    kiesPrM:'Toont dit protocol.',
+    toonWkDetails:'Toont de dagen van deze week.',
+    herberekenGewerkt:'Begin- of eindtijd. De gewerkte uren worden dan vanzelf uitgerekend (pauzes eraf).',
+    onDatumChange:'Kies de dag die je wilt invullen.',
+    snelInvullen:'Vult deze dag in één klik in.',
+    toggleKlikhulp:'Zet de klikhulp aan of uit.'
+  };
+  const PAGE={matrix:'Naar START: matrix met uren per medewerker per week.',vakantie:'Naar Vakantie: aanvragen goedkeuren en vrije dagen bekijken.',mensen:'Naar Medewerkers: contract, werkdagen en gegevens.',lossekrachten:'Naar Losse krachten.',opmerkingen:'Naar Opmerkingen.',import:'Naar Import van oude uren.',feestdagen:'Naar Feestdagen.',pauzes:'Naar Pauzes: vaste pauzes voor iedereen.',huisregels:'Naar Huisregels: teksten invoeren en zien wie ze heeft bekeken.',wachtwoord:'Naar Wachtwoord wijzigen.',weekoverzicht:'Naar Medewerkeroverzicht: alle weken van één medewerker.',teelten:'Naar Teelten & loonkosten.'};
+  const ID={'mx-jaar':'Kies het jaar van de matrix.','mx-weergave':'Kies wat de matrix toont: totaal, gewerkt, ziek, snipperuren enz.','mx-type':'Kies vaste krachten, losse krachten of alle.','f-dg-datum':'Kies de dag voor de dagcheck.','u-gewerkt':'Gewerkte uren van deze dag. Je kunt ze zelf aanpassen.','u-ziek':'Uren ziek op deze dag.','u-dokter':'Uren dokter/tandarts op deze dag.','u-opmerking':'Opmerking bij deze dag (optioneel).','u-datum':'Kies de dag die je wilt invullen.','hr-tekst':'Typ hier de tekst. ## = kopje, - = opsomming, ! = belangrijke melding.','f-tl-kosten':'Kosten per uur voor iedereen. Hiermee rekent de app de bedragen uit.','mx-rail':'Sleep om andere weken te zien.'};
+  const IDPRE=[['mp-gew-','Gewerkte uren van deze dag.'],['mp-ziek-','Uren ziek van deze dag.'],['mp-dok-','Uren dokter van deze dag.'],['mp-vrij-','Vinkje = goedgekeurde vrije dag (snipperdag).'],['mp-opm-','Opmerking bij deze dag.'],['mwp-','Instelling van deze medewerker. Klik op Opslaan om te bewaren.'],['std-','Basis start- of stoptijd van deze medewerker.']];
+  function uitlegVoor(el){
+    if(el.dataset&&el.dataset.uitleg)return el.dataset.uitleg;
+    const pg=el.dataset&&el.dataset.page;if(pg&&PAGE[pg])return PAGE[pg];
+    if(el.id&&ID[el.id])return ID[el.id];
+    if(el.id){for(const[p,t]of IDPRE)if(el.id.startsWith(p))return t;}
+    if(el.classList&&el.classList.contains('u-teelt'))return 'Vink de teelt aan waarin je het meest hebt gewerkt.';
+    if(el.name==='u-locatie')return 'Kies de locatie waar je deze dag het meest hebt gewerkt.';
+    const code=(el.getAttribute&&((el.getAttribute('onclick')||'')+' '+(el.getAttribute('onchange')||'')+' '+(el.getAttribute('oninput')||'')))||'';
+    const m=code.match(/([A-Za-z_]\w*)\s*\(/g)||[];
+    for(const f of m){const n=f.replace(/\s*\($/,'');if(FN[n])return FN[n];}
+    if(el.title)return el.title;
+    if(el.matches&&el.matches('input,select,textarea')){const lab=el.closest('div,label')&&el.closest('div,label').querySelector('label');return 'Invulveld'+(lab?': '+lab.innerText.trim():'')+'.';}
+    const tx=(el.innerText||'').trim().split('\n')[0].slice(0,40);
+    return tx?'Knop: '+tx+'.':'Klikbaar.';
+  }
+  let aan=false,kand=[],getekend=[],tMut=null,raf=null;
+  function zichtbaar(el){if(el.closest('#kh-laag')||el.closest('#kh-uitleg')||el.id==='kh-knop'||el.disabled)return false;const cs=getComputedStyle(el);if(cs.visibility==='hidden'||cs.display==='none'||+cs.opacity===0)return false;const r=el.getBoundingClientRect();return r.width>4&&r.height>4;}
+  function verzamel(){
+    const set=new Set(document.querySelectorAll(SEL));
+    document.querySelectorAll('body *').forEach(el=>{if(!set.has(el)&&getComputedStyle(el).cursor==='pointer'&&!(el.parentElement&&getComputedStyle(el.parentElement).cursor==='pointer'))set.add(el);});
+    kand=[...set].filter(el=>!el.parentElement||!el.parentElement.closest(SEL)||el.matches('input,select,textarea'));
+  }
+  function teken(){
+    raf=null;const laag=document.getElementById('kh-laag');if(!aan){laag.style.display='none';return;}
+    const W=innerWidth,H=innerHeight;let html='';getekend=[];
+    for(const el of kand){if(getekend.length>800)break;if(!el.isConnected||!zichtbaar(el))continue;const r=el.getBoundingClientRect();if(r.bottom<0||r.top>H||r.right<0||r.left>W)continue;
+      const x=Math.min(r.right-4,W-6),y=Math.max(r.top+4,6);const top=document.elementFromPoint(Math.max(r.left+2,Math.min(r.right-6,x)),Math.min(Math.max(r.top+6,y),H-2));
+      if(top&&top!==el&&!el.contains(top)&&!top.contains(el)&&!(top.closest&&top.closest('#kh-laag')))continue;
+      html+=`<span class="kh-dot" data-i="${getekend.length}" style="left:${x}px;top:${y}px"></span>`;getekend.push(el);}
+    laag.innerHTML=html;laag.style.display='block';
+  }
+  function plan(){if(aan&&!raf)raf=requestAnimationFrame(teken);}
+  function vernieuw(){verzamel();plan();}
+  function verbergUitleg(){const u=document.getElementById('kh-uitleg');if(u)u.style.display='none';}
+  window.toggleKlikhulp=function(){aan=!aan;const k=document.getElementById('kh-knop');if(k){k.classList.toggle('aan',aan);k.title=aan?'Klikbare plekken verbergen':'Toon waar je kunt klikken';}verbergUitleg();if(aan)vernieuw();else{document.getElementById('kh-laag').style.display='none';}};
+  document.getElementById('kh-laag').addEventListener('click',e=>{
+    const d=e.target.closest('.kh-dot');if(!d)return;e.stopPropagation();e.preventDefault();
+    const el=getekend[+d.dataset.i];if(!el)return;
+    const u=document.getElementById('kh-uitleg');u.textContent=uitlegVoor(el);u.style.display='block';
+    const r=d.getBoundingClientRect(),bw=u.offsetWidth,bh=u.offsetHeight;
+    let x=r.left-bw-6;if(x<8)x=Math.min(r.right+6,innerWidth-bw-8);
+    let y=r.bottom+6;if(y+bh>innerHeight-8)y=Math.max(8,r.top-bh-6);
+    u.style.left=x+'px';u.style.top=y+'px';
+  });
+  document.addEventListener('click',e=>{if(!e.target.closest('#kh-laag'))verbergUitleg();},true);
+  addEventListener('scroll',()=>{verbergUitleg();plan();},true);addEventListener('resize',plan);
+  addEventListener('click',e=>{if(aan&&!e.target.closest('#kh-laag'))setTimeout(vernieuw,120);},true);
+  new MutationObserver(m=>{if(!aan)return;if(m.every(x=>x.target.closest&&(x.target.closest('#kh-laag')||x.target.closest('#kh-uitleg'))))return;clearTimeout(tMut);tMut=setTimeout(vernieuw,150);}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
+})();
+</script>
 </body>
 </html>
