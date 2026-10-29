@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-10-23 10:00 Mobiel</title>
+<title>Urenregistratie | v2026-10-29 10:00 Mobiel</title>
 <script>
 // Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
 (function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="Urenregistratie">
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  :root{--bg:#5A5A5A;--surface:#F8F5EC;--border:#A9C9E3;--text:#142433;--muted:#4F7395;--accent:#1F5E8C;--accent-light:#C9E2F5;--danger:#A6362A;--success:#155C36;--warn:#7A4F00;--warn-bg:#FBF0D6;--radius:10px;--font:'Inter',system-ui,sans-serif}
+  :root{--bg:#6d747a;--surface:#F8F5EC;--border:#A9C9E3;--text:#142433;--muted:#4F7395;--accent:#1F5E8C;--accent-light:#C9E2F5;--danger:#A6362A;--success:#155C36;--warn:#7A4F00;--warn-bg:#FBF0D6;--radius:10px;--font:'Inter',system-ui,sans-serif}
   body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.5;min-height:100vh}
   .screen{display:none;max-width:480px;margin:0 auto;padding:1.5rem 1rem 4rem}
   .screen.active{display:block}
@@ -518,7 +518,8 @@ window.doLogin=async function(){
   if(u.role==='admin'){await loadNotes();show('screen-admin');fillFilters();renderAdmin();}
   else{curLang=u.taal||'nl';document.getElementById('user-name-label').textContent=u.name;initEntryForm(todayStr());show('screen-user');applyUserLang();resetUserTabs();// Laad eigen vrije dagen
   try{const key=me.name.toLowerCase().replace(/\s+/g,'-');const snap=await getDoc(doc(db,'vrije_dagen',key));if(snap.exists())mijnVrijeDagen=snap.data().dagen||{};}catch(e){mijnVrijeDagen={};}
-  checkVergeten();showNotitieBanner();hrDocs=null;prmDocs=null;}
+  checkVergeten();showNotitieBanner();hrDocs=null;prmDocs=null;
+  {const tp=document.getElementById('tab-protocollen');if(tp)tp.style.display=(Array.isArray(me.protocollen)&&!me.protocollen.length)?'none':'';}}
 };
 window.doRegister=async function(){
   const n=val('reg-name').trim();const p=val('reg-pass');
@@ -1312,7 +1313,7 @@ window.renderUserWeek=function(){
     const kleur2=snipVal!==null?(snipVal>=0?'var(--success)':'var(--danger)'):'';
     const weekNr=key.split('-W')[1]||key;
     return `<tr>
-      <td class="left col_week" style="cursor:pointer" onclick="toonWkDetails('${key}')">Week ${weekNr} ▾</td>
+      <td class="left col_week" style="cursor:pointer;white-space:normal;line-height:1.3" onclick="toonWkDetails('${key}')">Week ${weekNr} ▾${items.some(e=>e.opmerking&&!e.__virtueel)?' <span title="Er staan opmerkingen in deze week">\uD83D\uDCAC</span>':''}</td>
       <td>${tot.g>0?tot.g.toFixed(1):'—'}</td>
       <td>${tot.z>0?tot.z.toFixed(1):'—'}</td>
       <td>${tot.d>0?tot.d.toFixed(1):'—'}</td>
@@ -1353,7 +1354,7 @@ function weekTable(items){
   const tot=totals(items);const fmt=v=>(v&&v>0)?v:'<span class="zero">\u2013</span>';
   const rows=items.slice().sort((a,b)=>a.datum.localeCompare(b.datum)).map(e=>{
     const locked=isLocked(e.datum);const dag=+(e.gewerkt||0)+ +(e.ziek||0)+ +(e.dokter||0)+ +(e.vrij||0);
-    return `<tr><td class="left">${fmtDate(e.datum)}${locked?'\uD83D\uDD12':''}${e.teelten&&e.teelten.length?`<div style="font-size:9px;color:var(--muted);font-weight:400">${e.teelten.join(', ')}</div>`:''}</td><td class="left">${(e.aanvang||'\u2013').substring(0,5)}/${(e.einde||'\u2013').substring(0,5)}</td><td>${fmt(e.gewerkt)}</td><td>${fmt(e.ziek)}</td><td>${fmt(e.dokter)}</td><td>${fmt(e.vrij)}</td><td><b>${dag>0?dag.toFixed(1):'\u2013'}</b></td></tr>`;
+    return `<tr><td class="left">${fmtDate(e.datum)}${locked?'\uD83D\uDD12':''}${e.teelten&&e.teelten.length?`<div style="font-size:9px;color:var(--muted);font-weight:400">${e.teelten.join(', ')}${e.locatie?' \u00B7 '+e.locatie:''}</div>`:''}</td><td class="left">${(e.aanvang||'\u2013').substring(0,5)}/${(e.einde||'\u2013').substring(0,5)}</td><td>${fmt(e.gewerkt)}</td><td>${fmt(e.ziek)}</td><td>${fmt(e.dokter)}</td><td>${fmt(e.vrij)}</td><td><b>${dag>0?dag.toFixed(1):'\u2013'}</b></td></tr>`+(e.opmerking?`<tr><td colspan="7" class="left" style="padding:3px 8px 6px"><div style="font-size:12px;color:#7A4F00;background:#FBF0D6;border-radius:6px;padding:4px 8px;font-weight:600;white-space:normal;overflow-wrap:anywhere">\uD83D\uDCAC ${String(e.opmerking).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div></td></tr>`:'');
   }).join('');
   const totT=+(tot.g||0)+ +(tot.z||0)+ +(tot.d||0)+ +(tot.v||0);
   return `<div class="uren-table-wrap"><table class="uren-table"><colgroup><col class="c-datum"><col class="c-tijd"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"></colgroup><thead><tr><th class="left">Datum</th><th class="left">Tijd</th><th>${t('col_gew')}</th><th>${t('col_ziek')}</th><th>${t('col_dok')}</th><th>${t('col_vrij')}</th><th>${t('col_tot')}</th></tr></thead><tbody>${rows}</tbody><tfoot><tr class="totaalrij"><td class="left" colspan="2">${t('week_totaal')}</td><td>${tot.g||'\u2013'}</td><td>${tot.z>0?tot.z:'\u2013'}</td><td>${tot.d>0?tot.d:'\u2013'}</td><td>${tot.v>0?tot.v:'\u2013'}</td><td><b>${totT>0?totT.toFixed(1):'\u2013'}</b></td></tr></tfoot></table></div>`;
@@ -1460,6 +1461,7 @@ window.renderHuisregelsMobiel=function(){
 let prmDocs=null,prmHoofdstukken=[],prmHuidig=null;
 const PRM_T={nl:{titel:'Protocollen',leeg:'Nog geen protocollen.'},en:{titel:'Protocols',leeg:'No protocols yet.'},pl:{titel:'Protokoły',leeg:'Brak protokołów.'}};
 function prmNaam(h){const tl=hrTaalM();return (tl!=='nl'&&h['naam_'+tl])||h.naam;}
+function prmMag(id){return !me||!Array.isArray(me.protocollen)||me.protocollen.includes(id);}
 function prmTekst(id){const d=(prmDocs||{})[id]||{};const tl=hrTaalM();return (tl!=='nl'&&d['tekst_'+tl])||d.tekst||'';}
 window.openProtocollenMobiel=async function(){
   const el=document.getElementById('prm-inhoud');
@@ -1467,14 +1469,14 @@ window.openProtocollenMobiel=async function(){
     try{const sn=await getDoc(doc(db,'instellingen','protocollen'));prmHoofdstukken=(sn.exists()&&Array.isArray(sn.data().hoofdstukken))?sn.data().hoofdstukken:[];}catch(e){prmHoofdstukken=[];}
     try{const snap=await getDocs(collection(db,'protocollen'));prmDocs={};snap.docs.forEach(d=>prmDocs[d.id]=d.data());}catch(e){prmDocs={};}}
   const tab=document.getElementById('tab-protocollen');if(tab)tab.textContent=PRM_T[hrTaalM()].titel;
-  const zicht=prmHoofdstukken.filter(h=>prmTekst(h.id).trim());
+  const zicht=prmHoofdstukken.filter(h=>prmMag(h.id)&&prmTekst(h.id).trim());
   if(!prmHuidig||!zicht.find(h=>h.id===prmHuidig))prmHuidig=zicht[0]?zicht[0].id:null;
   renderProtocollenMobiel();
 };
 window.kiesPrM=function(id){prmHuidig=id;renderProtocollenMobiel();window.scrollTo(0,0);};
 function renderProtocollenMobiel(){
   const el=document.getElementById('prm-inhoud'),tabs=document.getElementById('prm-tabs');if(!el)return;
-  const zicht=prmHoofdstukken.filter(h=>prmTekst(h.id).trim());
+  const zicht=prmHoofdstukken.filter(h=>prmMag(h.id)&&prmTekst(h.id).trim());
   if(tabs)tabs.innerHTML=zicht.map(h=>{const act=h.id===prmHuidig;return `<button onclick="kiesPrM('${h.id}')" style="border:1px solid #A9C9E3;border-radius:16px;padding:6px 11px;font-size:13px;font-weight:${act?700:500};background:${act?'#1F5E8C':'#fff'};color:${act?'#fff':'#1F5E8C'};cursor:pointer">${hrEscM(prmNaam(h))}</button>`;}).join('');
   const h=zicht.find(x=>x.id===prmHuidig);
   if(!h){el.innerHTML='<div style="color:#4F7395">'+PRM_T[hrTaalM()].leeg+'</div>';return;}
@@ -1483,7 +1485,7 @@ function renderProtocollenMobiel(){
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-23 10:00 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-29 10:00 Mobiel</div>
 <!-- Klikhulp: roze stip toont alle klikbare plekken; klik op een puntje voor uitleg -->
 <style>
 #kh-knop{width:22px;height:22px;border-radius:50%;background:#E8007D;border:3px solid #fff;box-shadow:0 0 0 2px #E8007D,0 2px 6px rgba(0,0,0,.25);cursor:pointer;flex-shrink:0;padding:0;margin:0 10px}
