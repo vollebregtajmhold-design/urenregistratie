@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Urenregistratie — Beheer | v2026-10-22 10:00 Beheer</title>
+<title>Urenregistratie — Beheer | v2026-11-03 10:00 Beheer</title>
 <script>
 // Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
 (function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
@@ -11,7 +11,7 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#5A5A5A;--surface:#F8F5EC;--border:#A9C9E3;--text:#142433;
+    --bg:#6d747a;--surface:#F8F5EC;--border:#A9C9E3;--text:#142433;
     --muted:#4F7395;--accent:#1F5E8C;--accent-light:#C9E2F5;
     --danger:#A6362A;--success:#155C36;--warn:#7A4F00;--warn-bg:#FBF0D6;
     --radius:10px;--font:'Inter',system-ui,sans-serif;
@@ -75,8 +75,8 @@
   .help-btn:hover{color:var(--text);border-color:var(--muted)}
   .custom-tooltip{position:fixed;z-index:3000;background:#000;color:#fff;font-size:14px;line-height:1.35;padding:6px 10px;border-radius:6px;pointer-events:none;max-width:360px;box-shadow:0 4px 16px rgba(0,0,0,.4)}
   .sneltoets-groep{padding-top:12px;font-weight:700;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.03em}
-  .main{margin-left:0;padding:64px 2rem 2rem;min-height:100vh;overflow-y:auto;background:#5A5A5A}
-  #page-matrix{background:#787878;position:fixed;inset:48px 0 0 0;padding:1rem 1.5rem 1.5rem;display:none;flex-direction:column;overflow:hidden}
+  .main{margin-left:0;padding:64px 2rem 2rem;min-height:100vh;overflow-y:auto;background:#6d747a}
+  #page-matrix{background:#6d747a;position:fixed;inset:48px 0 0 0;padding:1rem 1.5rem 1.5rem;display:none;flex-direction:column;overflow:hidden}
   #page-matrix.active{display:flex}
   #page-matrix.active{display:flex;flex-direction:column}
   .page{display:none}
@@ -246,7 +246,7 @@
 </head>
 <body>
 <!-- LOADING -->
-<div id="screen-loading" class="screen active" style="background:#5A5A5A;min-height:100vh">
+<div id="screen-loading" class="screen active" style="background:#6d747a;min-height:100vh">
   <div style="padding-top:6rem;text-align:center">
     <div class="login-title" style="color:#C9E2F5">Urenregistratie</div>
     <p style="margin-top:1rem;color:#aaa">Verbinden...</p>
@@ -629,7 +629,7 @@
       <div style="flex:0 0 auto">
         <div style="font-size:11px;font-weight:700;color:#C9E2F5;text-transform:uppercase;letter-spacing:.04em;margin:0 0 .5rem 4px">Voorbeeld op mobiel</div>
         <div style="width:340px;height:640px;background:#1c1c1e;border-radius:38px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.35)">
-          <div style="width:100%;height:100%;background:#5b5b5b;border-radius:28px;overflow:hidden;display:flex;flex-direction:column;min-width:0">
+          <div style="width:100%;height:100%;background:#6d747a;border-radius:28px;overflow:hidden;display:flex;flex-direction:column;min-width:0">
             <div style="height:22px;display:flex;justify-content:center;align-items:center"><div style="width:90px;height:6px;border-radius:3px;background:#1c1c1e"></div></div>
             <div id="hr-mob-scroll" style="padding:0 12px;overflow-y:auto;overflow-x:hidden;flex:1;scrollbar-width:none;-webkit-overflow-scrolling:touch">
               <div style="background:#7AB648;border-top:4px solid #1B5EBE;border-bottom:4px solid #E8007D;border-radius:4px;padding:10px 14px;margin-bottom:10px">
@@ -669,7 +669,7 @@
       <div style="flex:0 0 auto">
         <div style="font-size:11px;font-weight:700;color:#C9E2F5;text-transform:uppercase;letter-spacing:.04em;margin:0 0 .5rem 4px">Voorbeeld op mobiel</div>
         <div style="width:340px;height:640px;background:#1c1c1e;border-radius:38px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.35)">
-          <div style="width:100%;height:100%;background:#5b5b5b;border-radius:28px;overflow:hidden;display:flex;flex-direction:column;min-width:0">
+          <div style="width:100%;height:100%;background:#6d747a;border-radius:28px;overflow:hidden;display:flex;flex-direction:column;min-width:0">
             <div style="height:22px;display:flex;justify-content:center;align-items:center"><div style="width:90px;height:6px;border-radius:3px;background:#1c1c1e"></div></div>
             <div id="pr-mob-scroll" style="padding:0 12px;overflow-y:auto;overflow-x:hidden;flex:1;scrollbar-width:none;-webkit-overflow-scrolling:touch">
               <div style="background:#7AB648;border-top:4px solid #1B5EBE;border-bottom:4px solid #E8007D;border-radius:4px;padding:10px 14px;margin-bottom:10px">
@@ -859,7 +859,7 @@ async function laadFeestdagen() {
 }
 function isFeestdag(datum) { return allFeestdagen.some(f => f.datum === datum); }
 let vakAllVrij = null;
-function vrijStatus(v) { if (v === true) return 'goedgekeurd'; return (v === 'aangevraagd' || v === 'goedgekeurd') ? v : null; }
+function vrijStatus(v) { if (v === true) return 'aangevraagd'; /* oude aanvragen (true) van mobiel */ return (v === 'aangevraagd' || v === 'goedgekeurd') ? v : null; }
 function isActief(u) { return u.actief !== false; }
 function berekenEntriesMetFeestdagen() {
   if (!allUsers.length) return allEntries;
@@ -1105,6 +1105,10 @@ async function renderProtocollen() {
   ta.value = d[prVeld('tekst')] || ''; ta.disabled = false;
   let info = d[prVeld('bijgewerkt')] ? 'Laatst opgeslagen: ' + new Date(d[prVeld('bijgewerkt')]).toLocaleString('nl-NL') : 'Nog niet opgeslagen.';
   if (prTaal !== 'nl' && d.bijgewerkt && d[prVeld('bijgewerkt')] && d.bijgewerkt > d[prVeld('bijgewerkt')]) info += ' <b style="color:#A6362A">⚠️ De Nederlandse tekst is later gewijzigd. Controleer of deze vertaling nog klopt.</b>';
+  try { await loadUsers(); } catch (e) {}
+  const mw = allUsers.filter(u => u.role !== 'admin' && isActief(u));
+  const mag = mw.filter(u => !Array.isArray(u.protocollen) || u.protocollen.includes(prCat)).map(u => u.name).sort();
+  info += `<div style="margin-top:4px"><b>Zichtbaar voor ${mag.length} van ${mw.length} medewerkers</b>${mag.length && mag.length < mw.length ? ': ' + mag.join(', ') : ''}. Aanpassen via het rondje voor de naam op START.</div>`;
   document.getElementById('pr-info').innerHTML = info;
   prVoorbeeld();
 }
@@ -1266,6 +1270,9 @@ window.openMedewerkerPopup = async function(naam) {
   const jaarsnip = calcJaarsnippers(u);
   const sf = u.contracturen && u.werkdagen ? (u.contracturen/u.werkdagen).toFixed(1) : '0';
   const vwd = u.vasteWerkdagen || DAGNAMEN5;
+  if (prHoofdstukken === null) { try { await prLaadHoofdstukken(); } catch (e) {} }
+  const prAlle = prHoofdstukken || [];
+  const prMag = Array.isArray(u.protocollen) ? u.protocollen : prAlle.map(h => h.id);
   const snipDelen = u.snipOpbouw || { basis: u.snipperdagen || 0, dienstverband: 0, bevrijdingsdag: 0, overig: 0 };
 
   document.getElementById('mw-popup-inhoud').innerHTML = `
@@ -1302,6 +1309,10 @@ window.openMedewerkerPopup = async function(naam) {
         <option value="pl" ${u.taal==='pl'?'selected':''}>Polski</option>
       </select></div>
     </div>
+    ${prAlle.length ? `<div style="border:1px solid #A9C9E3;border-radius:6px;padding:6px 8px;margin-bottom:.6rem">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem">Protocollen die deze medewerker mag inzien</div>
+      <div style="display:flex;gap:.4rem 1rem;flex-wrap:wrap">${prAlle.map(h => `<label class="chk-row" style="margin:0"><input type="checkbox" class="mwp-prot" value="${h.id}" ${prMag.includes(h.id) ? 'checked' : ''}> ${hrEsc(h.naam)}</label>`).join('')}</div>
+    </div>` : ''}
     <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.6rem">
       <label class="chk-row"><input type="checkbox" id="mwp-nulUren" ${u.nulUrenContract?'checked':''}> 0 uren contract</label>
       <label class="chk-row"><input type="checkbox" id="mwp-losseKracht" ${u.losseKracht?'checked':''}> Losse kracht</label>
@@ -1349,6 +1360,7 @@ window.saveMedewerkerPopup = async function() {
     vasteWerkdagen: Array.from(document.querySelectorAll('.mwp-vwd:checked')).map(c=>c.value),
     nulUrenContract: document.getElementById('mwp-nulUren').checked,
     taal: document.getElementById('mwp-taal')?.value || 'nl',
+    ...(document.querySelector('.mwp-prot') ? { protocollen: Array.from(document.querySelectorAll('.mwp-prot:checked')).map(c => c.value) } : {}),
     stdAanvang: document.getElementById('mwp-std-aanvang')?.value || '08:00',
     stdEinde: document.getElementById('mwp-std-einde')?.value || '17:00',
     actief: document.getElementById('mwp-actief').checked,
@@ -2863,7 +2875,7 @@ window.renderDagoverzicht=async function(){
 
 
 </script>
-<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-10-22 10:00 Beheer</div>
+<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-11-03 10:00 Beheer</div>
 <div id="verjaardag-kader" style="display:none;position:fixed;bottom:20px;left:20px;z-index:200;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;font-size:15px;font-weight:700;color:#142433;line-height:2;max-width:380px;box-shadow:0 4px 16px rgba(0,0,0,.2)"></div>
 <!-- Klikhulp: roze stip toont alle klikbare plekken; klik op een puntje voor uitleg -->
 <style>
