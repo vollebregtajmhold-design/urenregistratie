@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-10-29 10:00 Mobiel</title>
+<title>Urenregistratie | v2026-11-03 10:00 Mobiel</title>
 <script>
 // Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
 (function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
@@ -704,7 +704,8 @@ window.saveReminder=async function(){
   me={...me,reminderAan:aan,reminderTijd:tijd};await setDoc(doc(db,'users',key),{reminderAan:aan,reminderTijd:tijd},{merge:true});await loadUsers();startReminderCheck();
   ok.textContent=t('rem_ok');ok.style.display='block';setTimeout(()=>ok.style.display='none',3000);
 };
-function vrijStatus(v){if(v===true)return 'goedgekeurd';return(v==='aangevraagd'||v==='goedgekeurd')?v:null;}
+function vrijStatus(v){if(v===true)return 'aangevraagd'; // oude aanvragen (true) zijn nog niet goedgekeurd
+return(v==='aangevraagd'||v==='goedgekeurd')?v:null;}
 function isFeestdag(d){
   const y=d.getFullYear();const md=(m,day)=>d.getMonth()===m&&d.getDate()===day;
   if(md(0,1)||md(11,25)||md(11,26))return true;
@@ -884,7 +885,7 @@ function countVrijeDagen(vrijeDagen,jaar,week){let count=0;for(let i=0;i<5;i++){
 window.toggleVrijeDagenWeek=function(w){const body=document.getElementById('vd-body-'+w);if(!body)return;const isOpen=body.style.display!=='none'&&body.style.display!=='';body.style.display=isOpen?'none':'block';};
 window.saveDag=async function(key,datum,checked){
   let vrijeDagen={};try{const snap=await getDoc(doc(db,'vrije_dagen',key));if(snap.exists())vrijeDagen=snap.data().dagen||{};}catch(e){}
-  if(checked)vrijeDagen[datum]=true;else delete vrijeDagen[datum];
+  if(checked)vrijeDagen[datum]='aangevraagd';else delete vrijeDagen[datum];
   await setDoc(doc(db,'vrije_dagen',key),{naam:me.name,dagen:vrijeDagen});
   mijnVrijeDagen=vrijeDagen;
   // Herlaad de lijst
@@ -1210,7 +1211,7 @@ window.renderVrijeDagen=async function(){
         const status=vrijStatus(dagen[ds]);
         const lbl=dag.toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'});
         const isGoedgekeurd=status==='goedgekeurd';
-        const isAangevraagd=status==='aangevraagd'||dagen[ds]===true;
+        const isAangevraagd=status==='aangevraagd';
         const bgColor=isGoedgekeurd?'#BEEBD2':isAangevraagd?'#C9E2F5':'#fff';
         const textColor=isGoedgekeurd?'#155C36':isAangevraagd?'#1F5E8C':'#4F7395';
         const border=isGoedgekeurd?'2px solid #155C36':isAangevraagd?'1px solid #1F5E8C':'1px solid #A9C9E3';
@@ -1485,7 +1486,7 @@ function renderProtocollenMobiel(){
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-10-29 10:00 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-11-03 10:00 Mobiel</div>
 <!-- Klikhulp: roze stip toont alle klikbare plekken; klik op een puntje voor uitleg -->
 <style>
 #kh-knop{width:22px;height:22px;border-radius:50%;background:#E8007D;border:3px solid #fff;box-shadow:0 0 0 2px #E8007D,0 2px 6px rgba(0,0,0,.25);cursor:pointer;flex-shrink:0;padding:0;margin:0 10px}
