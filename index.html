@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-11-03 10:00 Mobiel</title>
+<title>Urenregistratie | v2026-11-11 11:00 Mobiel</title>
 <script>
 // Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
 (function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
@@ -528,22 +528,36 @@ window.doRegister=async function(){
   await setDoc(doc(db,'users',n.toLowerCase()),{name:n,pass:p,role:'user'});await loadUsers();hideEl('reg-err');alert('Account aangemaakt! U kunt nu inloggen.');show('screen-login');
 };
 window.doLogout=function(){try{localStorage.removeItem('uren_login');}catch(e){}me=null;allEntries=[];setVal('login-name','');setVal('login-pass','');show('screen-login');};
+// Eigen dialoog i.p.v. confirm()/alert(): sommige telefoons/browsers blokkeren die (dan werd er niet opgeslagen)
+function appDialoog(tekst,metAnnuleren){return new Promise(res=>{
+  let el=document.getElementById('app-dialoog');
+  if(!el){el=document.createElement('div');el.id='app-dialoog';el.style.cssText='position:fixed;inset:0;z-index:100001;background:rgba(20,36,51,.5);display:flex;align-items:center;justify-content:center;padding:16px';document.body.appendChild(el);}
+  const esc=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+  el.innerHTML=`<div style="background:#fff;border-radius:12px;border-top:5px solid #1B5EBE;max-width:360px;width:100%;padding:16px 16px 12px;box-shadow:0 8px 30px rgba(0,0,0,.35)"><div style="font-size:15px;line-height:1.5;color:#142433;margin-bottom:14px">${esc(tekst)}</div><div style="display:flex;gap:8px;justify-content:flex-end">${metAnnuleren?'<button id="ad-nee" style="padding:9px 16px;border-radius:8px;border:1px solid #A9C9E3;background:#EAF4FC;color:#1F5E8C;font-weight:700;font-size:15px">Annuleren</button>':''}<button id="ad-ja" style="padding:9px 18px;border-radius:8px;border:none;background:#1F5E8C;color:#fff;font-weight:700;font-size:15px">OK</button></div></div>`;
+  el.style.display='flex';
+  const klaar=v=>{el.style.display='none';res(v);};
+  el.querySelector('#ad-ja').onclick=()=>klaar(true);
+  const n=el.querySelector('#ad-nee');if(n)n.onclick=()=>klaar(false);
+});}
+const vraag=t=>appDialoog(t,true), melding=t=>appDialoog(t,false);
 window.saveEntry=async function(){
   const datum=val('u-datum');if(!datum){showErr('u-err',t('err_datum'));return;}if(isLocked(datum)){showErr('u-err',t('err_definitief'));return;}hideEl('u-err');
   const rec={naam:me.name,datum,aanvang:val('u-aanvang'),einde:val('u-einde'),gewerkt:parseFloat(val('u-gewerkt'))||0,ziek:parseFloat(val('u-ziek'))||0,dokter:parseFloat(val('u-dokter'))||0,snip:parseFloat(val('u-snip'))||0,vrij:parseFloat(val('u-vrij'))||0,opmerking:val('u-opmerking')||'',teelten:Array.from(document.querySelectorAll('.u-teelt:checked')).map(c=>c.value),locatie:getLocatie(),extraPauze:extraPauzeMinuten()};
   // Gewerkte uren zonder teelt: waarschuwen en niet opslaan
-  if(rec.gewerkt>0&&!rec.teelten.length){showErr('u-err','\u26A0\uFE0F Je hebt gewerkte uren ingevuld, maar geen teelt aangevinkt. Vink de teelt aan waarin je het meest hebt gewerkt.');document.getElementById('teelt-keuze')?.scrollIntoView({block:'center'});alert('Let op: de teelt is niet ingevuld.\n\nVink de teelt aan waarin je het meest hebt gewerkt en sla daarna op.');return;}
+  if(rec.gewerkt>0&&!rec.teelten.length){showErr('u-err','\u26A0\uFE0F Je hebt gewerkte uren ingevuld, maar geen teelt aangevinkt. Vink de teelt aan waarin je het meest hebt gewerkt.');await melding('Let op: de teelt is niet ingevuld.\n\nVink de teelt aan waarin je het meest hebt gewerkt en sla daarna op.');document.getElementById('teelt-keuze')?.scrollIntoView({block:'center'});return;}
   // Wijziging na opslaan: oude en nieuwe waarde laten bevestigen
   const ex=allEntries.find(e=>e.naam===me.name&&e.datum===datum);
   if(ex){
     const velden=[['aanvang','Aanvang'],['einde','Einde'],['gewerkt','Gewerkt'],['ziek','Ziek'],['dokter','Dokter'],['teelten','Teelt'],['locatie','Locatie'],['opmerking','Opmerking']];
     const fmtV=(k,v)=>{if(k==='teelten')return (v&&v.length)?v.join(', '):'\u2013';if(['gewerkt','ziek','dokter'].includes(k))return String(+(v||0)).replace('.',',');return (v===undefined||v===null||v==='')?'\u2013':String(v);};
     const diffs=velden.filter(([k])=>fmtV(k,ex[k])!==fmtV(k,rec[k])).map(([k,l])=>`${l}: ${fmtV(k,ex[k])} \u2192 ${fmtV(k,rec[k])}`);
-    if(diffs.length&&!confirm('Wijziging '+fmtDate(datum)+'\n\n'+diffs.join('\n')+'\n\nKlopt dit?'))return;
+    if(diffs.length&&!(await vraag('Wijziging '+fmtDate(datum)+'\n\n'+diffs.join('\n')+'\n\nKlopt dit?')))return;
   }
   const btn=document.getElementById('btn-opslaan');btn.textContent='Opslaan...';btn.disabled=true;
   const id=me.name.toLowerCase().replace(/\s+/g,'-')+'_'+datum;
-  await setDoc(doc(db,'entries',id),rec);await loadEntries();btn.textContent='Opslaan';btn.disabled=false;
+  try{await setDoc(doc(db,'entries',id),rec);await loadEntries();}
+  catch(e){btn.textContent=t('btn_opslaan')||'Opslaan';btn.disabled=false;showErr('u-err','\u26A0\uFE0F Opslaan mislukt. Controleer je internet en probeer opnieuw. ('+e.message+')');await melding('Opslaan mislukt. Controleer je internetverbinding en probeer het opnieuw.');return;}
+  btn.textContent=t('btn_opslaan')||'Opslaan';btn.disabled=false;
   const okEl=document.getElementById('u-ok');okEl.textContent=t('saved_for')+' '+fmtDate(datum);uDirty=false;updateStatusRegel();okEl.style.display='block';clearTimeout(window._okT);window._okT=setTimeout(()=>okEl.style.display='none',5000);
 };
 window.addUser=async function(){
@@ -595,8 +609,8 @@ window.kiesInst=function(tab){
 };
 window.saveStartStop=async function(){
   const a=val('ss-aanvang'),e=val('ss-einde');
-  if(!a||!e){alert('Vul start en stop in');return;}
-  if(!confirm('Zeker weten?\n\nStart '+a+' en stop '+e+' opslaan.'))return;
+  if(!a||!e){await melding('Vul start en stop in');return;}
+  if(!(await vraag('Zeker weten?\n\nStart '+a+' en stop '+e+' opslaan.')))return;
   const key=me.name.toLowerCase().replace(/\s+/g,'-');
   await setDoc(doc(db,'users',key),{stdAanvang:a,stdEinde:e},{merge:true});
   await loadUsers();me=allUsers.find(u=>u.name===me.name)||{...me,stdAanvang:a,stdEinde:e};
@@ -842,7 +856,7 @@ window.toonAlsnogOpties=function(datum){
 }
 
 window.snelInvullen=async function(datum, type){
-  if(allEntries.some(e=>e.naam===me.name&&e.datum===datum)&&!confirm('Zeker weten?\n\nEr zijn al uren ingevuld voor deze dag.'))return;
+  if(allEntries.some(e=>e.naam===me.name&&e.datum===datum)&&!(await vraag('Zeker weten?\n\nEr zijn al uren ingevuld voor deze dag.')))return;
   // Haal contracturen/werkdagen op voor uren per dag
   const u=allUsers?allUsers.find(x=>x.name===me.name):null;
   const urenPerDag=u&&u.contracturen&&u.werkdagen?(u.contracturen/u.werkdagen):0;
@@ -878,7 +892,7 @@ window.snelInvullen=async function(datum, type){
     // Vul ook opmerking in zodat gebruiker het ziet
     const opmEl=document.getElementById('u-opmerking');
     if(opmEl&&entry.opmerking)opmEl.value=entry.opmerking;
-  }catch(e){alert('Fout bij opslaan: '+e.message);}
+  }catch(e){melding('Fout bij opslaan: '+e.message);}
 }
 
 function countVrijeDagen(vrijeDagen,jaar,week){let count=0;for(let i=0;i<5;i++){const datum=datumVanWeekdag(jaar,week,i);if(vrijeDagen[datum])count++;}return count;}
@@ -1486,7 +1500,7 @@ function renderProtocollenMobiel(){
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-11-03 10:00 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-11-11 11:00 Mobiel</div>
 <!-- Klikhulp: roze stip toont alle klikbare plekken; klik op een puntje voor uitleg -->
 <style>
 #kh-knop{width:22px;height:22px;border-radius:50%;background:#E8007D;border:3px solid #fff;box-shadow:0 0 0 2px #E8007D,0 2px 6px rgba(0,0,0,.25);cursor:pointer;flex-shrink:0;padding:0;margin:0 10px}
