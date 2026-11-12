@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-11-11 11:00 Mobiel</title>
+<title>Urenregistratie | v2026-11-12 10:30 Mobiel</title>
 <script>
 // Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
 (function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
@@ -1312,11 +1312,13 @@ window.renderUserWeek=function(){
     const snipperSaldo=+(startsaldo+jaarsnippers-opgenomen).toFixed(1);
     const dagen=sf>0?+(snipperSaldo/sf).toFixed(1):null;
     const kleur=snipperSaldo>=0?'#155C36':'#A6362A';
-    summary.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:.75rem;flex-wrap:wrap">
+    window._snipInfo={jaarsnippers,startsaldo,opgenomen:+opgenomen.toFixed(2),saldo:snipperSaldo,sf,jaar:curYear};
+    summary.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:.75rem;flex-wrap:wrap;cursor:pointer" onclick="toonSnipUitleg()">
       ${contract>0?`<div class="stat" style="flex:1"><div class="stat-val">${contract}u</div><div class="stat-lbl">Contract/week</div></div>`:''}
       ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val">${jaarsnippers}u</div><div class="stat-lbl">Snipperuren/jaar</div></div>`:''}
       ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val" style="color:${kleur}">${snipperSaldo}u</div><div class="stat-lbl" style="color:${kleur};font-weight:600">${dagen!==null?'≈'+dagen+' dagen over':''}</div></div>`:''}
-    </div>`;
+    </div>
+    ${jaarsnippers>0?`<button type="button" onclick="toonSnipUitleg()" style="width:100%;margin:-.35rem 0 .75rem;padding:9px;border-radius:8px;border:1px solid #7AB648;background:#EEF6E6;color:#2E6B1E;font-weight:700;font-size:14px;cursor:pointer">\u2139\uFE0F ${SNIPT[hrTaalM()].knop}</button>`:''}`;
   } else { summary.innerHTML=''; }
 
   if(!mine.length){el.innerHTML='<div class="empty">Nog geen uren ingevuld</div>';return;}
@@ -1498,9 +1500,44 @@ function renderProtocollenMobiel(){
   el.innerHTML=`<div style="font-weight:700;font-size:18px;color:#1F5E8C;margin-bottom:.3rem">${hrEscM(prmNaam(h))}</div><div style="font-size:15px;line-height:1.6;color:#142433;overflow-wrap:anywhere">${hrHtmlM(prmTekst(h.id))}</div>`;
 }
 
+
+// ===== Uitleg snipperuren (mobiel) =====
+const SNIPT={
+ nl:{knop:'Hoe komen mijn snipperuren tot stand?',titel:'Zo komen je snipperuren tot stand',basis:'Basis',dienst:'Dienstverband (dienstjaren)',bevr:'Bevrijdingsdag',overig:'Overig',perjaar:'Totaal per jaar',vorig:'Saldo vorig jaar',beschikbaar:'Beschikbaar dit jaar',opgenomen:'Opgenomen t/m vandaag',over:'Nog over',dagen:'dagen',dag:'dag',uurdag:'uur per dag',updag:'Uren per snipperdag',contr:'contracturen per week',wd:'werkdagen per week',uitleg:'1 snipperdag = je contracturen per dag. Opgenomen = vrije dagen en uren die je minder werkte dan je contract (min overuren).',sluit:'Sluiten'},
+ en:{knop:'How are my leave hours calculated?',titel:'How your leave hours are calculated',basis:'Basic',dienst:'Years of service',bevr:'Liberation Day',overig:'Other',perjaar:'Total per year',vorig:'Balance from last year',beschikbaar:'Available this year',opgenomen:'Used up to today',over:'Remaining',dagen:'days',dag:'day',uurdag:'hours per day',updag:'Hours per leave day',contr:'contract hours per week',wd:'working days per week',uitleg:'1 leave day = your contract hours per day. Used = days off and hours you worked less than your contract (minus overtime).',sluit:'Close'},
+ pl:{knop:'Jak liczone są moje godziny urlopu?',titel:'Tak liczone są Twoje godziny urlopu',basis:'Podstawa',dienst:'Staż pracy',bevr:'Dzień Wyzwolenia',overig:'Inne',perjaar:'Razem na rok',vorig:'Saldo z poprzedniego roku',beschikbaar:'Dostępne w tym roku',opgenomen:'Wykorzystane do dziś',over:'Pozostało',dagen:'dni',dag:'dzień',uurdag:'godzin dziennie',updag:'Godziny na dzień urlopu',contr:'godzin z umowy na tydzień',wd:'dni pracy w tygodniu',uitleg:'1 dzień urlopu = Twoje godziny z umowy na dzień. Wykorzystane = dni wolne i godziny przepracowane mniej niż w umowie (minus nadgodziny).',sluit:'Zamknij'}};
+window.toonSnipUitleg=function(){
+  const T=SNIPT[hrTaalM()]||SNIPT.nl, i=window._snipInfo||{};
+  const sf=i.sf||(me.contracturen&&me.werkdagen?me.contracturen/me.werkdagen:0);
+  const op=me.snipOpbouw||{basis:me.snipperdagen||0,dienstverband:0,bevrijdingsdag:0,overig:0};
+  const nr=v=>String(+(+v||0).toFixed(1)).replace('.',',');
+  const delen=[[T.basis,op.basis,'#7AB648'],[T.dienst,op.dienstverband,'#1B5EBE'],[T.bevr,op.bevrijdingsdag,'#E8007D'],[T.overig,op.overig,'#F0A030']].filter(d=>+d[1]>0);
+  const totDagen=delen.reduce((a,d)=>a+(+d[1]),0);
+  const jaarU=i.jaarsnippers!=null?i.jaarsnippers:+(totDagen*sf).toFixed(1);
+  const vorig=+(i.startsaldo||0), beschikbaar=+(jaarU+vorig).toFixed(1), opg=+(i.opgenomen||0), over=i.saldo!=null?i.saldo:+(beschikbaar-opg).toFixed(1);
+  const maxU=Math.max(beschikbaar,opg,1);
+  const balk=(stukken)=>`<div style="display:flex;height:16px;border-radius:5px;overflow:hidden;background:#E4EEF7;margin:4px 0 2px">${stukken.map(([u,k])=>`<div style="width:${Math.max(0,u)/maxU*100}%;background:${k}"></div>`).join('')}</div>`;
+  const regel=(label,sub,u,k,vet)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #E4EEF7;${vet?'font-weight:700':''}"><span style="width:12px;height:12px;border-radius:3px;background:${k||'transparent'};flex-shrink:0"></span><span style="flex:1">${label}${sub?`<div style="font-size:12px;color:#4F7395;font-weight:400">${sub}</div>`:''}</span><span style="white-space:nowrap">${nr(u)} u</span></div>`;
+  let html=`<div style="font-size:17px;font-weight:700;color:#1F5E8C;margin-bottom:6px">${T.titel} ${i.jaar||''}</div>`;
+  if(me.contracturen&&me.werkdagen)html+=`<div style="background:#EEF4FA;border:1px solid #C9DCEC;border-radius:8px;padding:8px 10px;margin:4px 0 8px"><div style="font-size:12px;color:#4F7395;font-weight:600">${T.updag}</div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;font-size:14px"><span><b>${nr(me.contracturen)}</b> <span style="font-size:12px;color:#4F7395">${T.contr}</span></span><span>÷</span><span><b>${nr(me.werkdagen)}</b> <span style="font-size:12px;color:#4F7395">${T.wd}</span></span><span>=</span><b style="color:#1F5E8C">${nr(sf)} ${T.uurdag}</b></div></div>`;
+  html+=balk([...delen.map(d=>[+d[1]*sf,d[2]]),[vorig,'#9CB6CC']]);
+  html+=delen.map(d=>regel(d[0],`${nr(d[1])} ${+d[1]===1?T.dag:T.dagen} × ${nr(sf)} ${T.uurdag}`,+d[1]*sf,d[2])).join('');
+  html+=regel(T.perjaar,`${nr(totDagen)} ${T.dagen}`,jaarU,null,true);
+  html+=regel('+ '+T.vorig,'',vorig,'#9CB6CC');
+  html+=regel('= '+T.beschikbaar,'',beschikbaar,null,true);
+  html+=balk([[opg,'#A6362A']]);
+  html+=regel('− '+T.opgenomen,'',opg,'#A6362A');
+  html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:10px 12px;border-radius:8px;background:${over>=0?'#E3F2E1':'#FBE2DE'};color:${over>=0?'#155C36':'#A6362A'};font-weight:800;font-size:16px"><span>= ${T.over}</span><span>${nr(over)} u${sf>0?` <span style="font-size:13px;font-weight:600">(≈ ${nr(over/sf)} ${T.dagen})</span>`:''}</span></div>`;
+  html+=`<div style="font-size:12px;color:#4F7395;margin-top:8px;line-height:1.45">${T.uitleg}</div>`;
+  let el=document.getElementById('snip-uitleg');
+  if(!el){el=document.createElement('div');el.id='snip-uitleg';el.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(20,36,51,.5);display:flex;align-items:center;justify-content:center;padding:14px';el.onclick=e=>{if(e.target===el)el.style.display='none';};document.body.appendChild(el);}
+  el.innerHTML=`<div style="background:#fff;border-radius:12px;border-top:5px solid #7AB648;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;padding:14px 16px;box-shadow:0 8px 30px rgba(0,0,0,.35);font-size:14px;color:#142433">${html}<button onclick="document.getElementById('snip-uitleg').style.display='none'" style="margin-top:12px;width:100%;padding:10px;border:none;border-radius:8px;background:#1F5E8C;color:#fff;font-weight:700;font-size:15px">${T.sluit}</button></div>`;
+  el.style.display='flex';
+};
+
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-11-11 11:00 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-11-12 10:30 Mobiel</div>
 <!-- Klikhulp: roze stip toont alle klikbare plekken; klik op een puntje voor uitleg -->
 <style>
 #kh-knop{width:22px;height:22px;border-radius:50%;background:#E8007D;border:3px solid #fff;box-shadow:0 0 0 2px #E8007D,0 2px 6px rgba(0,0,0,.25);cursor:pointer;flex-shrink:0;padding:0;margin:0 10px}
@@ -1571,6 +1608,7 @@ init();
     saveDag:'Vraag deze dag aan als vrije dag (nog een keer klikken = weer weg).',
     kiesHrM:'Toont dit hoofdstuk van de huisregels.',
     kiesPrM:'Toont dit protocol.',
+    toonSnipUitleg:'Laat zien hoe je snipperuren per jaar tot stand komen: basis, dienstjaren, bevrijdingsdag, saldo vorig jaar en wat je al hebt opgenomen.',
     toonWkDetails:'Toont de dagen van deze week.',
     herberekenGewerkt:'Begin- of eindtijd. De gewerkte uren worden dan vanzelf uitgerekend (pauzes eraf).',
     onDatumChange:'Kies de dag die je wilt invullen.',
