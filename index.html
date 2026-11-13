@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-11-12 10:30 Mobiel</title>
+<title>Urenregistratie | v2026-11-13 09:00 Mobiel</title>
 <script>
 // Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
 (function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
@@ -637,14 +637,16 @@ window.resetPassword=async function(name){
   await setDoc(doc(db,'users',key),{pass:nieuw},{merge:true});await loadUsers();alert(`Wachtwoord van ${name} is gewijzigd.`);
 };
 function snipFactor(u){const c=u.contracturen||0;const wd=u.werkdagen||5;return wd>0?c/wd:0;}
+// Snipperdagen gelden voor 5 werkdagen/week; minder dagen = naar verhouding (bv. 3/5)
+function snipDeelFactor(u){const wd=u.werkdagen||5;return Math.min(wd,5)/5;}
 function calcJaarsnippers(u){
-  const c=u.contracturen||0,wd=u.werkdagen||5,wj=u.wekenperjaar||52,sd=u.snipperdagen||0;
-  if(!wd||!wj||!sd)return 0;return Math.round(wj*c*(sd/(wd*wj))*10)/10;
+  const c=u.contracturen||0,wd=u.werkdagen||5,sd=u.snipperdagen||0;
+  if(!wd||!sd)return 0;return Math.round(sd*snipDeelFactor(u)*(c/wd)*10)/10;
 }
 function calcSnipPreview(u){
   const sd=u.snipperdagen||0,wd=u.werkdagen||5,wj=u.wekenperjaar||52,c=u.contracturen||0;
   if(!sd||!wd||!wj||!c)return 'Vul de velden in voor berekening';
-  const ar=sd/(wd*wj);const jaarsnip=Math.round(wj*c*ar*10)/10;const upd=c/wd;
+  const ar=sd/(wd*wj);const jaarsnip=calcJaarsnippers(u);const upd=c/wd;
   return `Aandeel: ${Math.round(ar*1000)/1000} \u00b7 Snipperuren/jaar: <b>${jaarsnip}u</b> \u00b7 Uren/dag: ${upd.toFixed(1)}u`;
 }
 window.updateNewSnipPreview=function(){
@@ -1503,16 +1505,18 @@ function renderProtocollenMobiel(){
 
 // ===== Uitleg snipperuren (mobiel) =====
 const SNIPT={
- nl:{knop:'Hoe komen mijn snipperuren tot stand?',titel:'Zo komen je snipperuren tot stand',basis:'Basis',dienst:'Dienstverband (dienstjaren)',bevr:'Bevrijdingsdag',overig:'Overig',perjaar:'Totaal per jaar',vorig:'Saldo vorig jaar',beschikbaar:'Beschikbaar dit jaar',opgenomen:'Opgenomen t/m vandaag',over:'Nog over',dagen:'dagen',dag:'dag',uurdag:'uur per dag',updag:'Uren per snipperdag',contr:'contracturen per week',wd:'werkdagen per week',uitleg:'1 snipperdag = je contracturen per dag. Opgenomen = vrije dagen en uren die je minder werkte dan je contract (min overuren).',sluit:'Sluiten'},
- en:{knop:'How are my leave hours calculated?',titel:'How your leave hours are calculated',basis:'Basic',dienst:'Years of service',bevr:'Liberation Day',overig:'Other',perjaar:'Total per year',vorig:'Balance from last year',beschikbaar:'Available this year',opgenomen:'Used up to today',over:'Remaining',dagen:'days',dag:'day',uurdag:'hours per day',updag:'Hours per leave day',contr:'contract hours per week',wd:'working days per week',uitleg:'1 leave day = your contract hours per day. Used = days off and hours you worked less than your contract (minus overtime).',sluit:'Close'},
- pl:{knop:'Jak liczone są moje godziny urlopu?',titel:'Tak liczone są Twoje godziny urlopu',basis:'Podstawa',dienst:'Staż pracy',bevr:'Dzień Wyzwolenia',overig:'Inne',perjaar:'Razem na rok',vorig:'Saldo z poprzedniego roku',beschikbaar:'Dostępne w tym roku',opgenomen:'Wykorzystane do dziś',over:'Pozostało',dagen:'dni',dag:'dzień',uurdag:'godzin dziennie',updag:'Godziny na dzień urlopu',contr:'godzin z umowy na tydzień',wd:'dni pracy w tygodniu',uitleg:'1 dzień urlopu = Twoje godziny z umowy na dzień. Wykorzystane = dni wolne i godziny przepracowane mniej niż w umowie (minus nadgodziny).',sluit:'Zamknij'}};
+ nl:{knop:'Hoe komen mijn snipperuren tot stand?',titel:'Zo komen je snipperuren tot stand',basis:'Basis',dienst:'Dienstverband (dienstjaren)',bevr:'Bevrijdingsdag',overig:'Overig',perjaar:'Totaal per jaar',vorig:'Saldo vorig jaar',beschikbaar:'Beschikbaar dit jaar',opgenomen:'Opgenomen t/m vandaag',over:'Nog over',dagen:'dagen',dag:'dag',uurdag:'uur per dag',updag:'Uren per snipperdag',contr:'contracturen per week',wd:'werkdagen per week',deel:'Je werkt {wd} dagen per week. Snipperdagen gelden voor 5 dagen. Je krijgt daarom {wd}/5 deel.',uitleg:'1 snipperdag = je contracturen per dag. Opgenomen = vrije dagen en uren die je minder werkte dan je contract (min overuren).',sluit:'Sluiten'},
+ en:{knop:'How are my leave hours calculated?',titel:'How your leave hours are calculated',basis:'Basic',dienst:'Years of service',bevr:'Liberation Day',overig:'Other',perjaar:'Total per year',vorig:'Balance from last year',beschikbaar:'Available this year',opgenomen:'Used up to today',over:'Remaining',dagen:'days',dag:'day',uurdag:'hours per day',updag:'Hours per leave day',contr:'contract hours per week',wd:'working days per week',deel:'You work {wd} days per week. Leave days are based on 5 days. So you get {wd}/5 of them.',uitleg:'1 leave day = your contract hours per day. Used = days off and hours you worked less than your contract (minus overtime).',sluit:'Close'},
+ pl:{knop:'Jak liczone są moje godziny urlopu?',titel:'Tak liczone są Twoje godziny urlopu',basis:'Podstawa',dienst:'Staż pracy',bevr:'Dzień Wyzwolenia',overig:'Inne',perjaar:'Razem na rok',vorig:'Saldo z poprzedniego roku',beschikbaar:'Dostępne w tym roku',opgenomen:'Wykorzystane do dziś',over:'Pozostało',dagen:'dni',dag:'dzień',uurdag:'godzin dziennie',updag:'Godziny na dzień urlopu',contr:'godzin z umowy na tydzień',wd:'dni pracy w tygodniu',deel:'Pracujesz {wd} dni w tygodniu. Dni urlopu liczone są na 5 dni. Dlatego dostajesz {wd}/5 części.',uitleg:'1 dzień urlopu = Twoje godziny z umowy na dzień. Wykorzystane = dni wolne i godziny przepracowane mniej niż w umowie (minus nadgodziny).',sluit:'Zamknij'}};
 window.toonSnipUitleg=function(){
   const T=SNIPT[hrTaalM()]||SNIPT.nl, i=window._snipInfo||{};
   const sf=i.sf||(me.contracturen&&me.werkdagen?me.contracturen/me.werkdagen:0);
   const op=me.snipOpbouw||{basis:me.snipperdagen||0,dienstverband:0,bevrijdingsdag:0,overig:0};
   const nr=v=>String(+(+v||0).toFixed(1)).replace('.',',');
   const delen=[[T.basis,op.basis,'#7AB648'],[T.dienst,op.dienstverband,'#1B5EBE'],[T.bevr,op.bevrijdingsdag,'#E8007D'],[T.overig,op.overig,'#F0A030']].filter(d=>+d[1]>0);
-  const totDagen=delen.reduce((a,d)=>a+(+d[1]),0);
+  const wdM=me.werkdagen||5, fD=snipDeelFactor(me), deelTxt=fD<1?` × ${Math.min(wdM,5)}/5`:'';
+  delen.forEach(d=>d[3]=+d[1]*fD);
+  const totDagen=delen.reduce((a,d)=>a+d[3],0);
   const jaarU=i.jaarsnippers!=null?i.jaarsnippers:+(totDagen*sf).toFixed(1);
   const vorig=+(i.startsaldo||0), beschikbaar=+(jaarU+vorig).toFixed(1), opg=+(i.opgenomen||0), over=i.saldo!=null?i.saldo:+(beschikbaar-opg).toFixed(1);
   const maxU=Math.max(beschikbaar,opg,1);
@@ -1520,8 +1524,9 @@ window.toonSnipUitleg=function(){
   const regel=(label,sub,u,k,vet)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #E4EEF7;${vet?'font-weight:700':''}"><span style="width:12px;height:12px;border-radius:3px;background:${k||'transparent'};flex-shrink:0"></span><span style="flex:1">${label}${sub?`<div style="font-size:12px;color:#4F7395;font-weight:400">${sub}</div>`:''}</span><span style="white-space:nowrap">${nr(u)} u</span></div>`;
   let html=`<div style="font-size:17px;font-weight:700;color:#1F5E8C;margin-bottom:6px">${T.titel} ${i.jaar||''}</div>`;
   if(me.contracturen&&me.werkdagen)html+=`<div style="background:#EEF4FA;border:1px solid #C9DCEC;border-radius:8px;padding:8px 10px;margin:4px 0 8px"><div style="font-size:12px;color:#4F7395;font-weight:600">${T.updag}</div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;font-size:14px"><span><b>${nr(me.contracturen)}</b> <span style="font-size:12px;color:#4F7395">${T.contr}</span></span><span>÷</span><span><b>${nr(me.werkdagen)}</b> <span style="font-size:12px;color:#4F7395">${T.wd}</span></span><span>=</span><b style="color:#1F5E8C">${nr(sf)} ${T.uurdag}</b></div></div>`;
-  html+=balk([...delen.map(d=>[+d[1]*sf,d[2]]),[vorig,'#9CB6CC']]);
-  html+=delen.map(d=>regel(d[0],`${nr(d[1])} ${+d[1]===1?T.dag:T.dagen} × ${nr(sf)} ${T.uurdag}`,+d[1]*sf,d[2])).join('');
+  if(fD<1)html+=`<div style="background:#FFF6E0;border:1px solid #F0D58A;border-radius:8px;padding:7px 10px;margin:0 0 8px;font-size:13px;color:#6B5200">${T.deel.replace(/\{wd\}/g,nr(Math.min(wdM,5)))}</div>`;
+  html+=balk([...delen.map(d=>[d[3]*sf,d[2]]),[vorig,'#9CB6CC']]);
+  html+=delen.map(d=>regel(d[0],fD<1?`${nr(d[1])}${deelTxt} = ${nr(d[3])} ${T.dagen} × ${nr(sf)} ${T.uurdag}`:`${nr(d[1])} ${+d[1]===1?T.dag:T.dagen} × ${nr(sf)} ${T.uurdag}`,d[3]*sf,d[2])).join('');
   html+=regel(T.perjaar,`${nr(totDagen)} ${T.dagen}`,jaarU,null,true);
   html+=regel('+ '+T.vorig,'',vorig,'#9CB6CC');
   html+=regel('= '+T.beschikbaar,'',beschikbaar,null,true);
@@ -1537,7 +1542,7 @@ window.toonSnipUitleg=function(){
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-11-12 10:30 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-11-13 09:00 Mobiel</div>
 <!-- Klikhulp: roze stip toont alle klikbare plekken; klik op een puntje voor uitleg -->
 <style>
 #kh-knop{width:22px;height:22px;border-radius:50%;background:#E8007D;border:3px solid #fff;box-shadow:0 0 0 2px #E8007D,0 2px 6px rgba(0,0,0,.25);cursor:pointer;flex-shrink:0;padding:0;margin:0 10px}
