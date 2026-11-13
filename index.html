@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Urenregistratie | v2026-11-13 09:00 Mobiel</title>
+<title>Urenregistratie | v2026-11-13 09:30 Mobiel</title>
 <script>
 // Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
 (function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
@@ -785,6 +785,7 @@ function mijnEntriesMetVrij(){
 }
 function showSnipperBanner(){
   const banner=document.getElementById('snipper-banner');if(!banner)return;
+  banner.style.display='none';return; // saldo staat nu in de popup snipperuren
   const contract=me.contracturen||0,jaarsnippers=me.jaarsnippers||0,startsaldo=me.startsaldo||0;
   if(!jaarsnippers){banner.style.display='none';return;}
   const mine=mijnEntriesMetVrij();const weken=groupByWeek(mine);
@@ -1315,12 +1316,7 @@ window.renderUserWeek=function(){
     const dagen=sf>0?+(snipperSaldo/sf).toFixed(1):null;
     const kleur=snipperSaldo>=0?'#155C36':'#A6362A';
     window._snipInfo={jaarsnippers,startsaldo,opgenomen:+opgenomen.toFixed(2),saldo:snipperSaldo,sf,jaar:curYear};
-    summary.innerHTML=`<div style="display:flex;gap:8px;margin-bottom:.75rem;flex-wrap:wrap;cursor:pointer" onclick="toonSnipUitleg()">
-      ${contract>0?`<div class="stat" style="flex:1"><div class="stat-val">${contract}u</div><div class="stat-lbl">Contract/week</div></div>`:''}
-      ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val">${jaarsnippers}u</div><div class="stat-lbl">Snipperuren/jaar</div></div>`:''}
-      ${jaarsnippers>0?`<div class="stat" style="flex:1"><div class="stat-val" style="color:${kleur}">${snipperSaldo}u</div><div class="stat-lbl" style="color:${kleur};font-weight:600">${dagen!==null?'≈'+dagen+' dagen over':''}</div></div>`:''}
-    </div>
-    ${jaarsnippers>0?`<button type="button" onclick="toonSnipUitleg()" style="width:100%;margin:-.35rem 0 .75rem;padding:9px;border-radius:8px;border:1px solid #7AB648;background:#EEF6E6;color:#2E6B1E;font-weight:700;font-size:14px;cursor:pointer">\u2139\uFE0F ${SNIPT[hrTaalM()].knop}</button>`:''}`;
+    summary.innerHTML=`${jaarsnippers>0?`<button type="button" onclick="toonSnipUitleg()" style="width:100%;margin:0 0 .75rem;padding:9px;border-radius:8px;border:1px solid #7AB648;background:#EEF6E6;color:#2E6B1E;font-weight:700;font-size:14px;cursor:pointer">\u2139\uFE0F ${SNIPT[hrTaalM()].knop}</button>`:''}`;
   } else { summary.innerHTML=''; }
 
   if(!mine.length){el.innerHTML='<div class="empty">Nog geen uren ingevuld</div>';return;}
@@ -1542,7 +1538,7 @@ window.toonSnipUitleg=function(){
 
 init();
 </script>
-<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-11-13 09:00 Mobiel</div>
+<div style="text-align:center;font-size:10px;color:#888;padding:4px">v2026-11-13 09:30 Mobiel</div>
 <!-- Klikhulp: roze stip toont alle klikbare plekken; klik op een puntje voor uitleg -->
 <style>
 #kh-knop{width:22px;height:22px;border-radius:50%;background:#E8007D;border:3px solid #fff;box-shadow:0 0 0 2px #E8007D,0 2px 6px rgba(0,0,0,.25);cursor:pointer;flex-shrink:0;padding:0;margin:0 10px}
