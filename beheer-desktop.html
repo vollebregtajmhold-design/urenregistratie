@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Urenregistratie — Beheer | v2026-11-11 11:30 Beheer</title>
+<title>Urenregistratie — Beheer | v2026-11-13 09:00 Beheer</title>
 <script>
 // Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
 (function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
@@ -1223,8 +1223,10 @@ function minDate(){const d=new Date();d.setDate(d.getDate()-6);return d.toISOStr
 function isLocked(datum){return datum<minDate();}
 function snipFactor(u){const c=u.contracturen||0;const wd=u.werkdagen||5;return wd>0?c/wd:0;}
 function maandKort(m){return ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'][m];}
-function calcJaarsnippers(u){if(u.nulUrenContract)return 0;const c=u.contracturen||0,wd=u.werkdagen||5,wj=u.wekenperjaar||52,sd=u.snipperdagen||0;if(!wd||!wj||!sd)return 0;const aandeel=sd/(wd*wj);return Math.round(wj*c*aandeel*10)/10;}
-function calcSnipPreview(u){const sd=u.snipperdagen||0,wd=u.werkdagen||5,wj=u.wekenperjaar||52,c=u.contracturen||0;if(!sd||!wd||!wj||!c)return 'Vul de velden in voor berekening';const aandeelRaw=sd/(wd*wj);const jaarsnip=Math.round(wj*c*aandeelRaw*10)/10;const uurPerDag=c/wd;return `Aandeel: ${Math.round(aandeelRaw*1000)/1000} \u00b7 Snipperuren/jaar: <b>${jaarsnip}u</b> \u00b7 Uren/dag: ${uurPerDag.toFixed(1)}u`;}
+// Snipperdagen gelden voor 5 werkdagen/week; minder dagen = naar verhouding (bv. 3/5)
+function snipDeelFactor(u){const wd=u.werkdagen||5;return Math.min(wd,5)/5;}
+function calcJaarsnippers(u){if(u.nulUrenContract)return 0;const c=u.contracturen||0,wd=u.werkdagen||5,sd=u.snipperdagen||0;if(!wd||!sd)return 0;return Math.round(sd*snipDeelFactor(u)*(c/wd)*10)/10;}
+function calcSnipPreview(u){const sd=u.snipperdagen||0,wd=u.werkdagen||5,wj=u.wekenperjaar||52,c=u.contracturen||0;if(!sd||!wd||!wj||!c)return 'Vul de velden in voor berekening';const aandeelRaw=sd/(wd*wj);const jaarsnip=calcJaarsnippers(u);const uurPerDag=c/wd;return `Aandeel: ${Math.round(aandeelRaw*1000)/1000} \u00b7 Snipperuren/jaar: <b>${jaarsnip}u</b> \u00b7 Uren/dag: ${uurPerDag.toFixed(1)}u`;}
 function calcResterendDagen(naam, jaar) {
   const u = allUsers.find(x => x.name === naam) || {};
   const sf = snipFactor(u); // uren per dag
@@ -1339,7 +1341,7 @@ window.openMedewerkerPopup = async function(naam) {
     document.getElementById('mwp-snip-totaal').textContent = String(tot).replace('.', ',');
     const tmp = { ...u, contracturen: parseFloat(document.getElementById('mwp-contract').value) || 0, werkdagen: parseFloat(document.getElementById('mwp-werkdagen').value) || 5, wekenperjaar: parseFloat(document.getElementById('mwp-weken').value) || 52, snipperdagen: tot };
     const sf2 = tmp.contracturen && tmp.werkdagen ? (tmp.contracturen / tmp.werkdagen).toFixed(1) : '0';
-    document.getElementById('mwp-snip-info').innerHTML = `Snipperuren/jaar: <b>${calcJaarsnippers(tmp)}u</b> · Uren/dag: ${sf2}u`;
+    const fDeel = snipDeelFactor(tmp); document.getElementById('mwp-snip-info').innerHTML = (fDeel<1?`Naar verhouding (${Math.min(tmp.werkdagen,5)}/5): <b>${String(+(tot*fDeel).toFixed(2)).replace('.',',')} dagen</b> · `:'') + `Snipperuren/jaar: <b>${calcJaarsnippers(tmp)}u</b> · Uren/dag: ${sf2}u`;
   };
   document.querySelectorAll('.mwp-snipdeel, #mwp-contract, #mwp-werkdagen, #mwp-weken').forEach(el => el.addEventListener('input', herberekenSnip));
   herberekenSnip();
@@ -2885,7 +2887,7 @@ window.renderDagoverzicht=async function(){
 
 
 </script>
-<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-11-11 11:30 Beheer</div>
+<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-11-13 09:00 Beheer</div>
 <div id="verjaardag-kader" style="display:none;position:fixed;bottom:28px;right:20px;z-index:200;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;font-size:15px;font-weight:700;color:#142433;line-height:2;max-width:380px;box-shadow:0 4px 16px rgba(0,0,0,.2)"></div>
 <!-- Klikhulp: roze stip toont alle klikbare plekken; klik op een puntje voor uitleg -->
 <style>
