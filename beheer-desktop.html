@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Urenregistratie — Beheer | v2026-11-13 09:00 Beheer</title>
+<title>Urenregistratie — Beheer | v2026-11-14 09:00 Beheer</title>
 <script>
 // Weergave van uren: standaard 1 decimaal, maar 2 decimalen als dat nodig is (bijv. kwartieren: 0,25 / 7,75)
 (function(){const orig=Number.prototype.toFixed;Number.prototype.toFixed=function(d){if(d===1){const v=Number(this);if(isFinite(v)){const r2=Math.round(v*100)/100;if(Math.abs(r2*10-Math.round(r2*10))>1e-9)return orig.call(r2,2);}}return orig.call(this,d);};})();
@@ -912,7 +912,7 @@ window.renderFeestdagen = function() {
   el.innerHTML = !allFeestdagen.length ? '<div class="empty">Nog geen feestdagen ingevuld</div>' : allFeestdagen.map(f => {
     const dagLabel = new Date(f.datum).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const doordeweeks = DAGNAMEN5.includes(dagNaamVanDatum(f.datum));
-    return `<div class="entry-row" style="display:flex;justify-content:space-between;align-items:center"><div><b>${f.naam}</b><div style="font-size:13px;color:var(--muted)">${dagLabel}${doordeweeks?'':' · valt in het weekend'}</div></div><button class="btn btn-secondary btn-sm btn-danger" onclick="verwijderFeestdag('${f.datum}')">🗑️ Verwijderen</button></div>`;
+    return `<div class="entry-row" style="display:flex;justify-content:space-between;align-items:center"><div><b style="color:#fff">${f.naam}</b><div style="font-size:13px;color:#E3E8EC">${dagLabel}${doordeweeks?'':' · valt in het weekend'}</div></div><button class="btn btn-secondary btn-sm btn-danger" onclick="verwijderFeestdag('${f.datum}')">🗑️ Verwijderen</button></div>`;
   }).join('');
 };
 window.voegFeestdagToe = async function() {
@@ -2887,7 +2887,7 @@ window.renderDagoverzicht=async function(){
 
 
 </script>
-<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-11-13 09:00 Beheer</div>
+<div style="position:fixed;bottom:4px;right:8px;font-size:10px;color:#aaa;z-index:9999;pointer-events:none">v2026-11-14 09:00 Beheer</div>
 <div id="verjaardag-kader" style="display:none;position:fixed;bottom:28px;right:20px;z-index:200;background:#F8F5EC;border-top:6px solid #1B5EBE;border-right:6px solid #7AB648;border-bottom:6px solid #E8007D;border-left:6px solid #7AB648;border-radius:10px;padding:14px 20px;font-size:15px;font-weight:700;color:#142433;line-height:2;max-width:380px;box-shadow:0 4px 16px rgba(0,0,0,.2)"></div>
 <!-- Klikhulp: roze stip toont alle klikbare plekken; klik op een puntje voor uitleg -->
 <style>
